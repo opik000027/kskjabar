@@ -33,7 +33,7 @@ const Navbar = ({ setCurrentView }) => {
         {/* Container for Logo and Title */}
         <div className="text-white text-2xl font-bold mb-2 md:mb-0 flex items-center">
             {/* Kei Shin Kan Logo */}
-            {/* Ensure 'logo-ksk.png' is in your public/ folder */}
+            {/* Pastikan '/logo-ksk.png' adalah nama file yang sudah diganti dan ada di folder public/ */}
             <img src="/logo-ksk.png" alt="Logo Kei Shin Kan" className="h-10 w-10 mr-3 rounded-full object-contain"/>
             <span className="text-blue-400">KEI SHIN KAN</span> JAWA BARAT
         </div>
