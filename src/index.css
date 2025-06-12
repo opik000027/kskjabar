@@ -8,32 +8,13 @@
 /* Menerapkan font Inter ke seluruh elemen HTML */
 html, body {
   font-family: 'Inter', sans-serif;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 /* Gaya dasar untuk elemen fokus untuk aksesibilitas */
 *:focus {
   outline: 2px solid theme('colors.blue.500');
   outline-offset: 2px;
-}
-
-/* Gaya Grid untuk Dojo List di HomePage */
-/* Ini diperlukan untuk membuat tata letak grid secara langsung dalam HTML yang di-render JS */
-.dojo-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-  justify-items: center; /* Memusatkan item di grid */
-}
-
-/* Responsive adjustments for the dojo grid */
-@media (min-width: 768px) { /* md breakpoint */
-  .dojo-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 1024px) { /* lg breakpoint */
-  .dojo-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
 }
