@@ -13,20 +13,15 @@ const mockApiCall = (data, delay = 500) => {
 export const AuthProvider = ({ children, initialData }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  // Menggunakan initialData yang diteruskan sebagai prop
-  const [data, setData] = useState(initialData);
+  const [data, setData] = useState(initialData); // Menggunakan initialData yang diteruskan
 
   // Menginisialisasi user saat aplikasi dimuat (misalnya dari local storage)
-  // dan juga mensimulasikan pemuatan data awal
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem('currentUser'));
     if (storedUser) {
       setCurrentUser(storedUser);
       setIsAuthenticated(true);
     }
-    // Jika tidak ada data awal yang disediakan (misalnya dari mockData),
-    // Anda bisa memuatnya di sini dari API nyata.
-    // Untuk demo ini, initialData sudah diset dari App.jsx
   }, []);
 
   // Fungsi login
@@ -57,19 +52,18 @@ export const AuthProvider = ({ children, initialData }) => {
     };
     await mockApiCall({}); // Simulate API delay
     setData(prev => {
-      // Pastikan members ada saat menambahkan anggota baru
       const updatedMembers = prev.members ? [...prev.members] : [];
       return {
         ...prev,
         users: [...prev.users, newUser],
         members: [...updatedMembers, {
-          id: newUser.id, // Member ID sama dengan User ID untuk simplifikasi
+          id: newUser.id,
           userId: newUser.id,
           dojoId: newUser.dojoId,
           uniqueMemberId: newUser.uniqueMemberId,
           currentBeltId: newUser.currentBeltId,
           membershipStatus: newUser.status,
-          paymentType: 'bulanan', // Default
+          paymentType: 'bulanan',
           joinDate: newUser.join_date,
         }]
       };
@@ -86,7 +80,6 @@ export const AuthProvider = ({ children, initialData }) => {
 
   // Fungsi untuk memperbarui data aplikasi
   const updateData = async (newData) => {
-    // Simulasi update data di backend
     await mockApiCall({});
     setData(prev => ({ ...prev, ...newData }));
   };
