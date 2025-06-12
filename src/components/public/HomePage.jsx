@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 
 const HomePage = () => {
-  // Data Mock untuk Dojo (Ini bisa diganti dengan fetch dari API Supabase nanti)
+  // Data Mock untuk Dojo
   const dojoData = [
     {
         id: 'dojo1',
@@ -169,7 +169,7 @@ const HomePage = () => {
         <section id="hero-homepage" className="h-screen bg-cover bg-center flex items-center justify-center text-center text-white relative transition-all duration-300">
             <div className="absolute inset-0 bg-black bg-opacity-50 z-10"></div>
             <div className="relative z-20 p-8 max-w-3xl">
-                {/* Logo Kei Shin Kan */}
+                {/* [Image of Logo Kei Shin Kan] */}
                 <img src="/logo-ksk.png" alt="Logo Kei Shin Kan" className="mx-auto mb-6 h-24 w-24 object-contain rounded-full shadow-lg"/>
                 
                 <h1 className="text-6xl font-extrabold mb-4 leading-tight">
