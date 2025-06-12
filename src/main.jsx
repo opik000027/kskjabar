@@ -5,8 +5,13 @@ import './index.css';
 
 const rootElement = document.getElementById('root');
 
-ReactDOM.createRoot(rootElement).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+// Pastikan root element ditemukan sebelum merender
+if (rootElement) {
+  ReactDOM.createRoot(rootElement).render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
+  );
+} else {
+  console.error('Elemen HTML dengan id "root" tidak ditemukan.');
+}
