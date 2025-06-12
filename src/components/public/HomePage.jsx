@@ -85,6 +85,9 @@ const HomePage = () => {
 
   useEffect(() => {
     // Inisialisasi Lucide icons
+    // Perhatikan: Karena Lucide React sudah diimpor di App.jsx dan komponen lain,
+    // window.lucide ini mungkin hanya diperlukan jika ada ikon yang di-render secara dinamis di luar React.
+    // Namun, tidak ada salahnya memastikannya.
     if (window.lucide) {
         window.lucide.createIcons();
     }
@@ -134,35 +137,34 @@ const HomePage = () => {
         return;
     }
 
-    dojoListContainer.innerHTML = filteredDojos.map(dojo => { // Perubahan di sini: tambahkan kurung kurawal pembuka {
+    dojoListContainer.innerHTML = filteredDojos.map(dojo => {
         return `
             <div class="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 transform hover:scale-105 transition-all duration-300">
                 <img src="${dojo.image}" alt="Dojo ${dojo.name}" class="w-full h-48 object-cover">
                 <div class="p-6">
                     <h3 class="text-2xl font-semibold text-blue-700 mb-3">${dojo.name}</h3>
-                    <p className="text-gray-700 mb-2 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-map-pin mr-2"><path d="M12 18.35v-1.15a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v1.15a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2z"/><circle cx="12" cy="12" r="10"/></svg>
+                    <p class="text-gray-700 mb-2 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin mr-2"><path d="M12 18.35v-1.15a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v1.15a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2z"/><circle cx="12" cy="12" r="10"/></svg>
                         ${dojo.address}
                     </p>
-                    <p className="text-gray-700 mb-2 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-user mr-2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <p class="text-gray-700 mb-2 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user mr-2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                         Pelatih: ${dojo.coach.name}
                     </p>
-                    <p className="text-gray-700 mb-3 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-phone mr-2"><rect width="18" height="12" x="3" y="6" rx="2"/><path d="M12 12V6"/><path d="M10 9l2-2 2 2"/></svg>
+                    <p class="text-gray-700 mb-3 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-phone mr-2"><rect width="18" height="12" x="3" y="6" rx="2"/><path d="M12 12V6"/><path d="M10 9l2-2 2 2"/></svg>
                         Kontak: ${dojo.coach.contact}
                     </p>
-                    <h4 className="text-lg font-semibold text-gray-800 mb-2">Jadwal Latihan:</h4>
-                    <ul className="list-disc list-inside text-gray-700">
-                            {/* Di sini, kita akan mem-render jadwal latihan */}
+                    <h4 class="text-lg font-semibold text-gray-800 mb-2">Jadwal Latihan:</h4>
+                    <ul class="list-disc list-inside text-gray-700">
                             ${dojo.schedules.map((schedule, index) => (
                                 `<li key=${index}>${schedule}</li>`
                             )).join('')}
                     </ul>
                 </div>
             </div>
-        `; // Perubahan di sini: tambahkan titik koma setelah backtick penutup
-    }).join(''); // Perubahan di sini: pindahkan komentar ke baris baru
+        `;
+    }).join('');
   };
 
   return (
@@ -173,7 +175,6 @@ const HomePage = () => {
             <div className="absolute inset-0 bg-black bg-opacity-50 z-10"></div>
             <div className="relative z-20 p-8 max-w-3xl">
                 {/* Logo Kei Shin Kan */}
-                {/* Pastikan '/logo-ksk.png' adalah nama file yang sudah diganti dan ada di folder public/ */}
                 <img src="/logo-ksk.png" alt="Logo Kei Shin Kan" className="mx-auto mb-6 h-24 w-24 object-contain rounded-full shadow-lg"/>
                 
                 <h1 className="text-6xl font-extrabold mb-4 leading-tight">
@@ -186,12 +187,12 @@ const HomePage = () => {
                     {/* Tautan ke halaman login aplikasi React */}
                     <a href="/login" className="inline-flex items-center justify-center px-8 py-4 bg-blue-600 text-white font-semibold text-lg rounded-full shadow-lg hover:bg-blue-700 transform hover:scale-105 transition-all duration-300">
                         Login
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-log-in ml-2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-log-in ml-2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>
                     </a>
                     {/* Tautan untuk gulir ke informasi dojo di halaman ini */}
                     <a href="#dojo-info-homepage" className="inline-flex items-center justify-center px-8 py-4 bg-white text-gray-800 font-semibold text-lg rounded-full shadow-lg hover:bg-gray-100 transform hover:scale-105 transition-all duration-300">
                         Jelajahi Dojo
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-chevron-right ml-2"><path d="m9 18 6-6-6-6"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right ml-2"><path d="m9 18 6-6-6-6"/></svg>
                     </a>
                 </div>
             </div>
@@ -235,11 +236,11 @@ const HomePage = () => {
                 <div className="mb-6 md:mb-0">
                     <h3 className="text-xl font-bold text-white mb-2">Kontak Kami</h3>
                     <p className="text-sm flex items-center justify-center md:justify-start mb-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-mail mr-2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail mr-2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
                         info@keishinkan-jabar.com
                     </p>
-                    <p className="text-sm flex items-center justify-center md:justify-start">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-phone-call mr-2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2.02 15.15 15.15 0 0 1-8.31-4.18 15.15 15.15 0 0 1-4.18-8.31A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-1.11 2.4l-.47.28a2.23 2.23 0 0 0-.85.73A12.18 12.18 0 0 0 6 12c0 2.5.92 4.62 2.76 6.36S13.5 21 16 21a12.18 12.18 0 0 0 2.29-.68 2.23 2.23 0 0 0 .73-.85l.28-.47a2 2 0 0 1 2.4-1.11z"/><path d="M18.92 6A8 8 0 0 0 6 18.92"/><path d="M19.5 2.5a10 10 0 0 0-17 17"/></svg>
+                    <p class="text-sm flex items-center justify-center md:justify-start">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-phone-call mr-2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2.02 15.15 15.15 0 0 1-8.31-4.18 15.15 15.15 0 0 1-4.18-8.31A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-1.11 2.4l-.47.28a2.23 2.23 0 0 0-.85.73A12.18 12.18 0 0 0 6 12c0 2.5.92 4.62 2.76 6.36S13.5 21 16 21a12.18 12.18 0 0 0 2.29-.68 2.23 2.23 0 0 0 .73-.85l.28-.47a2 2 0 0 1 2.4-1.11z"/><path d="M18.92 6A8 8 0 0 0 6 18.92"/><path d="M19.5 2.5a10 10 0 0 0-17 17"/></svg>
                         0812-3456-7890
                     </p>
                 </div>
