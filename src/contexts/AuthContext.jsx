@@ -1,12 +1,21 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
 
+// Buat AuthContext
 const AuthContext = createContext(null);
 
+// Fungsi utilitas untuk mensimulasikan panggilan API dengan penundaan
+const mockApiCall = (data, delay = 500) => {
+  return new Promise(resolve => setTimeout(() => resolve(data), delay));
+};
+
+// AuthProvider adalah komponen yang akan membungkus seluruh aplikasi Anda
+// dan menyediakan nilai dari AuthContext kepada semua komponen di dalamnya.
 export const AuthProvider = ({ children, initialData }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [data, setData] = useState(initialData); 
+  const [data, setData] = useState(initialData); // Menggunakan initialData yang diteruskan
 
+  // Menginisialisasi user saat aplikasi dimuat (misalnya dari local storage)
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem('currentUser'));
     if (storedUser) {
@@ -15,40 +24,75 @@ export const AuthProvider = ({ children, initialData }) => {
     }
   }, []);
 
-  const login = async (username, password) => { 
-    // Stub fungsionalitas login - akan diimplementasikan nanti
-    console.log('Simulasi login untuk:', username);
-    if (username === 'testuser' && password === 'password') {
-      const mockUser = { id: 'user1', username: 'testuser', role: 'anggota', fullName: 'Test Anggota' };
-      setCurrentUser(mockUser);
+  // Fungsi login
+  const login = async (username, password) => {
+    const user = data.users.find(u => u.username === username && u.password === password);
+    if (user) {
+      await mockApiCall({}); // Simulate API delay
+      setCurrentUser(user);
       setIsAuthenticated(true);
-      localStorage.setItem('currentUser', JSON.stringify(mockUser));
-      return { success: true, user: mockUser };
+      localStorage.setItem('currentUser', JSON.stringify(user));
+      return { success: true, user };
+    } else {
+      return { success: false, message: 'Username atau password salah!' };
     }
-    return { success: false, message: 'Username atau password salah (mock).' }; 
   };
 
-  const register = async (userData) => { 
-    // Stub fungsionalitas register - akan diimplementasikan nanti
-    console.log('Simulasi register untuk:', userData);
-    return { success: false, message: 'Pendaftaran tidak diimplementasikan penuh di mock ini.' }; 
+  // Fungsi register anggota baru
+  const register = async (userData) => {
+    const newUser = {
+      id: `user${data.users.length + 1}`,
+      ...userData,
+      password: userData.password, // Dalam aplikasi nyata, ini harus di-hash
+      role: 'anggota',
+      account_status: 'pending_verifikasi',
+      uniqueMemberId: `KSK-${String(data.users.length + 1).padStart(3, '0')}`,
+      currentBeltId: 'belt1', // Sabuk awal
+      join_date: new Date().toISOString().split('T')[0],
+    };
+    await mockApiCall({}); // Simulate API delay
+    setData(prev => {
+      const updatedMembers = prev.members ? [...prev.members] : [];
+      return {
+        ...prev,
+        users: [...prev.users, newUser],
+        members: [...updatedMembers, {
+          id: newUser.id,
+          userId: newUser.id,
+          dojoId: newUser.dojoId,
+          uniqueMemberId: newUser.uniqueMemberId,
+          currentBeltId: newUser.currentBeltId,
+          membershipStatus: newUser.status,
+          paymentType: 'bulanan',
+          joinDate: newUser.join_date,
+        }]
+      };
+    });
+    return { success: true, user: newUser };
   };
 
-  const logout = () => { 
-    setCurrentUser(null); 
-    setIsAuthenticated(false); 
-    localStorage.removeItem('currentUser'); 
-    console.log('User logged out.');
+  // Fungsi logout
+  const logout = () => {
+    setCurrentUser(null);
+    setIsAuthenticated(false);
+    localStorage.removeItem('currentUser');
   };
 
-  const updateData = async (newData) => { 
-    // Stub fungsionalitas update data - akan diimplementasikan nanti
-    setData(prev => ({ ...prev, ...newData })); 
-    console.log('Data diupdate (mock):', newData);
+  // Fungsi untuk memperbarui data aplikasi
+  const updateData = async (newData) => {
+    await mockApiCall({});
+    setData(prev => ({ ...prev, ...newData }));
   };
 
+  // Nilai yang disediakan oleh AuthContext
   const authContextValue = {
-    currentUser, isAuthenticated, login, logout, register, data, updateData
+    currentUser,
+    isAuthenticated,
+    login,
+    logout,
+    register,
+    data, // Menyediakan semua mock data melalui konteks
+    updateData, // Fungsi untuk memperbarui mock data
   };
 
   return (
@@ -58,6 +102,7 @@ export const AuthProvider = ({ children, initialData }) => {
   );
 };
 
+// Custom hook untuk memudahkan penggunaan AuthContext
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
