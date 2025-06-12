@@ -1,11 +1,14 @@
-    import React from 'react';
-    import ReactDOM from 'react-dom/client';
-    import AppWrapper from './App.jsx'; // Mengimpor AppWrapper dari App.jsx
-    import './index.css'; // Pastikan file ini ada di src/index.css
+import React from 'react';
+import ReactDOM from 'react-dom/client'; // Import dari 'react-dom/client'
+import App from './App'; // Sesuaikan jalur impor jika App.jsx berada di direktori yang berbeda
+import './index.css'; // Impor file CSS
 
-    ReactDOM.createRoot(document.getElementById('root')).render(
-      <React.StrictMode>
-        <AppWrapper />
-      </React.StrictMode>,
-    );
-    
+// Temukan elemen root di HTML Anda (biasanya <div id="root">)
+const rootElement = document.getElementById('root');
+
+// Buat root React dan render aplikasi Anda ke dalamnya
+ReactDOM.createRoot(rootElement).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
