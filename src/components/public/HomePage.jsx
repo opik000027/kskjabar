@@ -13,7 +13,7 @@ const HomePage = () => {
             'Rabu: 19:00 - 21:00 (GOR Cihampelas)'
         ],
         coach: { name: 'Sensei Rudi', contact: '081122334455', email: 'rudi@example.com' },
-        image: 'https://placehold.co/400x250/3498db/ffffff?text=Dojo+Harimau'
+        image: '/1.jpg' // Menggunakan gambar lokal
     },
     {
         id: 'dojo2',
@@ -25,7 +25,7 @@ const HomePage = () => {
             'Kamis: 18:00 - 20:00 (Pusat Olahraga Cimahi)'
         ],
         coach: { name: 'Sensei Lia', contact: '089876543210', email: 'lia@example.com' },
-        image: 'https://placehold.co/400x250/2ecc71/ffffff?text=Dojo+Naga+Langit'
+        image: '/2.jpg' // Menggunakan gambar lokal
     },
     {
         id: 'dojo3',
@@ -37,7 +37,7 @@ const HomePage = () => {
             'Sabtu: 09:00 - 11:00 (GOR Tasikmalaya)'
         ],
         coach: { name: 'Sensei Maya', contact: '081234567891', email: 'maya@example.com' },
-        image: 'https://placehold.co/400x250/9b59b6/ffffff?text=Dojo+Elang'
+        image: '/3.jpg' // Menggunakan gambar lokal
     },
     {
         id: 'dojo4',
@@ -49,7 +49,7 @@ const HomePage = () => {
             'Jumat: 16:00 - 18:00 (GOR Bandung)'
         ],
         coach: { name: 'Sensei Budi', contact: '081312345678', email: 'budi@example.com' },
-        image: 'https://placehold.co/400x250/f39c12/ffffff?text=Dojo+Banteng'
+        image: 'https://placehold.co/400x250/f39c12/ffffff?text=Dojo+Banteng' // Placeholder image
     },
     {
         id: 'dojo5',
@@ -61,13 +61,12 @@ const HomePage = () => {
             'Sabtu: 10:00 - 12:00 (Lap. Bola Cimahi)'
         ],
         coach: { name: 'Sensei Dewi', contact: '087812345678', email: 'dewi@example.com' },
-        image: 'https://placehold.co/400x250/e74c3c/ffffff?text=Dojo+Kuda'
+        image: 'https://placehold.co/400x250/e74c3c/ffffff?text=Dojo+Kuda' // Placeholder image
     }
   ];
 
   // Carousel Gambar Latar Belakang Hero Section
   const heroImages = [
-      // Jalur gambar latar belakang sekarang menggunakan nama file baru (huruf kecil)
       '/1.jpg', 
       '/2.jpg', 
       '/3.jpg'
@@ -84,15 +83,12 @@ const HomePage = () => {
   };
 
   useEffect(() => {
-    // Inisialisasi Lucide icons
-    // Perhatikan: Karena Lucide React sudah diimpor di App.jsx dan komponen lain,
-    // window.lucide ini mungkin hanya diperlukan jika ada ikon yang di-render secara dinamis di luar React.
-    // Namun, tidak ada salahnya memastikannya.
+    // Inisialisasi Lucide icons jika diperlukan secara dinamis (biasanya Lucide React sudah menangani ini)
     if (window.lucide) {
         window.lucide.createIcons();
     }
 
-    // Inisialisasi Filter Dojo (akan diaktifkan setelah DOM dojo cards dirender)
+    // Inisialisasi Filter Dojo
     const branchFilterSelect = document.getElementById('branch-filter-homepage');
     const uniqueBranches = [...new Set(dojoData.map(dojo => dojo.branch))].sort();
 
@@ -170,7 +166,6 @@ const HomePage = () => {
   return (
     <div>
         {/* Hero Section dengan Carousel Gambar */}
-        {/* ID diubah menjadi hero-homepage untuk menghindari konflik dengan App.jsx background */}
         <section id="hero-homepage" className="h-screen bg-cover bg-center flex items-center justify-center text-center text-white relative transition-all duration-300">
             <div className="absolute inset-0 bg-black bg-opacity-50 z-10"></div>
             <div className="relative z-20 p-8 max-w-3xl">
