@@ -13,7 +13,7 @@ const HomePage = () => {
             'Rabu: 19:00 - 21:00 (GOR Cihampelas)'
         ],
         coach: { name: 'Sensei Rudi', contact: '081122334455', email: 'rudi@example.com' },
-        image: '/1.jpg' // Menggunakan gambar lokal
+        image: '/https://placehold.co/400x250/f39c12/ffffff?text=Dojo+Harimau' // Menggunakan gambar lokal
     },
     {
         id: 'dojo2',
@@ -25,7 +25,7 @@ const HomePage = () => {
             'Kamis: 18:00 - 20:00 (Pusat Olahraga Cimahi)'
         ],
         coach: { name: 'Sensei Lia', contact: '089876543210', email: 'lia@example.com' },
-        image: '/2.jpg' // Menggunakan gambar lokal
+        image: '/https://placehold.co/400x250/f39c12/ffffff?text=Dojo+Naga+Langit' // Menggunakan gambar lokal
     },
     {
         id: 'dojo3',
@@ -37,7 +37,7 @@ const HomePage = () => {
             'Sabtu: 09:00 - 11:00 (GOR Tasikmalaya)'
         ],
         coach: { name: 'Sensei Maya', contact: '081234567891', email: 'maya@example.com' },
-        image: '/3.jpg' // Menggunakan gambar lokal
+        image: '/https://placehold.co/400x250/f39c12/ffffff?text=Dojo+Elang+Perkasa' // Menggunakan gambar lokal
     },
     {
         id: 'dojo4',
