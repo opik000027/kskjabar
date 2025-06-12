@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-// Mengimpor AuthProvider dan useAuth dari konteks, pastikan ekstensi .jsx disertakan.
-import { AuthProvider, useAuth } from './contexts/AuthContext.jsx'; 
+import { AuthProvider, useAuth } from './contexts/AuthContext.jsx'; // Pastikan ekstensi .jsx
 
 // Mengimpor komponen halaman publik
 import HomePage from './components/public/HomePage.jsx';
@@ -13,6 +12,8 @@ import LoginPage from './components/auth/LoginPage.jsx';
 import RegisterPage from './components/auth/RegisterPage.jsx';
 
 // Mengimpor komponen dashboard dan modul
+// Untuk demo landing page, komponen ini tidak langsung dirender,
+// tetapi penting untuk kelengkapan struktur App.jsx.
 import CoachDashboard from './components/dashboard/CoachDashboard.jsx';
 import MemberList from './components/dashboard/MemberList.jsx';
 import MemberDetail from './components/dashboard/MemberDetail.jsx';
@@ -20,18 +21,13 @@ import AttendanceScanner from './components/dashboard/AttendanceScanner.jsx';
 import PaymentManager from './components/dashboard/PaymentManager.jsx';
 import ExamManager from './components/dashboard/ExamManager.jsx';
 import AchievementManager from './components/dashboard/AchievementManager.jsx';
-import ExportData from './components/dashboard/ExportData.jsx';
-// Import komponen AddAchievement secara eksplisit karena digunakan di MemberDetail
-// Walaupun MemberDetail mengimpornya, App.jsx juga harus mengetahui keberadaannya jika ada interaksi langsung
-// atau jika bundler membutuhkan semua import di entry point.
 import AddAchievement from './components/dashboard/AddAchievement.jsx'; 
-
+import ExportData from './components/dashboard/ExportData.jsx';
 
 // Mengimpor komponen umum
 import Navbar from './components/common/Navbar.jsx';
 
 // --- Mock Data (Simulasi Backend Database) ---
-// Data ini akan diteruskan ke AuthProvider
 const mockData = {
   users: [
     { id: 'user1', username: 'anggota001', password: 'password', role: 'anggota', fullName: 'Budi Santoso', email: 'budi@example.com', phone: '081234567890', dojoId: 'dojo1', uniqueMemberId: 'KSK-001', currentBeltId: 'belt1', status: 'aktif', dateOfBirth: '2000-01-15', placeOfBirth: 'Bandung', address: 'Jl. Contoh No.1' },
@@ -74,7 +70,7 @@ const mockData = {
 
 // --- Main App Component ---
 function App() {
-  const { isAuthenticated, currentUser } = useAuth(); // Menggunakan useAuth hook
+  const { isAuthenticated, currentUser } = useAuth();
   const [currentView, setCurrentView] = useState('home'); // State untuk routing
   const [selectedMemberId, setSelectedMemberId] = useState(null); // Untuk detail anggota
 
@@ -106,12 +102,13 @@ function App() {
         return <LoginPage setCurrentView={setCurrentView} />;
       case 'register':
         return <RegisterPage setCurrentView={setCurrentView} />;
+      // Untuk landing page, bagian dashboard ini tidak akan diakses langsung,
+      // tetapi penting untuk memiliki semua case dalam renderView jika nanti digunakan.
       case 'coach-dashboard':
         return isAuthenticated && currentUser.role === 'pelatih' ? <CoachDashboard setCurrentView={setCurrentView} /> : <p className="text-center p-8">Akses ditolak. Silakan login sebagai pelatih.</p>;
       case 'member-list':
         return isAuthenticated && currentUser.role === 'pelatih' ? <MemberList setCurrentView={setCurrentView} setSelectedMemberId={setSelectedMemberId} /> : <p className="text-center p-8">Akses ditolak. Silakan login sebagai pelatih.</p>;
       case 'member-detail':
-        // MemberDetail memerlukan komponen AddAchievement
         return isAuthenticated && (currentUser.role === 'pelatih' || currentUser.id === selectedMemberId) ? <MemberDetail setCurrentView={setCurrentView} selectedMemberId={selectedMemberId} /> : <p className="text-center p-8">Akses ditolak.</p>;
       case 'member-profile':
         return isAuthenticated && currentUser.role === 'anggota' ? <MemberDetail setCurrentView={setCurrentView} selectedMemberId={currentUser.id} /> : <p className="text-center p-8">Akses ditolak. Silakan login sebagai anggota.</p>;
@@ -133,7 +130,7 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-50 font-inter">
       <Navbar setCurrentView={setCurrentView} />
-      <main className="pb-10"> {/* Padding bottom for content */}
+      <main className="pb-10">
         {renderView()}
       </main>
     </div>
