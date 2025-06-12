@@ -80,12 +80,12 @@ const Navbar = ({ setCurrentView }) => {
 
       {/* Menu Mobile yang Collapsible */}
       {isMenuOpen && (
-        <div className="md:hidden flex flex-col items-end mt-4 space-y-2 animate-fade-in-down">
+        <div className="md:hidden absolute top-[64px] left-0 w-full bg-gray-800 flex flex-col items-start p-4 space-y-2 shadow-lg animate-fade-in-down">
           {navItems.map(item => (
             <button
               key={item.name}
               onClick={() => handleNavItemClick(item.view)}
-              className="text-gray-300 hover:text-white w-full text-right p-2 rounded-md transition-colors text-base"
+              className="text-gray-300 hover:text-white w-full text-left p-2 rounded-md transition-colors text-base"
             >
               <item.icon size={18} className="inline mr-2" /> {item.name}
             </button>
@@ -94,7 +94,7 @@ const Navbar = ({ setCurrentView }) => {
             <button
               key={item.name}
               onClick={() => handleAuthAction(item.action, item.view)}
-              className={`w-full text-right px-4 py-2 rounded-md transition-colors text-base ${item.name === 'Login' ? 'bg-blue-600 text-white hover:bg-blue-700' : (item.name === 'Daftar' ? 'bg-green-600 text-white hover:bg-green-700' : 'text-gray-300 hover:text-white')}`}
+              className={`w-full text-left px-4 py-2 rounded-md transition-colors text-base ${item.name === 'Login' ? 'bg-blue-600 text-white hover:bg-blue-700' : (item.name === 'Daftar' ? 'bg-green-600 text-white hover:bg-green-700' : 'text-gray-300 hover:text-white')}`}
             >
               <item.icon size={18} className="inline mr-2" /> {item.name}
             </button>
