@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 
 const HomePage = () => {
-  // Data Mock untuk Dojo
+  // Data Mock untuk Dojo (Ini bisa diganti dengan fetch dari API Supabase nanti)
   const dojoData = [
     {
         id: 'dojo1',
@@ -13,7 +13,7 @@ const HomePage = () => {
             'Rabu: 19:00 - 21:00 (GOR Cihampelas)'
         ],
         coach: { name: 'Sensei Rudi', contact: '081122334455', email: 'rudi@example.com' },
-        image: '/https://placehold.co/400x250/f39c12/ffffff?text=Dojo+Harimau' // Menggunakan gambar lokal
+        image: 'https://placehold.co/400x250/3498db/ffffff?text=Dojo+Harimau' // Diperbarui ke placehold.co
     },
     {
         id: 'dojo2',
@@ -25,7 +25,7 @@ const HomePage = () => {
             'Kamis: 18:00 - 20:00 (Pusat Olahraga Cimahi)'
         ],
         coach: { name: 'Sensei Lia', contact: '089876543210', email: 'lia@example.com' },
-        image: '/https://placehold.co/400x250/f39c12/ffffff?text=Dojo+Naga+Langit' // Menggunakan gambar lokal
+        image: 'https://placehold.co/400x250/2ecc71/ffffff?text=Dojo+Naga+Langit' // Diperbarui ke placehold.co
     },
     {
         id: 'dojo3',
@@ -37,7 +37,7 @@ const HomePage = () => {
             'Sabtu: 09:00 - 11:00 (GOR Tasikmalaya)'
         ],
         coach: { name: 'Sensei Maya', contact: '081234567891', email: 'maya@example.com' },
-        image: '/https://placehold.co/400x250/f39c12/ffffff?text=Dojo+Elang+Perkasa' // Menggunakan gambar lokal
+        image: 'https://placehold.co/400x250/9b59b6/ffffff?text=Dojo+Elang+Perkasa' // Diperbarui ke placehold.co
     },
     {
         id: 'dojo4',
@@ -49,7 +49,7 @@ const HomePage = () => {
             'Jumat: 16:00 - 18:00 (GOR Bandung)'
         ],
         coach: { name: 'Sensei Budi', contact: '081312345678', email: 'budi@example.com' },
-        image: 'https://placehold.co/400x250/f39c12/ffffff?text=Dojo+Banteng' // Placeholder image
+        image: 'https://placehold.co/400x250/f39c12/ffffff?text=Dojo+Banteng+Merah' // Diperbarui teks placeholder
     },
     {
         id: 'dojo5',
@@ -61,15 +61,15 @@ const HomePage = () => {
             'Sabtu: 10:00 - 12:00 (Lap. Bola Cimahi)'
         ],
         coach: { name: 'Sensei Dewi', contact: '087812345678', email: 'dewi@example.com' },
-        image: 'https://placehold.co/400x250/e74c3c/ffffff?text=Dojo+Kuda' // Placeholder image
+        image: 'https://placehold.co/400x250/e74c3c/ffffff?text=Dojo+Kuda+Terbang' // Diperbarui teks placeholder
     }
   ];
 
   // Carousel Gambar Latar Belakang Hero Section
   const heroImages = [
-      '/1.jpg', 
-      '/2.jpg', 
-      '/3.jpg'
+      'https://placehold.co/1920x1080/4a90e2/ffffff?text=KEI+SHIN+KAN+Jawa+Barat+1', // Diperbarui ke placehold.co
+      'https://placehold.co/1920x1080/6a8eab/ffffff?text=Disiplin+dan+Fokus+2',     // Diperbarui ke placehold.co
+      'https://placehold.co/1920x1080/34495e/ffffff?text=Semangat+Karate+3'       // Diperbarui ke placehold.co
   ];
   let currentImageIndex = 0;
   let heroInterval;
