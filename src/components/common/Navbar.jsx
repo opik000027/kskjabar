@@ -1,10 +1,12 @@
 import React from 'react';
 import { Home, Users, Compass, Phone, LogIn, UserPlus, LayoutDashboard } from 'lucide-react';
 // Pastikan ekstensi .jsx disertakan secara eksplisit pada jalur impor.
+// Verifikasi bahwa nama folder 'contexts' dan file 'AuthContext.jsx' memiliki casing yang SAMA PERSIS
+// di repositori GitHub Anda.
 import { useAuth } from '../../contexts/AuthContext.jsx'; 
 
 const Navbar = ({ setCurrentView }) => {
-  const { isAuthenticated, currentUser, logout } = useAuth(); // Menggunakan useAuth hook
+  const { isAuthenticated, currentUser, logout } = useAuth();
 
   const navItems = [
     { name: 'Beranda', view: 'home', icon: Home, public: true },
@@ -24,8 +26,10 @@ const Navbar = ({ setCurrentView }) => {
   return (
     <nav className="bg-gray-800 p-4 shadow-lg sticky top-0 z-40">
       <div className="container mx-auto flex justify-between items-center flex-wrap">
-        <div className="text-white text-2xl font-bold mb-2 md:mb-0">
-          <span className="text-blue-400">KEI SHIN KAN</span> JAWA BARAT
+        <div className="text-white text-2xl font-bold mb-2 md:mb-0 flex items-center">
+            {/* Logo Kei Shin Kan */}
+            <img src="/logo-ksk.png" alt="Logo Kei Shin Kan" className="h-10 w-10 mr-3 rounded-full object-contain"/>
+            <span className="text-blue-400">KEI SHIN KAN</span> JAWA BARAT
         </div>
         <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4">
           {navItems.map(item => (
