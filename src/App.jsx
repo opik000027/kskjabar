@@ -1,4 +1,4 @@
-import React, { useState, useEffect } => 'react';
+import React, { useState, useEffect } from 'react'; // Memperbaiki syntax import React
 // Import AuthProvider dan useAuth dari konteks autentikasi
 import { AuthProvider, useAuth } from './contexts/AuthContext.jsx'; 
 
