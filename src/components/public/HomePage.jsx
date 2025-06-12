@@ -154,13 +154,13 @@ const HomePage = () => {
                 <h4 className="text-lg font-semibold text-gray-800 mb-2">Jadwal Latihan:</h4>
                 <ul className="list-disc list-inside text-gray-700">
                         {/* Di sini, kita akan mem-render jadwal latihan */}
-                        {dojo.schedules.map((schedule, index) => (
-                            <li key={index}>{schedule}</li>
-                        ))}
+                        ${dojo.schedules.map((schedule, index) => (
+                            `<li key=${index}>${schedule}</li>`
+                        )).join('')}
                 </ul>
             </div>
         </div>
-    `)}.join(''); // Pastikan penutup kurung kurawal ini sudah benar untuk .map().join('')
+    `).join('');
   };
 
   return (
