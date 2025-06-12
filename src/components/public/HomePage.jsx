@@ -134,33 +134,35 @@ const HomePage = () => {
         return;
     }
 
-    dojoListContainer.innerHTML = filteredDojos.map(dojo => `
-        <div class="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 transform hover:scale-105 transition-all duration-300">
-            <img src="${dojo.image}" alt="Dojo ${dojo.name}" class="w-full h-48 object-cover">
-            <div class="p-6">
-                <h3 class="text-2xl font-semibold text-blue-700 mb-3">${dojo.name}</h3>
-                <p className="text-gray-700 mb-2 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-map-pin mr-2"><path d="M12 18.35v-1.15a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v1.15a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2z"/><circle cx="12" cy="12" r="10"/></svg>
-                    ${dojo.address}
-                </p>
-                <p className="text-gray-700 mb-2 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-user mr-2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                    Pelatih: ${dojo.coach.name}
-                </p>
-                <p className="text-gray-700 mb-3 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-phone mr-2"><rect width="18" height="12" x="3" y="6" rx="2"/><path d="M12 12V6"/><path d="M10 9l2-2 2 2"/></svg>
-                    Kontak: ${dojo.coach.contact}
-                </p>
-                <h4 className="text-lg font-semibold text-gray-800 mb-2">Jadwal Latihan:</h4>
-                <ul className="list-disc list-inside text-gray-700">
-                        {/* Di sini, kita akan mem-render jadwal latihan */}
-                        ${dojo.schedules.map((schedule, index) => (
-                            `<li key=${index}>${schedule}</li>`
-                        )).join('')}
-                </ul>
+    dojoListContainer.innerHTML = filteredDojos.map(dojo => { // Perubahan di sini: tambahkan kurung kurawal pembuka {
+        return `
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 transform hover:scale-105 transition-all duration-300">
+                <img src="${dojo.image}" alt="Dojo ${dojo.name}" class="w-full h-48 object-cover">
+                <div class="p-6">
+                    <h3 class="text-2xl font-semibold text-blue-700 mb-3">${dojo.name}</h3>
+                    <p className="text-gray-700 mb-2 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-map-pin mr-2"><path d="M12 18.35v-1.15a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v1.15a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2z"/><circle cx="12" cy="12" r="10"/></svg>
+                        ${dojo.address}
+                    </p>
+                    <p className="text-gray-700 mb-2 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-user mr-2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        Pelatih: ${dojo.coach.name}
+                    </p>
+                    <p className="text-gray-700 mb-3 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-phone mr-2"><rect width="18" height="12" x="3" y="6" rx="2"/><path d="M12 12V6"/><path d="M10 9l2-2 2 2"/></svg>
+                        Kontak: ${dojo.coach.contact}
+                    </p>
+                    <h4 className="text-lg font-semibold text-gray-800 mb-2">Jadwal Latihan:</h4>
+                    <ul className="list-disc list-inside text-gray-700">
+                            {/* Di sini, kita akan mem-render jadwal latihan */}
+                            ${dojo.schedules.map((schedule, index) => (
+                                `<li key=${index}>${schedule}</li>`
+                            )).join('')}
+                    </ul>
+                </div>
             </div>
-        </div>
-    `).join('');
+        `; // Perubahan di sini: tambahkan titik koma setelah backtick penutup
+    }).join(''); // Perubahan di sini: pindahkan komentar ke baris baru
   };
 
   return (
