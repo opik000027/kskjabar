@@ -2,15 +2,24 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <!-- Jalur icon sekarang menggunakan nama file baru tanpa spasi dan huruf kecil.
-         Pastikan 'logo-ksk.png' ada di folder public/ Anda. -->
     <link rel="icon" type="image/png" href="/logo-ksk.png" /> 
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>KEI SHIN KAN Jawa Barat App</title>
   </head>
   <body>
     <div id="root"></div>
-    <!-- Jalur ke entry point React Anda (main.jsx) di folder src/ -->
     <script type="module" src="/src/main.jsx"></script>
+    <!-- Memuat Lucide Icons untuk digunakan di HTML yang di-render JS -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+      // Pastikan Lucide Icons diinisialisasi setelah DOM dimuat jika ada ikon yang dimuat secara dinamis
+      // Namun, untuk elemen yang di-render oleh React, Lucide React sudah mengurusnya.
+      // Ini lebih ke jaga-jaga kalau ada elemen HTML biasa yang butuh ikon.
+      window.onload = function() {
+        if (window.lucide) {
+          window.lucide.createIcons();
+        }
+      };
+    </script>
   </body>
 </html>
