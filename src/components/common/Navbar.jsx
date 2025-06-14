@@ -1,5 +1,5 @@
-import React, { useState } from 'react'; // Impor useState untuk mengelola status menu
-import { Home, Users, Compass, Phone, LogIn, UserPlus, LayoutDashboard, Menu, X } from 'lucide-react'; // Tambah ikon Menu dan X
+import React, { useState } from 'react';
+import { Home, Users, Compass, LogIn, UserPlus, LayoutDashboard, Menu, X } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext.jsx'; // Pastikan ekstensi .jsx
 
 const Navbar = ({ setCurrentView }) => {
@@ -12,11 +12,7 @@ const Navbar = ({ setCurrentView }) => {
 
   // Fungsi yang dimodifikasi untuk menangani navigasi atau scroll
   const handleNavItemClick = (view, targetId = null) => {
-    // Jika ada targetId, arahkan ke 'home' terlebih dahulu (jika belum di home)
-    // lalu picu scroll setelah view di-render.
-    // Jika view yang diminta adalah 'home', targetSectionId akan diteruskan.
-    // Jika tidak, targetSectionId akan null.
-    setCurrentView(view, targetId); 
+    setCurrentView(view, targetId);
     setIsMenuOpen(false); // Tutup menu setelah item diklik
   };
 
@@ -30,11 +26,10 @@ const Navbar = ({ setCurrentView }) => {
   };
 
   const navItems = [
-    // Tombol 'Beranda' sekarang juga mengarahkan ke bagian hero-homepage
-    { name: 'Beranda', view: 'home', icon: Home, public: true, targetId: 'hero-homepage' }, 
-    { name: 'Pelatih', view: 'home', icon: Users, public: true, targetId: 'pelatih-section' }, // Target untuk scroll
-    { name: 'Tempat & Jadwal', view: 'home', icon: Compass, public: true, targetId: 'jadwal-tempat-section' }, // Target untuk scroll
-    { name: 'Kontak', view: 'home', icon: Phone, public: true, targetId: 'kontak-section' }, // Target untuk scroll
+    { name: 'Beranda', view: 'home', icon: Home, public: true, targetId: 'hero-homepage' },
+    { name: 'Tentang Kami', view: 'home', icon: Users, public: true, targetId: 'about-us-homepage' }, // Diganti dari 'Pelatih' ke 'Tentang Kami'
+    { name: 'Tempat & Jadwal', view: 'home', icon: Compass, public: true, targetId: 'jadwal-tempat-section' },
+    // Tombol 'Kontak' telah dihapus sepenuhnya
   ];
 
   const authNavItems = isAuthenticated ? [
@@ -49,13 +44,12 @@ const Navbar = ({ setCurrentView }) => {
     <nav className="bg-gray-800 p-4 shadow-lg sticky top-0 z-40">
       <div className="container mx-auto flex justify-between items-center flex-wrap">
         {/* Kontainer untuk Logo dan Judul - Sekarang bisa diklik */}
-        <button 
-          onClick={() => handleNavItemClick('home', 'hero-homepage')} // Mengarahkan ke bagian hero-homepage
+        <button
+          onClick={() => handleNavItemClick('home', 'hero-homepage')}
           className="text-white text-2xl font-bold mb-2 md:mb-0 flex items-center cursor-pointer p-2 rounded-md hover:bg-gray-700 transition-colors"
         >
-            {/* Logo Kei Shin Kan */}
             <img src="/logo-ksk.png" alt="Logo Kei Shin Kan" className="h-10 w-10 mr-3 rounded-full object-contain"/>
-            <span className="text-blue-400">KEI SHIN KAN</span> Jawa Barat {/* Teks dengan spasi */}
+            <span className="text-blue-400">KEI SHIN KAN</span> Jawa Barat
         </button>
 
         {/* Tombol Burger Menu untuk Mobile */}
