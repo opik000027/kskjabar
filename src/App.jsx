@@ -5,9 +5,10 @@ import { AuthProvider, useAuth } from './contexts/AuthContext.jsx';
 // Import semua komponen halaman publik
 // HomePage sekarang akan berisi konten landing page
 import HomePage from './components/public/HomePage.jsx'; 
-import CoachesPage from './components/public/CoachesPage.jsx';
-import LocationsPage from './components/public/LocationsPage.jsx';
-import ContactPage from './components/public/ContactPage.jsx';
+// Menghapus impor ini karena kontennya sudah diintegrasikan ke HomePage.jsx
+// import CoachesPage from './components/public/CoachesPage.jsx'; 
+// import LocationsPage from './components/public/LocationsPage.jsx';
+// import ContactPage from './components/public/ContactPage.jsx';
 
 // Import komponen autentikasi
 import LoginPage from './components/auth/LoginPage.jsx';
@@ -28,7 +29,6 @@ import ExportData from './components/dashboard/ExportData.jsx';
 import Navbar from './components/common/Navbar.jsx';
 
 // --- Data Mock (Simulasi Database Backend) ---
-// Data ini akan diteruskan ke AuthProvider dan diakses melalui useAuth
 const mockData = {
   users: [
     { id: 'user1', username: 'anggota001', password: 'password', role: 'anggota', fullName: 'Budi Santoso', email: 'budi@example.com', phone: '081234567890', dojoId: 'dojo1', uniqueMemberId: 'KSK-001', currentBeltId: 'belt1', status: 'aktif', dateOfBirth: '2000-01-15', placeOfBirth: 'Bandung', address: 'Jl. Contoh No.1' },
@@ -70,17 +70,15 @@ const mockData = {
 
 // --- Komponen Utama Aplikasi ---
 function App() {
-  const { isAuthenticated, currentUser } = useAuth(); // Menggunakan konteks autentikasi
-  // currentView kini menyimpan objek { view: string, targetId: string | null }
+  const { isAuthenticated, currentUser } = useAuth();
   const [currentView, setCurrentViewInternal] = useState({ view: 'home', targetId: null });
-  const [selectedMemberId, setSelectedMemberId] = useState(null); // State untuk detail anggota
+  const [selectedMemberId, setSelectedMemberId] = useState(null);
 
   // Wrapper untuk setCurrentView agar bisa menerima targetId
   const setCurrentView = (viewName, targetId = null) => {
     setCurrentViewInternal({ view: viewName, targetId: targetId });
   };
 
-  // Mengarahkan pengguna ke dasbor yang sesuai setelah berhasil login
   useEffect(() => {
     if (isAuthenticated) {
       if (currentUser.role === 'pelatih') {
@@ -91,20 +89,13 @@ function App() {
         setCurrentView('exam-manager'); 
       }
     }
-  }, [isAuthenticated, currentUser, setCurrentView]); // Tambahkan setCurrentView ke dependency array
+  }, [isAuthenticated, currentUser, setCurrentView]);
 
-  // Fungsi untuk merender tampilan berdasarkan currentView.view
   const renderView = () => {
     switch (currentView.view) {
       case 'home':
-        return <HomePage targetSectionId={currentView.targetId} />; // Meneruskan targetSectionId
-      // Komponen lain tidak perlu targetSectionId kecuali mereka juga punya section yang bisa di-scroll
-      // case 'coaches':
-      //   return <CoachesPage />;
-      // case 'locations':
-      //   return <LocationsPage />;
-      // case 'contact':
-      //   return <ContactPage />;
+        return <HomePage targetSectionId={currentView.targetId} />;
+      // Rute 'coaches', 'locations', 'contact' dihapus karena sudah diintegrasikan ke HomePage
       case 'login':
         return <LoginPage setCurrentView={setCurrentView} />;
       case 'register':
@@ -128,28 +119,22 @@ function App() {
       case 'export-data':
         return isAuthenticated && (currentUser.role === 'pelatih' || currentUser.role === 'admin_cabang') ? <ExportData setCurrentView={setCurrentView} /> : <p className="text-center p-8">Akses ditolak.</p>;
       default:
-        // Default kembali ke halaman beranda jika tidak ada tampilan yang cocok atau tidak terautentikasi
         return <HomePage targetSectionId={null} />;
     }
   };
 
   return (
-    // Tambahkan gambar latar belakang ke div utama
     <div className="min-h-screen font-inter bg-[url('https://images.unsplash.com/photo-1544377193-4a1122a2753a?q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1920&h=1080&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')] bg-fixed bg-cover bg-center">
-      {/* Navbar akan selalu ditampilkan di bagian atas */}
       <Navbar setCurrentView={setCurrentView} />
-      <main className="pb-10"> {/* Memberi sedikit padding di bagian bawah konten */}
-        {/* Render tampilan yang sesuai berdasarkan state */}
+      <main className="pb-10">
         {renderView()}
       </main>
     </div>
   );
 }
 
-// Ekspor mockData agar bisa digunakan oleh AuthContext
 export { mockData };
 
-// Komponen pembungkus App dengan AuthProvider untuk menyediakan konteks autentikasi
 const AppWrapper = () => (
   <AuthProvider initialData={mockData}>
     <App />
