@@ -28,17 +28,22 @@ const HomePage = ({ targetSectionId }) => {
 
   // Fungsi untuk mengambil data dojo dari Firestore
   const fetchDojoData = async () => {
-    if (!db) { // Pastikan instance db sudah ada
-      console.warn("Firestore instance not available yet.");
+    // Log untuk debugging: Pastikan db tersedia
+    if (!db) {
+      console.warn("Firestore instance not available yet in HomePage.");
+      setLoadingDojos(false); // Set loading ke false jika db tidak tersedia untuk menghindari stuck
+      setErrorDojos("Sistem basis data belum siap. Coba refresh halaman."); // Pesan error yang lebih informatif
       return;
     }
     setLoadingDojos(true);
     setErrorDojos(null);
     try {
       // Dapatkan App ID dari variabel global
+      // Ini adalah ID unik untuk aplikasi Canvas Anda, yang digunakan dalam path Firestore
       const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-      
-      // Path Firestore untuk data publik
+      console.log("Fetching dojos for appId:", appId); // Log appId yang digunakan
+
+      // Path Firestore yang benar: artifacts/{appId}/public/data/dojos
       const dojosCollectionRef = collection(db, `artifacts/${appId}/public/data/dojos`);
       const q = query(dojosCollectionRef);
       const querySnapshot = await getDocs(q);
@@ -47,6 +52,7 @@ const HomePage = ({ targetSectionId }) => {
         ...doc.data()
       }));
       setDojoData(fetchedDojos);
+      console.log("Fetched dojo data:", fetchedDojos); // Log data yang berhasil di-fetch
 
       // Inisialisasi Filter Dojo setelah data dojo di-fetch
       const branchFilterSelect = document.getElementById('branch-filter-homepage');
@@ -61,7 +67,7 @@ const HomePage = ({ targetSectionId }) => {
               option.textContent = branch;
               branchFilterSelect.appendChild(option);
           });
-          // Tambahkan event listener jika belum ada
+          // Tambahkan event listener jika belum ada (agar tidak double listener)
           if (!branchFilterSelect.hasAttribute('data-listener-attached')) {
             branchFilterSelect.addEventListener('change', (event) => {
                 renderDojoCards(event.target.value);
@@ -69,10 +75,9 @@ const HomePage = ({ targetSectionId }) => {
             branchFilterSelect.setAttribute('data-listener-attached', 'true');
           }
       }
-      renderDojoCards(); // Render cards pertama kali setelah fetch
     } catch (error) {
       console.error("Error fetching dojo data:", error);
-      setErrorDojos("Gagal memuat data dojo. Silakan coba lagi.");
+      setErrorDojos("Gagal memuat data dojo. Pastikan data ada di Firestore dan aturan keamanan sudah diatur dengan benar.");
     } finally {
       setLoadingDojos(false);
     }
@@ -81,18 +86,25 @@ const HomePage = ({ targetSectionId }) => {
   // Panggil fetchDojoData saat komponen mount atau db berubah
   useEffect(() => {
     if (db) { // Hanya fetch jika db sudah terinisialisasi
+      console.log("DB instance available in HomePage, attempting to fetch dojos.");
       fetchDojoData();
+    } else {
+      console.log("DB instance not yet available in HomePage.");
     }
   }, [db]); // Dependency array menyertakan db
+
+  // Efek untuk memastikan render kartu dojo terjadi setiap kali data, status loading, atau error berubah
+  useEffect(() => {
+      renderDojoCards();
+  }, [dojoData, loadingDojos, errorDojos]);
+
 
   useEffect(() => {
     if (window.lucide) {
         window.lucide.createIcons();
     }
-
     changeHeroImage();
     heroInterval = setInterval(changeHeroImage, 5000);
-
     return () => clearInterval(heroInterval);
   }, []);
 
@@ -102,10 +114,10 @@ const HomePage = ({ targetSectionId }) => {
       const targetElement = document.getElementById(targetSectionId);
       if (targetElement) {
         const navbar = document.querySelector('nav');
-        const navbarHeight = navbar ? navbar.offsetHeight : 0; // Get actual navbar height
+        const navbarHeight = navbar ? navbar.offsetHeight : 0;
 
         const elementPosition = targetElement.getBoundingClientRect().top;
-        const offsetPosition = window.pageYOffset + elementPosition - navbarHeight - 20; // -20px for extra padding
+        const offsetPosition = window.pageYOffset + elementPosition - navbarHeight - 20;
 
         window.scrollTo({
           top: offsetPosition,
@@ -118,9 +130,12 @@ const HomePage = ({ targetSectionId }) => {
 
   const renderDojoCards = (filterBranch = '') => {
     const dojoListContainer = document.getElementById('dojo-list-homepage');
-    if (!dojoListContainer) return;
+    if (!dojoListContainer) {
+        console.warn("Dojo list container not found.");
+        return;
+    }
 
-    const filteredDojos = dojoData.filter(dojo =>
+    const currentFilteredDojos = dojoData.filter(dojo =>
         filterBranch === '' || dojo.branch === filterBranch
     );
 
@@ -142,7 +157,7 @@ const HomePage = ({ targetSectionId }) => {
         return;
     }
 
-    if (filteredDojos.length === 0) {
+    if (currentFilteredDojos.length === 0) {
         dojoListContainer.innerHTML = `
             <div class="col-span-full text-center py-10 text-gray-600">
                 Tidak ada dojo yang ditemukan untuk cabang ini.
@@ -151,8 +166,7 @@ const HomePage = ({ targetSectionId }) => {
         return;
     }
 
-    dojoListContainer.innerHTML = filteredDojos.map(dojo => {
-        // Pastikan dojo.schedules adalah array sebelum memanggil .map
+    dojoListContainer.innerHTML = currentFilteredDojos.map(dojo => {
         const schedulesHtml = Array.isArray(dojo.schedules) ? dojo.schedules.map((schedule, index) => (
             `<li key=${index}>${schedule}</li>`
         )).join('') : '';
@@ -191,7 +205,7 @@ const HomePage = ({ targetSectionId }) => {
             <div className="absolute inset-0 bg-black bg-opacity-50 z-10"></div>
             <div className="relative z-20 p-8 max-w-3xl">
                 <img src="/logo-ksk.png" alt="Logo Kei Shin Kan" className="mx-auto mb-6 h-24 w-24 object-contain rounded-full shadow-lg"/>
-                
+
                 <h1 className="text-6xl font-extrabold mb-4 leading-tight">
                     <span className="text-blue-400">KEI SHIN KAN</span> Jawa Barat
                 </h1>
@@ -237,13 +251,7 @@ const HomePage = ({ targetSectionId }) => {
             </div>
             <div id="dojo-list-homepage" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {/* Dojo cards akan di-render di sini menggunakan JavaScript */}
-                {loadingDojos && <div className="col-span-full text-center py-10 text-blue-600">Memuat dojo...</div>}
-                {errorDojos && <div className="col-span-full text-center py-10 text-red-600">{errorDojos}</div>}
-                {!loadingDojos && dojoData.length === 0 && !errorDojos && (
-                    <div className="col-span-full text-center py-10 text-gray-600">
-                        Tidak ada dojo yang ditemukan.
-                    </div>
-                )}
+                {/* Bagian ini tidak lagi menggunakan conditional rendering langsung dari React, tetapi dari renderDojoCards */}
             </div>
         </section>
 
@@ -257,11 +265,11 @@ const HomePage = ({ targetSectionId }) => {
                 <div className="mb-6 md:mb-0">
                     <h3 className="text-xl font-bold text-white mb-2">Kontak Kami</h3>
                     <p className="text-sm flex items-center justify-center md:justify-start mb-1">
-                        <Mail size={18} className="mr-2"/> {/* Menggunakan Lucide Icon */}
+                        <Mail size={18} className="mr-2"/>
                         info@keishinkan-jabar.com
                     </p>
                     <p class="text-sm flex items-center justify-center md:justify-start">
-                        <PhoneCall size={18} className="mr-2"/> {/* Menggunakan Lucide Icon */}
+                        <PhoneCall size={18} className="mr-2"/>
                         0812-3456-7890
                     </p>
                 </div>
