@@ -1,9 +1,7 @@
 import React, { useEffect } from 'react';
-// Anda mungkin perlu mengimpor ikon dari lucide-react jika digunakan di dalam renderCards
-// Contoh: import { MapPin, User, Phone } from 'lucide-react'; 
 
-const HomePage = ({ targetSectionId }) => { // Menerima targetSectionId dari App.jsx
-  // Data Mock untuk Dojo (Ini bisa diganti dengan fetch dari API Supabase nanti)
+const HomePage = ({ targetSectionId }) => {
+  // Data Mock untuk Dojo
   const dojoData = [
     {
         id: 'dojo1',
@@ -67,7 +65,8 @@ const HomePage = ({ targetSectionId }) => { // Menerima targetSectionId dari App
     }
   ];
 
-  // Data Mock untuk Pelatih (akan digunakan di section Pelatih)
+  // Data Mock untuk Pelatih (akan digunakan di footer/kontak jika diperlukan, atau dihapus jika tidak)
+  // Data ini tidak lagi dirender di section terpisah
   const coachesData = [
     { id: 'coach1', fullName: 'Sensei Rudi', dojo: 'Dojo Harimau', email: 'rudi@example.com', phone: '081122334455', profilePicture: 'https://placehold.co/100x100/5e72e4/ffffff?text=SR' },
     { id: 'coach2', fullName: 'Sensei Lia', dojo: 'Dojo Naga Langit', email: 'lia@example.com', phone: '089876543210', profilePicture: 'https://placehold.co/100x100/f87979/ffffff?text=SL' },
@@ -92,17 +91,15 @@ const HomePage = ({ targetSectionId }) => { // Menerima targetSectionId dari App
   };
 
   useEffect(() => {
-    // Inisialisasi Lucide icons jika diperlukan secara dinamis (biasanya Lucide React sudah menangani ini)
     if (window.lucide) {
         window.lucide.createIcons();
     }
 
-    // Inisialisasi Filter Dojo
     const branchFilterSelect = document.getElementById('branch-filter-homepage');
     const uniqueBranches = [...new Set(dojoData.map(dojo => dojo.branch))].sort();
 
     if (branchFilterSelect) {
-        branchFilterSelect.innerHTML = '<option value="">Semua Cabang (Kota/Kabupaten)</option>'; // Reset options
+        branchFilterSelect.innerHTML = '<option value="">Semua Cabang (Kota/Kabupaten)</option>';
         uniqueBranches.forEach(branch => {
             const option = document.createElement('option');
             option.value = branch;
@@ -114,17 +111,14 @@ const HomePage = ({ targetSectionId }) => { // Menerima targetSectionId dari App
         });
     }
     
-    renderDojoCards(); // Render dojo cards pertama kali
+    renderDojoCards();
 
-    // Carousel gambar latar belakang
-    changeHeroImage(); // Set gambar pertama
+    changeHeroImage();
     heroInterval = setInterval(changeHeroImage, 5000);
 
-    // Cleanup interval saat komponen unmount
     return () => clearInterval(heroInterval);
-  }, []); // Dependency array kosong agar hanya berjalan sekali saat mount
+  }, []);
 
-  // Efek untuk scroll ke section tertentu saat targetSectionId berubah
   useEffect(() => {
     if (targetSectionId) {
       const targetElement = document.getElementById(targetSectionId);
@@ -132,12 +126,11 @@ const HomePage = ({ targetSectionId }) => { // Menerima targetSectionId dari App
         targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     }
-  }, [targetSectionId]); // Jalankan efek ini setiap kali targetSectionId berubah
+  }, [targetSectionId]);
 
-  // Render Dojo Cards (di dalam komponen React)
   const renderDojoCards = (filterBranch = '') => {
     const dojoListContainer = document.getElementById('dojo-list-homepage');
-    if (!dojoListContainer) return; // Pastikan elemen ada sebelum diupdate
+    if (!dojoListContainer) return;
       
     const filteredDojos = dojoData.filter(dojo => 
         filterBranch === '' || dojo.branch === filterBranch
@@ -188,7 +181,6 @@ const HomePage = ({ targetSectionId }) => { // Menerima targetSectionId dari App
         <section id="hero-homepage" className="h-screen bg-cover bg-center flex items-center justify-center text-center text-white relative transition-all duration-300">
             <div className="absolute inset-0 bg-black bg-opacity-50 z-10"></div>
             <div className="relative z-20 p-8 max-w-3xl">
-                {/* [Image of Logo Kei Shin Kan] */}
                 <img src="/logo-ksk.png" alt="Logo Kei Shin Kan" className="mx-auto mb-6 h-24 w-24 object-contain rounded-full shadow-lg"/>
                 
                 <h1 className="text-6xl font-extrabold mb-4 leading-tight">
@@ -198,13 +190,12 @@ const HomePage = ({ targetSectionId }) => { // Menerima targetSectionId dari App
                     Membangun Karakter Kuat, Melalui Disiplin dan Tradisi Karate
                 </p>
                 <div className="space-x-4">
-                    {/* Tautan ke halaman login aplikasi React */}
                     <a href="/login" className="inline-flex items-center justify-center px-8 py-4 bg-blue-600 text-white font-semibold text-lg rounded-full shadow-lg hover:bg-blue-700 transform hover:scale-105 transition-all duration-300">
                         Login
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-log-in ml-2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>
                     </a>
-                    {/* Tautan untuk gulir ke informasi dojo di halaman ini */}
-                    <a href="#dojo-info-homepage" className="inline-flex items-center justify-center px-8 py-4 bg-white text-gray-800 font-semibold text-lg rounded-full shadow-lg hover:bg-gray-100 transform hover:scale-105 transition-all duration-300">
+                    {/* Tombol Jelajahi Dojo sekarang mengarahkan ke jadwal-tempat-section */}
+                    <a href="#jadwal-tempat-section" className="inline-flex items-center justify-center px-8 py-4 bg-white text-gray-800 font-semibold text-lg rounded-full shadow-lg hover:bg-gray-100 transform hover:scale-105 transition-all duration-300">
                         Jelajahi Dojo
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right ml-2"><path d="m9 18 6-6-6-6"/></svg>
                     </a>
@@ -213,6 +204,7 @@ const HomePage = ({ targetSectionId }) => { // Menerima targetSectionId dari App
         </section>
 
         {/* About Us Section */}
+        {/* ID section ini digunakan oleh navigasi "Tentang Kami" */}
         <section id="about-us-homepage" className="container mx-auto py-16 px-8">
             <h2 className="text-4xl font-bold text-center mb-12 text-gray-800">Tentang <span className="text-blue-600">KEI SHIN KAN</span> Jawa Barat</h2>
             <div className="max-w-4xl mx-auto text-lg text-gray-700 leading-relaxed mb-16">
@@ -225,39 +217,8 @@ const HomePage = ({ targetSectionId }) => { // Menerima targetSectionId dari App
             </div>
         </section>
 
-        {/* Coaches Section (Integrasi dari CoachesPage.jsx) */}
-        <section id="pelatih-section" className="container mx-auto py-16 px-8 bg-blue-50 rounded-lg shadow-inner mb-16">
-            <h2 className="text-4xl font-bold text-center mb-12 text-gray-800">Profil <span className="text-blue-600">Pelatih</span> Kami</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {coachesData.map(coach => (
-                <div key={coach.id} className="bg-white rounded-lg shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-300 border border-gray-200">
-                    <img
-                    src={coach.profilePicture || `https://placehold.co/400x250/5e72e4/ffffff?text=${coach.fullName.split(' ').map(n => n[0]).join('')}`}
-                    alt={`Foto ${coach.fullName}`}
-                    className="w-full h-48 object-cover"
-                    onError={(e) => { e.target.onerror = null; e.target.src = `https://placehold.co/400x250/5e72e4/ffffff?text=${coach.fullName.split(' ').map(n => n[0]).join('')}` }}
-                    />
-                    <div className="p-6">
-                    <h3 className="text-2xl font-semibold text-gray-800 mb-2">{coach.fullName}</h3>
-                    <p className="text-blue-600 font-medium mb-1">
-                        <span className="font-bold">Dojo:</span> {coach.dojo}
-                    </p>
-                    <p className="text-gray-700 text-sm">
-                        <span className="font-bold">Email:</span> {coach.email}
-                    </p>
-                    <p className="text-gray-700 text-sm">
-                        <span className="font-bold">Telepon:</span> {coach.phone}
-                    </p>
-                    <button className="mt-4 w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors">
-                        Lihat Detail
-                    </button>
-                    </div>
-                </div>
-                ))}
-            </div>
-        </section>
-
-        {/* Locations & Schedules Section (Integrasi dari LocationsPage.jsx) */}
+        {/* Locations & Schedules Section (Tempat & Jadwal Latihan) */}
+        {/* ID section ini digunakan oleh navigasi "Jelajahi Dojo" dan "Tempat & Jadwal" */}
         <section id="jadwal-tempat-section" className="container mx-auto py-16 px-8 mb-16">
             <h2 className="text-4xl font-bold text-center mb-10 text-gray-800">Tempat & Jadwal <span className="text-blue-600">Latihan</span></h2>
             {/* Filter Dropdown Dojo */}
@@ -272,28 +233,6 @@ const HomePage = ({ targetSectionId }) => { // Menerima targetSectionId dari App
                 {/* Dojo cards akan di-render di sini menggunakan JavaScript */}
             </div>
         </section>
-
-        {/* Contact Section (Integrasi dari ContactPage.jsx) */}
-        <section id="kontak-section" className="container mx-auto py-16 px-8 bg-gray-100 rounded-lg shadow-inner">
-            <h2 className="text-4xl font-bold text-center mb-12 text-gray-800">Hubungi <span className="text-blue-600">Kami</span></h2>
-            <div className="max-w-2xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="bg-white p-6 rounded-lg shadow-md flex items-center justify-center flex-col text-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail text-blue-500 mb-4"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-                    <h3 className="text-xl font-semibold text-gray-800 mb-2">Email</h3>
-                    <p className="text-gray-700">info@keishinkan-jabar.com</p>
-                </div>
-                <div className="bg-white p-6 rounded-lg shadow-md flex items-center justify-center flex-col text-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-phone-call text-blue-500 mb-4"><path d="M22 16.92v3a2 2 0 0 1-2.18 2.02 15.15 15.15 0 0 1-8.31-4.18 15.15 15.15 0 0 1-4.18-8.31A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-1.11 2.4l-.47.28a2.23 2.23 0 0 0-.85.73A12.18 12.18 0 0 0 6 12c0 2.5.92 4.62 2.76 6.36S13.5 21 16 21a12.18 12.18 0 0 0 2.29-.68 2.23 2.23 0 0 0 .73-.85l.28-.47a2 2 0 0 1 2.4-1.11z"/><path d="M18.92 6A8 8 0 0 0 6 18.92"/><path d="M19.5 2.5a10 10 0 0 0-17 17"/></svg>
-                    <h3 className="text-xl font-semibold text-gray-800 mb-2">Telepon</h3>
-                    <p className="text-gray-700">0812-3456-7890</p>
-                </div>
-            </div>
-            <div className="mt-8 text-center text-gray-700">
-                <p>Atau kunjungi kami di:</p>
-                <p className="font-medium">Kantor Pusat KEI SHIN KAN Jawa Barat, Jl. Contoh Utama No. 123, Bandung</p>
-            </div>
-        </section>
-
 
         {/* Footer Section */}
         <footer className="bg-gray-800 text-gray-300 py-10 px-8 mt-16">
