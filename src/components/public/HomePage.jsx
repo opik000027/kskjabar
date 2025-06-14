@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react';
+// Anda mungkin perlu mengimpor ikon dari lucide-react jika digunakan di dalam renderCards
+// Contoh: import { MapPin, User, Phone } from 'lucide-react'; 
 
-const HomePage = () => {
+const HomePage = ({ targetSectionId }) => { // Menerima targetSectionId dari App.jsx
   // Data Mock untuk Dojo (Ini bisa diganti dengan fetch dari API Supabase nanti)
   const dojoData = [
     {
@@ -13,7 +15,7 @@ const HomePage = () => {
             'Rabu: 19:00 - 21:00 (GOR Cihampelas)'
         ],
         coach: { name: 'Sensei Rudi', contact: '081122334455', email: 'rudi@example.com' },
-        image: 'https://placehold.co/400x250/3498db/ffffff?text=Dojo+Harimau' // Menggunakan placehold.co
+        image: 'https://placehold.co/400x250/3498db/ffffff?text=Dojo+Harimau' 
     },
     {
         id: 'dojo2',
@@ -25,7 +27,7 @@ const HomePage = () => {
             'Kamis: 18:00 - 20:00 (Pusat Olahraga Cimahi)'
         ],
         coach: { name: 'Sensei Lia', contact: '089876543210', email: 'lia@example.com' },
-        image: 'https://placehold.co/400x250/2ecc71/ffffff?text=Dojo+Naga+Langit' // Menggunakan placehold.co
+        image: 'https://placehold.co/400x250/2ecc71/ffffff?text=Dojo+Naga+Langit' 
     },
     {
         id: 'dojo3',
@@ -37,7 +39,7 @@ const HomePage = () => {
             'Sabtu: 09:00 - 11:00 (GOR Tasikmalaya)'
         ],
         coach: { name: 'Sensei Maya', contact: '081234567891', email: 'maya@example.com' },
-        image: 'https://placehold.co/400x250/9b59b6/ffffff?text=Dojo+Elang+Perkasa' // Menggunakan placehold.co
+        image: 'https://placehold.co/400x250/9b59b6/ffffff?text=Dojo+Elang+Perkasa' 
     },
     {
         id: 'dojo4',
@@ -49,7 +51,7 @@ const HomePage = () => {
             'Jumat: 16:00 - 18:00 (GOR Bandung)'
         ],
         coach: { name: 'Sensei Budi', contact: '081312345678', email: 'budi@example.com' },
-        image: 'https://placehold.co/400x250/f39c12/ffffff?text=Dojo+Banteng+Merah' // Menggunakan placehold.co
+        image: 'https://placehold.co/400x250/f39c12/ffffff?text=Dojo+Banteng+Merah' 
     },
     {
         id: 'dojo5',
@@ -61,15 +63,22 @@ const HomePage = () => {
             'Sabtu: 10:00 - 12:00 (Lap. Bola Cimahi)'
         ],
         coach: { name: 'Sensei Dewi', contact: '087812345678', email: 'dewi@example.com' },
-        image: 'https://placehold.co/400x250/e74c3c/ffffff?text=Dojo+Kuda+Terbang' // Menggunakan placehold.co
+        image: 'https://placehold.co/400x250/e74c3c/ffffff?text=Dojo+Kuda+Terbang' 
     }
+  ];
+
+  // Data Mock untuk Pelatih (akan digunakan di section Pelatih)
+  const coachesData = [
+    { id: 'coach1', fullName: 'Sensei Rudi', dojo: 'Dojo Harimau', email: 'rudi@example.com', phone: '081122334455', profilePicture: 'https://placehold.co/100x100/5e72e4/ffffff?text=SR' },
+    { id: 'coach2', fullName: 'Sensei Lia', dojo: 'Dojo Naga Langit', email: 'lia@example.com', phone: '089876543210', profilePicture: 'https://placehold.co/100x100/f87979/ffffff?text=SL' },
+    { id: 'coach3', fullName: 'Sensei Maya', dojo: 'Dojo Elang Perkasa', email: 'maya@example.com', phone: '081234567891', profilePicture: 'https://placehold.co/100x100/9b59b6/ffffff?text=SM' },
   ];
 
   // Carousel Gambar Latar Belakang Hero Section
   const heroImages = [
-      '/1.jpg', // Menggunakan gambar lokal
-      '/2.jpg', // Menggunakan gambar lokal
-      '/3.jpg'  // Menggunakan gambar lokal
+      '/1.jpg', // Menggunakan gambar lokal dari public/
+      '/2.jpg', // Menggunakan gambar lokal dari public/
+      '/3.jpg'  // Menggunakan gambar lokal dari public/
   ];
   let currentImageIndex = 0;
   let heroInterval;
@@ -114,6 +123,16 @@ const HomePage = () => {
     // Cleanup interval saat komponen unmount
     return () => clearInterval(heroInterval);
   }, []); // Dependency array kosong agar hanya berjalan sekali saat mount
+
+  // Efek untuk scroll ke section tertentu saat targetSectionId berubah
+  useEffect(() => {
+    if (targetSectionId) {
+      const targetElement = document.getElementById(targetSectionId);
+      if (targetElement) {
+        targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  }, [targetSectionId]); // Jalankan efek ini setiap kali targetSectionId berubah
 
   // Render Dojo Cards (di dalam komponen React)
   const renderDojoCards = (filterBranch = '') => {
@@ -193,7 +212,7 @@ const HomePage = () => {
             </div>
         </section>
 
-        {/* About Us & Dojo Information Section */}
+        {/* About Us Section */}
         <section id="about-us-homepage" className="container mx-auto py-16 px-8">
             <h2 className="text-4xl font-bold text-center mb-12 text-gray-800">Tentang <span className="text-blue-600">KEI SHIN KAN</span> Jawa Barat</h2>
             <div className="max-w-4xl mx-auto text-lg text-gray-700 leading-relaxed mb-16">
@@ -204,10 +223,44 @@ const HomePage = () => {
                     Dengan Sensei dan Pelatih berpengalaman, kami menyediakan lingkungan latihan yang aman, mendukung, dan menantang bagi semua tingkatan, mulai dari pemula hingga tingkatan sabuk hitam. Bergabunglah dengan kami untuk merasakan manfaat transformatif dari seni bela diri karate.
                 </p>
             </div>
+        </section>
 
-            <h2 id="dojo-info-homepage" className="text-4xl font-bold text-center mb-8 text-gray-800">Dojo Kami di Jawa Barat</h2>
-            
-            {/* Filter Dropdown */}
+        {/* Coaches Section (Integrasi dari CoachesPage.jsx) */}
+        <section id="pelatih-section" className="container mx-auto py-16 px-8 bg-blue-50 rounded-lg shadow-inner mb-16">
+            <h2 className="text-4xl font-bold text-center mb-12 text-gray-800">Profil <span className="text-blue-600">Pelatih</span> Kami</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {coachesData.map(coach => (
+                <div key={coach.id} className="bg-white rounded-lg shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-300 border border-gray-200">
+                    <img
+                    src={coach.profilePicture || `https://placehold.co/400x250/5e72e4/ffffff?text=${coach.fullName.split(' ').map(n => n[0]).join('')}`}
+                    alt={`Foto ${coach.fullName}`}
+                    className="w-full h-48 object-cover"
+                    onError={(e) => { e.target.onerror = null; e.target.src = `https://placehold.co/400x250/5e72e4/ffffff?text=${coach.fullName.split(' ').map(n => n[0]).join('')}` }}
+                    />
+                    <div className="p-6">
+                    <h3 className="text-2xl font-semibold text-gray-800 mb-2">{coach.fullName}</h3>
+                    <p className="text-blue-600 font-medium mb-1">
+                        <span className="font-bold">Dojo:</span> {coach.dojo}
+                    </p>
+                    <p className="text-gray-700 text-sm">
+                        <span className="font-bold">Email:</span> {coach.email}
+                    </p>
+                    <p className="text-gray-700 text-sm">
+                        <span className="font-bold">Telepon:</span> {coach.phone}
+                    </p>
+                    <button className="mt-4 w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors">
+                        Lihat Detail
+                    </button>
+                    </div>
+                </div>
+                ))}
+            </div>
+        </section>
+
+        {/* Locations & Schedules Section (Integrasi dari LocationsPage.jsx) */}
+        <section id="jadwal-tempat-section" className="container mx-auto py-16 px-8 mb-16">
+            <h2 className="text-4xl font-bold text-center mb-10 text-gray-800">Tempat & Jadwal <span className="text-blue-600">Latihan</span></h2>
+            {/* Filter Dropdown Dojo */}
             <div className="flex justify-center mb-10">
                 <label htmlFor="branch-filter-homepage" className="sr-only">Filter berdasarkan Cabang</label>
                 <select id="branch-filter-homepage" className="block w-full max-w-sm px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
@@ -215,14 +268,35 @@ const HomePage = () => {
                     {/* Opsi cabang akan diisi oleh JavaScript */}
                 </select>
             </div>
-
             <div id="dojo-list-homepage" className="dojo-grid">
                 {/* Dojo cards akan di-render di sini menggunakan JavaScript */}
             </div>
         </section>
 
+        {/* Contact Section (Integrasi dari ContactPage.jsx) */}
+        <section id="kontak-section" className="container mx-auto py-16 px-8 bg-gray-100 rounded-lg shadow-inner">
+            <h2 className="text-4xl font-bold text-center mb-12 text-gray-800">Hubungi <span className="text-blue-600">Kami</span></h2>
+            <div className="max-w-2xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="bg-white p-6 rounded-lg shadow-md flex items-center justify-center flex-col text-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail text-blue-500 mb-4"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                    <h3 className="text-xl font-semibold text-gray-800 mb-2">Email</h3>
+                    <p className="text-gray-700">info@keishinkan-jabar.com</p>
+                </div>
+                <div className="bg-white p-6 rounded-lg shadow-md flex items-center justify-center flex-col text-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-phone-call text-blue-500 mb-4"><path d="M22 16.92v3a2 2 0 0 1-2.18 2.02 15.15 15.15 0 0 1-8.31-4.18 15.15 15.15 0 0 1-4.18-8.31A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-1.11 2.4l-.47.28a2.23 2.23 0 0 0-.85.73A12.18 12.18 0 0 0 6 12c0 2.5.92 4.62 2.76 6.36S13.5 21 16 21a12.18 12.18 0 0 0 2.29-.68 2.23 2.23 0 0 0 .73-.85l.28-.47a2 2 0 0 1 2.4-1.11z"/><path d="M18.92 6A8 8 0 0 0 6 18.92"/><path d="M19.5 2.5a10 10 0 0 0-17 17"/></svg>
+                    <h3 className="text-xl font-semibold text-gray-800 mb-2">Telepon</h3>
+                    <p className="text-gray-700">0812-3456-7890</p>
+                </div>
+            </div>
+            <div className="mt-8 text-center text-gray-700">
+                <p>Atau kunjungi kami di:</p>
+                <p className="font-medium">Kantor Pusat KEI SHIN KAN Jawa Barat, Jl. Contoh Utama No. 123, Bandung</p>
+            </div>
+        </section>
+
+
         {/* Footer Section */}
-        <footer className="bg-gray-800 text-gray-300 py-10 px-8">
+        <footer className="bg-gray-800 text-gray-300 py-10 px-8 mt-16">
             <div className="container mx-auto flex flex-col md:flex-row justify-between items-center text-center md:text-left">
                 <div className="mb-6 md:mb-0">
                     <h3 className="text-xl font-bold text-white mb-2">KEI SHIN KAN Jawa Barat</h3>
