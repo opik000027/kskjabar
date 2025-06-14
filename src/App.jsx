@@ -1,20 +1,10 @@
 import React, { useState, useEffect } from 'react';
-// Import AuthProvider dan useAuth dari konteks autentikasi
-import { AuthProvider, useAuth } from './contexts/AuthContext.jsx';
+import { AuthProvider, useAuth } from './contexts/AuthContext.jsx'; // Pastikan ekstensi .jsx
 
-// Import semua komponen halaman publik
-// HomePage sekarang akan berisi konten landing page
 import HomePage from './components/public/HomePage.jsx';
-// Menghapus impor ini karena kontennya sudah diintegrasikan ke HomePage.jsx
-// import CoachesPage from './components/public/CoachesPage.jsx';
-// import LocationsPage from './components/public/LocationsPage.jsx';
-// import ContactPage from './components/public/ContactPage.jsx';
-
-// Import komponen autentikasi
 import LoginPage from './components/auth/LoginPage.jsx';
 import RegisterPage from './components/auth/RegisterPage.jsx';
 
-// Import komponen dashboard dan modul terkait
 import CoachDashboard from './components/dashboard/CoachDashboard.jsx';
 import MemberList from './components/dashboard/MemberList.jsx';
 import MemberDetail from './components/dashboard/MemberDetail.jsx';
@@ -25,18 +15,14 @@ import AchievementManager from './components/dashboard/AchievementManager.jsx';
 import AddAchievement from './components/dashboard/AddAchievement.jsx';
 import ExportData from './components/dashboard/ExportData.jsx';
 
-// Import komponen umum
 import Navbar from './components/common/Navbar.jsx';
 
-// --- Data Mock (Simulasi Database Backend - akan diganti oleh Firestore nanti) ---
+// Data Mock yang akan tetap digunakan untuk sementara sampai semua diganti Firestore
 const mockData = {
+  // users data will now be handled by Firebase Auth
   branches: [
     { id: 'branch1', name: 'Kota Bandung', address: 'Jl. Asia Afrika No.1', contact: '022-123456' },
     { id: 'branch2', name: 'Kota Cimahi', address: 'Jl. Gandawijaya No.10', contact: '022-987654' },
-  ],
-  dojos: [
-    { id: 'dojo1', name: 'Dojo Harimau', branchId: 'branch1', address: 'Jl. Cisitu Lama No.1', headCoachId: 'user2' },
-    { id: 'dojo2', name: 'Dojo Naga Langit', branchId: 'branch2', address: 'Jl. Raya Cibabat No.5', headCoachId: 'user4' },
   ],
   belts: [
     { id: 'belt1', name: 'Putih', order: 1 },
@@ -60,24 +46,24 @@ const mockData = {
   memberProgress: [],
 };
 
-// --- Komponen Utama Aplikasi ---
+
 function App() {
   const { isAuthenticated, currentUser, loading } = useAuth();
   const [currentView, setCurrentViewInternal] = useState({ view: 'home', targetId: null });
   const [selectedMemberId, setSelectedMemberId] = useState(null);
 
-  // Wrapper untuk setCurrentView agar bisa menerima targetId
   const setCurrentView = (viewName, targetId = null) => {
     setCurrentViewInternal({ view: viewName, targetId: targetId });
   };
 
   useEffect(() => {
     if (!loading && isAuthenticated) {
-      if (currentUser.role === 'pelatih') {
+      // Peran pengguna masih disimulasikan berdasarkan email sementara
+      if (currentUser?.email?.includes('pelatih')) {
         setCurrentView('coach-dashboard');
-      } else if (currentUser.role === 'anggota') {
+      } else if (currentUser?.email?.includes('anggota')) {
         setCurrentView('member-profile');
-      } else if (currentUser.role === 'penguji') {
+      } else if (currentUser?.email?.includes('penguji')) {
         setCurrentView('exam-manager');
       }
     }
@@ -88,6 +74,12 @@ function App() {
       return <div className="text-center p-8 text-white">Memuat aplikasi...</div>;
     }
 
+    // Role simulasi untuk demo, nanti akan didapatkan dari Firestore user profile
+    const isCoach = isAuthenticated && currentUser?.email?.includes('pelatih');
+    const isMember = isAuthenticated && currentUser?.email?.includes('anggota');
+    const isExaminer = isAuthenticated && currentUser?.email?.includes('penguji');
+    const isAdminBranch = isAuthenticated && currentUser?.email?.includes('admin_cabang'); // Contoh
+
     switch (currentView.view) {
       case 'home':
         return <HomePage targetSectionId={currentView.targetId} />;
@@ -96,33 +88,28 @@ function App() {
       case 'register':
         return <RegisterPage setCurrentView={setCurrentView} />;
       case 'coach-dashboard':
-        // Simulasikan role karena belum ada di Firebase user object langsung
-        const isCoach = isAuthenticated && currentUser && currentUser.email.includes('pelatih');
         return isCoach ? <CoachDashboard setCurrentView={setCurrentView} /> : <p className="text-center p-8 text-red-500">Akses ditolak. Silakan login sebagai pelatih.</p>;
       case 'member-list':
-        const isCoachForMemberList = isAuthenticated && currentUser && currentUser.email.includes('pelatih');
-        return isCoachForMemberList ? <MemberList setCurrentView={setCurrentView} setSelectedMemberId={setSelectedMemberId} /> : <p className="text-center p-8 text-red-500">Akses ditolak. Silakan login sebagai pelatih.</p>;
+        return isCoach ? <MemberList setCurrentView={setCurrentView} setSelectedMemberId={setSelectedMemberId} /> : <p className="text-center p-8 text-red-500">Akses ditolak. Silakan login sebagai pelatih.</p>;
       case 'member-detail':
-        const isAuthorizedToViewMember = isAuthenticated && ( (currentUser && currentUser.email.includes('pelatih')) || (currentUser && currentUser.uid === selectedMemberId) );
-        return isAuthorizedToViewMember ? <MemberDetail setCurrentView={setCurrentView} selectedMemberId={selectedMemberId} /> : <p className="text-center p-8 text-red-500">Akses ditolak.</p>;
+        const authorizedToViewDetail = isCoach || (isMember && currentUser?.uid === selectedMemberId);
+        return authorizedToViewDetail ? <MemberDetail setCurrentView={setCurrentView} selectedMemberId={selectedMemberId} /> : <p className="text-center p-8 text-red-500">Akses ditolak.</p>;
       case 'member-profile':
-        const isMemberProfile = isAuthenticated && currentUser && currentUser.email.includes('anggota');
-        return isMemberProfile ? <MemberDetail setCurrentView={setCurrentView} selectedMemberId={currentUser.uid} /> : <p className="text-center p-8 text-red-500">Akses ditolak. Silakan login sebagai anggota.</p>;
+        return isMember ? <MemberDetail setCurrentView={setCurrentView} selectedMemberId={currentUser.uid} /> : <p className="text-center p-8 text-red-500">Akses ditolak. Silakan login sebagai anggota.</p>;
       case 'attendance-scanner':
-        const isCoachForAttendance = isAuthenticated && currentUser && currentUser.email.includes('pelatih');
-        return isCoachForAttendance ? <AttendanceScanner setCurrentView={setCurrentView} /> : <p className="text-center p-8 text-red-500">Akses ditolak. Silakan login sebagai pelatih.</p>;
+        return isCoach ? <AttendanceScanner setCurrentView={setCurrentView} /> : <p className="text-center p-8 text-red-500">Akses ditolak. Silakan login sebagai pelatih.</p>;
       case 'payment-manager':
-        const isCoachForPayment = isAuthenticated && currentUser && currentUser.email.includes('pelatih');
-        return isCoachForPayment ? <PaymentManager setCurrentView={setCurrentView} /> : <p className="text-center p-8 text-red-500">Akses ditolak. Silakan login sebagai pelatih.</p>;
+        return isCoach ? <PaymentManager setCurrentView={setCurrentView} /> : <p className="text-center p-8 text-red-500">Akses ditolak. Silakan login sebagai pelatih.</p>;
       case 'exam-manager':
-        const isExamManager = isAuthenticated && currentUser && (currentUser.email.includes('pelatih') || currentUser.email.includes('penguji'));
-        return isExamManager ? <ExamManager setCurrentView={setCurrentView} /> : <p className="text-center p-8 text-red-500">Akses ditolak. Silakan login sebagai pelatih/penguji.</p>;
+        const authorizedToManageExam = isCoach || isExaminer;
+        return authorizedToManageExam ? <ExamManager setCurrentView={setCurrentView} /> : <p className="text-center p-8 text-red-500">Akses ditolak. Silakan login sebagai pelatih/penguji.</p>;
       case 'achievement-manager':
-        const isCoachForAchievement = isAuthenticated && currentUser && currentUser.email.includes('pelatih');
-        return isCoachForAchievement ? <AchievementManager setCurrentView={setCurrentView} /> : <p className="text-center p-8 text-red-500">Akses ditolak. Silakan login sebagai pelatih.</p>;
+        return isCoach ? <AchievementManager setCurrentView={setCurrentView} /> : <p className="text-center p-8 text-red-500">Akses ditolak. Silakan login sebagai pelatih.</p>;
+      case 'add-achievement': // New case for adding achievement
+        return isCoach ? <AddAchievement setCurrentView={setCurrentView} /> : <p className="text-center p-8 text-red-500">Akses ditolak. Silakan login sebagai pelatih.</p>;
       case 'export-data':
-        const isAuthorizedForExport = isAuthenticated && currentUser && (currentUser.email.includes('pelatih') || currentUser.email.includes('admin_cabang'));
-        return isAuthorizedForExport ? <ExportData setCurrentView={setCurrentView} /> : <p className="text-center p-8 text-red-500">Akses ditolak.</p>;
+        const authorizedToExport = isCoach || isAdminBranch;
+        return authorizedToExport ? <ExportData setCurrentView={setCurrentView} /> : <p className="text-center p-8 text-red-500">Akses ditolak.</p>;
       default:
         return <HomePage targetSectionId={null} />;
     }
