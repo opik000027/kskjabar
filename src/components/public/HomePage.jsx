@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { MapPin, User, PhoneCall, Mail } from 'lucide-react'; // Tambahkan ikon yang digunakan
 
 const HomePage = ({ targetSectionId }) => {
   // Data Mock untuk Dojo
@@ -13,7 +14,7 @@ const HomePage = ({ targetSectionId }) => {
             'Rabu: 19:00 - 21:00 (GOR Cihampelas)'
         ],
         coach: { name: 'Sensei Rudi', contact: '081122334455', email: 'rudi@example.com' },
-        image: 'https://placehold.co/400x250/3498db/ffffff?text=Dojo+Harimau' 
+        image: 'https://placehold.co/400x250/3498db/ffffff?text=Dojo+Harimau'
     },
     {
         id: 'dojo2',
@@ -25,7 +26,7 @@ const HomePage = ({ targetSectionId }) => {
             'Kamis: 18:00 - 20:00 (Pusat Olahraga Cimahi)'
         ],
         coach: { name: 'Sensei Lia', contact: '089876543210', email: 'lia@example.com' },
-        image: 'https://placehold.co/400x250/2ecc71/ffffff?text=Dojo+Naga+Langit' 
+        image: 'https://placehold.co/400x250/2ecc71/ffffff?text=Dojo+Naga+Langit'
     },
     {
         id: 'dojo3',
@@ -37,7 +38,7 @@ const HomePage = ({ targetSectionId }) => {
             'Sabtu: 09:00 - 11:00 (GOR Tasikmalaya)'
         ],
         coach: { name: 'Sensei Maya', contact: '081234567891', email: 'maya@example.com' },
-        image: 'https://placehold.co/400x250/9b59b6/ffffff?text=Dojo+Elang+Perkasa' 
+        image: 'https://placehold.co/400x250/9b59b6/ffffff?text=Dojo+Elang+Perkasa'
     },
     {
         id: 'dojo4',
@@ -49,7 +50,7 @@ const HomePage = ({ targetSectionId }) => {
             'Jumat: 16:00 - 18:00 (GOR Bandung)'
         ],
         coach: { name: 'Sensei Budi', contact: '081312345678', email: 'budi@example.com' },
-        image: 'https://placehold.co/400x250/f39c12/ffffff?text=Dojo+Banteng+Merah' 
+        image: 'https://placehold.co/400x250/f39c12/ffffff?text=Dojo+Banteng+Merah'
     },
     {
         id: 'dojo5',
@@ -61,16 +62,8 @@ const HomePage = ({ targetSectionId }) => {
             'Sabtu: 10:00 - 12:00 (Lap. Bola Cimahi)'
         ],
         coach: { name: 'Sensei Dewi', contact: '087812345678', email: 'dewi@example.com' },
-        image: 'https://placehold.co/400x250/e74c3c/ffffff?text=Dojo+Kuda+Terbang' 
+        image: 'https://placehold.co/400x250/e74c3c/ffffff?text=Dojo+Kuda+Terbang'
     }
-  ];
-
-  // Data Mock untuk Pelatih (akan digunakan di footer/kontak jika diperlukan, atau dihapus jika tidak)
-  // Data ini tidak lagi dirender di section terpisah
-  const coachesData = [
-    { id: 'coach1', fullName: 'Sensei Rudi', dojo: 'Dojo Harimau', email: 'rudi@example.com', phone: '081122334455', profilePicture: 'https://placehold.co/100x100/5e72e4/ffffff?text=SR' },
-    { id: 'coach2', fullName: 'Sensei Lia', dojo: 'Dojo Naga Langit', email: 'lia@example.com', phone: '089876543210', profilePicture: 'https://placehold.co/100x100/f87979/ffffff?text=SL' },
-    { id: 'coach3', fullName: 'Sensei Maya', dojo: 'Dojo Elang Perkasa', email: 'maya@example.com', phone: '081234567891', profilePicture: 'https://placehold.co/100x100/9b59b6/ffffff?text=SM' },
   ];
 
   // Carousel Gambar Latar Belakang Hero Section
@@ -91,6 +84,9 @@ const HomePage = ({ targetSectionId }) => {
   };
 
   useEffect(() => {
+    // Pastikan Lucide icons tersedia secara global jika tidak diimpor sebagai komponen React langsung
+    // Atau impor komponen icon dari 'lucide-react' dan gunakan langsung di JSX
+    // Contoh: <MapPin size={18} className="mr-2" />
     if (window.lucide) {
         window.lucide.createIcons();
     }
@@ -110,7 +106,7 @@ const HomePage = ({ targetSectionId }) => {
             renderDojoCards(event.target.value);
         });
     }
-    
+
     renderDojoCards();
 
     changeHeroImage();
@@ -119,20 +115,31 @@ const HomePage = ({ targetSectionId }) => {
     return () => clearInterval(heroInterval);
   }, []);
 
+  // Effect untuk smooth scroll dengan offset navbar
   useEffect(() => {
     if (targetSectionId) {
       const targetElement = document.getElementById(targetSectionId);
       if (targetElement) {
-        targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const navbar = document.querySelector('nav');
+        const navbarHeight = navbar ? navbar.offsetHeight : 0; // Get actual navbar height
+
+        const elementPosition = targetElement.getBoundingClientRect().top;
+        const offsetPosition = window.pageYOffset + elementPosition - navbarHeight - 20; // -20px for extra padding
+
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
       }
     }
   }, [targetSectionId]);
 
+
   const renderDojoCards = (filterBranch = '') => {
     const dojoListContainer = document.getElementById('dojo-list-homepage');
     if (!dojoListContainer) return;
-      
-    const filteredDojos = dojoData.filter(dojo => 
+
+    const filteredDojos = dojoData.filter(dojo =>
         filterBranch === '' || dojo.branch === filterBranch
     );
 
@@ -182,7 +189,7 @@ const HomePage = ({ targetSectionId }) => {
             <div className="absolute inset-0 bg-black bg-opacity-50 z-10"></div>
             <div className="relative z-20 p-8 max-w-3xl">
                 <img src="/logo-ksk.png" alt="Logo Kei Shin Kan" className="mx-auto mb-6 h-24 w-24 object-contain rounded-full shadow-lg"/>
-                
+
                 <h1 className="text-6xl font-extrabold mb-4 leading-tight">
                     <span className="text-blue-400">KEI SHIN KAN</span> Jawa Barat
                 </h1>
@@ -244,11 +251,11 @@ const HomePage = ({ targetSectionId }) => {
                 <div className="mb-6 md:mb-0">
                     <h3 className="text-xl font-bold text-white mb-2">Kontak Kami</h3>
                     <p className="text-sm flex items-center justify-center md:justify-start mb-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail mr-2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                        <Mail size={18} className="mr-2"/> {/* Menggunakan Lucide Icon */}
                         info@keishinkan-jabar.com
                     </p>
                     <p class="text-sm flex items-center justify-center md:justify-start">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-phone-call mr-2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2.02 15.15 15.15 0 0 1-8.31-4.18 15.15 15.15 0 0 1-4.18-8.31A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-1.11 2.4l-.47.28a2.23 2.23 0 0 0-.85.73A12.18 12.18 0 0 0 6 12c0 2.5.92 4.62 2.76 6.36S13.5 21 16 21a12.18 12.18 0 0 0 2.29-.68 2.23 2.23 0 0 0 .73-.85l.28-.47a2 2 0 0 1 2.4-1.11z"/><path d="M18.92 6A8 8 0 0 0 6 18.92"/><path d="M19.5 2.5a10 10 0 0 0-17 17"/></svg>
+                        <PhoneCall size={18} className="mr-2"/> {/* Menggunakan Lucide Icon */}
                         0812-3456-7890
                     </p>
                 </div>
