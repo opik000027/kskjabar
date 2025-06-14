@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react'; // Memperbaiki syntax import React
+import React, { useState, useEffect } from 'react'; 
 // Import AuthProvider dan useAuth dari konteks autentikasi
 import { AuthProvider, useAuth } from './contexts/AuthContext.jsx'; 
 
 // Import semua komponen halaman publik
-import HomePage from './components/public/HomePage.jsx';
+// HomePage sekarang akan berisi konten landing page
+import HomePage from './components/public/HomePage.jsx'; 
 import CoachesPage from './components/public/CoachesPage.jsx';
 import LocationsPage from './components/public/LocationsPage.jsx';
 import ContactPage from './components/public/ContactPage.jsx';
@@ -34,7 +35,7 @@ const mockData = {
     { id: 'user2', username: 'pelatih1', password: 'password', role: 'pelatih', fullName: 'Sensei Rudi', email: 'rudi@example.com', phone: '081122334455', dojoId: 'dojo1', profilePicture: 'https://placehold.co/100x100/5e72e4/ffffff?text=SR' },
     { id: 'user3', username: 'anggota002', password: 'password', role: 'anggota', fullName: 'Siti Aminah', email: 'siti@example.com', phone: '087654321098', dojoId: 'dojo1', uniqueMemberId: 'KSK-002', currentBeltId: 'belt2', status: 'aktif', dateOfBirth: '1998-05-20', placeOfBirth: 'Cimahi', address: 'Jl. Mekar No.5' },
     { id: 'user4', username: 'pelatih2', password: 'password', role: 'pelatih', fullName: 'Sensei Lia', email: 'lia@example.com', phone: '089876543210', dojoId: 'dojo2', profilePicture: 'https://placehold.co/100x100/f87979/ffffff?text=SL' },
-    { id: 'user5', username: 'penguji1', password: 'password', role: 'penguji', fullName: 'Shihan Ahmad', email: 'ahmad@example.com', phone: '081212121212', branchId: 'branch1', profilePicture: 'https://placehold.co/100x100/50b86a/ffffff?text=SA' },
+    { id: 'user5', username: 'penguji1', password: 'password', role: 'penguji', fullName: 'Shihan Ahmad', 'email': 'ahmad@example.com', phone: '081212121212', branchId: 'branch1', profilePicture: 'https://placehold.co/100x100/50b86a/ffffff?text=SA' },
     { id: 'user6', username: 'anggota003', password: 'password', role: 'anggota', fullName: 'Cici Paramida', email: 'cici@example.com', phone: '081298765432', dojoId: 'dojo2', uniqueMemberId: 'KSK-003', currentBeltId: 'belt3', status: 'aktif', dateOfBirth: '2001-11-10', placeOfBirth: 'Bandung', address: 'Jl. Damai No.10' },
   ],
   branches: [
@@ -70,8 +71,14 @@ const mockData = {
 // --- Komponen Utama Aplikasi ---
 function App() {
   const { isAuthenticated, currentUser } = useAuth(); // Menggunakan konteks autentikasi
-  const [currentView, setCurrentView] = useState('home'); // State untuk mengelola tampilan/routing
+  // currentView kini menyimpan objek { view: string, targetId: string | null }
+  const [currentView, setCurrentViewInternal] = useState({ view: 'home', targetId: null });
   const [selectedMemberId, setSelectedMemberId] = useState(null); // State untuk detail anggota
+
+  // Wrapper untuk setCurrentView agar bisa menerima targetId
+  const setCurrentView = (viewName, targetId = null) => {
+    setCurrentViewInternal({ view: viewName, targetId: targetId });
+  };
 
   // Mengarahkan pengguna ke dasbor yang sesuai setelah berhasil login
   useEffect(() => {
@@ -84,19 +91,20 @@ function App() {
         setCurrentView('exam-manager'); 
       }
     }
-  }, [isAuthenticated, currentUser]);
+  }, [isAuthenticated, currentUser, setCurrentView]); // Tambahkan setCurrentView ke dependency array
 
-  // Fungsi untuk merender tampilan berdasarkan state `currentView`
+  // Fungsi untuk merender tampilan berdasarkan currentView.view
   const renderView = () => {
-    switch (currentView) {
+    switch (currentView.view) {
       case 'home':
-        return <HomePage />;
-      case 'coaches':
-        return <CoachesPage />;
-      case 'locations':
-        return <LocationsPage />;
-      case 'contact':
-        return <ContactPage />;
+        return <HomePage targetSectionId={currentView.targetId} />; // Meneruskan targetSectionId
+      // Komponen lain tidak perlu targetSectionId kecuali mereka juga punya section yang bisa di-scroll
+      // case 'coaches':
+      //   return <CoachesPage />;
+      // case 'locations':
+      //   return <LocationsPage />;
+      // case 'contact':
+      //   return <ContactPage />;
       case 'login':
         return <LoginPage setCurrentView={setCurrentView} />;
       case 'register':
@@ -106,11 +114,8 @@ function App() {
       case 'member-list':
         return isAuthenticated && currentUser.role === 'pelatih' ? <MemberList setCurrentView={setCurrentView} setSelectedMemberId={setSelectedMemberId} /> : <p className="text-center p-8">Akses ditolak. Silakan login sebagai pelatih.</p>;
       case 'member-detail':
-        // Anggota bisa melihat profilnya sendiri (currentUser.id === selectedMemberId)
-        // Pelatih bisa melihat profil anggota lain (currentUser.role === 'pelatih')
         return isAuthenticated && (currentUser.role === 'pelatih' || currentUser.id === selectedMemberId) ? <MemberDetail setCurrentView={setCurrentView} selectedMemberId={selectedMemberId} /> : <p className="text-center p-8">Akses ditolak.</p>;
       case 'member-profile':
-        // Anggota melihat profilnya sendiri (memastikan selectedMemberId adalah ID anggota yang login)
         return isAuthenticated && currentUser.role === 'anggota' ? <MemberDetail setCurrentView={setCurrentView} selectedMemberId={currentUser.id} /> : <p className="text-center p-8">Akses ditolak. Silakan login sebagai anggota.</p>;
       case 'attendance-scanner':
         return isAuthenticated && currentUser.role === 'pelatih' ? <AttendanceScanner setCurrentView={setCurrentView} /> : <p className="text-center p-8">Akses ditolak. Silakan login sebagai pelatih.</p>;
@@ -124,12 +129,13 @@ function App() {
         return isAuthenticated && (currentUser.role === 'pelatih' || currentUser.role === 'admin_cabang') ? <ExportData setCurrentView={setCurrentView} /> : <p className="text-center p-8">Akses ditolak.</p>;
       default:
         // Default kembali ke halaman beranda jika tidak ada tampilan yang cocok atau tidak terautentikasi
-        return <HomePage />;
+        return <HomePage targetSectionId={null} />;
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 font-inter">
+    // Tambahkan gambar latar belakang ke div utama
+    <div className="min-h-screen font-inter bg-[url('https://images.unsplash.com/photo-1544377193-4a1122a2753a?q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1920&h=1080&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')] bg-fixed bg-cover bg-center">
       {/* Navbar akan selalu ditampilkan di bagian atas */}
       <Navbar setCurrentView={setCurrentView} />
       <main className="pb-10"> {/* Memberi sedikit padding di bagian bawah konten */}
