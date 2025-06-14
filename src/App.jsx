@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react'; 
+import React, { useState, useEffect } from 'react';
 // Import AuthProvider dan useAuth dari konteks autentikasi
-import { AuthProvider, useAuth } from './contexts/AuthContext.jsx'; 
+import { AuthProvider, useAuth } from './contexts/AuthContext.jsx';
 
 // Import semua komponen halaman publik
 // HomePage sekarang akan berisi konten landing page
-import HomePage from './components/public/HomePage.jsx'; 
+import HomePage from './components/public/HomePage.jsx';
 // Menghapus impor ini karena kontennya sudah diintegrasikan ke HomePage.jsx
-// import CoachesPage from './components/public/CoachesPage.jsx'; 
+// import CoachesPage from './components/public/CoachesPage.jsx';
 // import LocationsPage from './components/public/LocationsPage.jsx';
 // import ContactPage from './components/public/ContactPage.jsx';
 
@@ -86,7 +86,7 @@ function App() {
       } else if (currentUser.role === 'anggota') {
         setCurrentView('member-profile');
       } else if (currentUser.role === 'penguji') {
-        setCurrentView('exam-manager'); 
+        setCurrentView('exam-manager');
       }
     }
   }, [isAuthenticated, currentUser, setCurrentView]);
