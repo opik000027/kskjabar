@@ -1,70 +1,13 @@
-import React, { useEffect } from 'react';
-import { MapPin, User, PhoneCall, Mail } from 'lucide-react'; // Tambahkan ikon yang digunakan
+import React, { useEffect, useState } from 'react';
+import { MapPin, User, PhoneCall, Mail } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext.jsx'; // Untuk mengakses instance Firestore (db)
+import { collection, getDocs, query } from 'firebase/firestore'; // Import fungsi Firestore
 
 const HomePage = ({ targetSectionId }) => {
-  // Data Mock untuk Dojo
-  const dojoData = [
-    {
-        id: 'dojo1',
-        name: 'Dojo Harimau',
-        branch: 'Kota Bandung',
-        address: 'Jl. Cisitu Lama No.1, Bandung',
-        schedules: [
-            'Senin: 16:00 - 18:00 (GOR Cihampelas)',
-            'Rabu: 19:00 - 21:00 (GOR Cihampelas)'
-        ],
-        coach: { name: 'Sensei Rudi', contact: '081122334455', email: 'rudi@example.com' },
-        image: 'https://placehold.co/400x250/3498db/ffffff?text=Dojo+Harimau'
-    },
-    {
-        id: 'dojo2',
-        name: 'Dojo Naga Langit',
-        branch: 'Kota Cimahi',
-        address: 'Jl. Raya Cibabat No.5, Cimahi',
-        schedules: [
-            'Selasa: 15:00 - 17:00 (Pusat Olahraga Cimahi)',
-            'Kamis: 18:00 - 20:00 (Pusat Olahraga Cimahi)'
-        ],
-        coach: { name: 'Sensei Lia', contact: '089876543210', email: 'lia@example.com' },
-        image: 'https://placehold.co/400x250/2ecc71/ffffff?text=Dojo+Naga+Langit'
-    },
-    {
-        id: 'dojo3',
-        name: 'Dojo Elang Perkasa',
-        branch: 'Kota Tasikmalaya',
-        address: 'Jl. Pemuda No. 10, Tasikmalaya',
-        schedules: [
-            'Jumat: 17:00 - 19:00 (GOR Tasikmalaya)',
-            'Sabtu: 09:00 - 11:00 (GOR Tasikmalaya)'
-        ],
-        coach: { name: 'Sensei Maya', contact: '081234567891', email: 'maya@example.com' },
-        image: 'https://placehold.co/400x250/9b59b6/ffffff?text=Dojo+Elang+Perkasa'
-    },
-    {
-        id: 'dojo4',
-        name: 'Dojo Banteng Merah',
-        branch: 'Kota Bandung',
-        address: 'Jl. Merdeka No. 45, Bandung',
-        schedules: [
-            'Selasa: 17:00 - 19:00 (GOR Bandung)',
-            'Jumat: 16:00 - 18:00 (GOR Bandung)'
-        ],
-        coach: { name: 'Sensei Budi', contact: '081312345678', email: 'budi@example.com' },
-        image: 'https://placehold.co/400x250/f39c12/ffffff?text=Dojo+Banteng+Merah'
-    },
-    {
-        id: 'dojo5',
-        name: 'Dojo Kuda Terbang',
-        branch: 'Kota Cimahi',
-        address: 'Jl. Asia Afrika No. 100, Cimahi',
-        schedules: [
-            'Rabu: 14:00 - 16:00 (Lap. Bola Cimahi)',
-            'Sabtu: 10:00 - 12:00 (Lap. Bola Cimahi)'
-        ],
-        coach: { name: 'Sensei Dewi', contact: '087812345678', email: 'dewi@example.com' },
-        image: 'https://placehold.co/400x250/e74c3c/ffffff?text=Dojo+Kuda+Terbang'
-    }
-  ];
+  const { db } = useAuth(); // Ambil instance db dari AuthContext
+  const [dojoData, setDojoData] = useState([]);
+  const [loadingDojos, setLoadingDojos] = useState(true);
+  const [errorDojos, setErrorDojos] = useState(null);
 
   // Carousel Gambar Latar Belakang Hero Section
   const heroImages = [
@@ -83,31 +26,69 @@ const HomePage = ({ targetSectionId }) => {
       }
   };
 
+  // Fungsi untuk mengambil data dojo dari Firestore
+  const fetchDojoData = async () => {
+    if (!db) { // Pastikan instance db sudah ada
+      console.warn("Firestore instance not available yet.");
+      return;
+    }
+    setLoadingDojos(true);
+    setErrorDojos(null);
+    try {
+      // Dapatkan App ID dari variabel global
+      const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+      
+      // Path Firestore untuk data publik
+      const dojosCollectionRef = collection(db, `artifacts/${appId}/public/data/dojos`);
+      const q = query(dojosCollectionRef);
+      const querySnapshot = await getDocs(q);
+      const fetchedDojos = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setDojoData(fetchedDojos);
+
+      // Inisialisasi Filter Dojo setelah data dojo di-fetch
+      const branchFilterSelect = document.getElementById('branch-filter-homepage');
+      const uniqueBranches = [...new Set(fetchedDojos.map(dojo => dojo.branch))].sort();
+
+      if (branchFilterSelect) {
+          // Bersihkan opsi yang ada
+          branchFilterSelect.innerHTML = '<option value="">Semua Cabang (Kota/Kabupaten)</option>';
+          uniqueBranches.forEach(branch => {
+              const option = document.createElement('option');
+              option.value = branch;
+              option.textContent = branch;
+              branchFilterSelect.appendChild(option);
+          });
+          // Tambahkan event listener jika belum ada
+          if (!branchFilterSelect.hasAttribute('data-listener-attached')) {
+            branchFilterSelect.addEventListener('change', (event) => {
+                renderDojoCards(event.target.value);
+            });
+            branchFilterSelect.setAttribute('data-listener-attached', 'true');
+          }
+      }
+      renderDojoCards(); // Render cards pertama kali setelah fetch
+    } catch (error) {
+      console.error("Error fetching dojo data:", error);
+      setErrorDojos("Gagal memuat data dojo. Silakan coba lagi.");
+    } finally {
+      setLoadingDojos(false);
+    }
+  };
+
+  // Panggil fetchDojoData saat komponen mount atau db berubah
   useEffect(() => {
-    // Pastikan Lucide icons tersedia secara global jika tidak diimpor sebagai komponen React langsung
-    // Atau impor komponen icon dari 'lucide-react' dan gunakan langsung di JSX
-    // Contoh: <MapPin size={18} className="mr-2" />
+    if (db) { // Hanya fetch jika db sudah terinisialisasi
+      fetchDojoData();
+    }
+  }, [db]); // Dependency array menyertakan db
+
+  useEffect(() => {
     if (window.lucide) {
         window.lucide.createIcons();
     }
-
-    const branchFilterSelect = document.getElementById('branch-filter-homepage');
-    const uniqueBranches = [...new Set(dojoData.map(dojo => dojo.branch))].sort();
-
-    if (branchFilterSelect) {
-        branchFilterSelect.innerHTML = '<option value="">Semua Cabang (Kota/Kabupaten)</option>';
-        uniqueBranches.forEach(branch => {
-            const option = document.createElement('option');
-            option.value = branch;
-            option.textContent = branch;
-            branchFilterSelect.appendChild(option);
-        });
-        branchFilterSelect.addEventListener('change', (event) => {
-            renderDojoCards(event.target.value);
-        });
-    }
-
-    renderDojoCards();
 
     changeHeroImage();
     heroInterval = setInterval(changeHeroImage, 5000);
@@ -143,6 +124,24 @@ const HomePage = ({ targetSectionId }) => {
         filterBranch === '' || dojo.branch === filterBranch
     );
 
+    if (loadingDojos) {
+        dojoListContainer.innerHTML = `
+            <div class="col-span-full text-center py-10 text-blue-600">
+                Memuat dojo...
+            </div>
+        `;
+        return;
+    }
+
+    if (errorDojos) {
+        dojoListContainer.innerHTML = `
+            <div class="col-span-full text-center py-10 text-red-600">
+                ${errorDojos}
+            </div>
+        `;
+        return;
+    }
+
     if (filteredDojos.length === 0) {
         dojoListContainer.innerHTML = `
             <div class="col-span-full text-center py-10 text-gray-600">
@@ -153,28 +152,31 @@ const HomePage = ({ targetSectionId }) => {
     }
 
     dojoListContainer.innerHTML = filteredDojos.map(dojo => {
+        // Pastikan dojo.schedules adalah array sebelum memanggil .map
+        const schedulesHtml = Array.isArray(dojo.schedules) ? dojo.schedules.map((schedule, index) => (
+            `<li key=${index}>${schedule}</li>`
+        )).join('') : '';
+
         return `
             <div class="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 transform hover:scale-105 transition-all duration-300">
-                <img src="${dojo.image}" alt="Dojo ${dojo.name}" class="w-full h-48 object-cover">
+                <img src="${dojo.image || 'https://placehold.co/400x250/cccccc/000000?text=No+Image'}" alt="Dojo ${dojo.name}" class="w-full h-48 object-cover">
                 <div class="p-6">
                     <h3 class="text-2xl font-semibold text-blue-700 mb-3">${dojo.name}</h3>
                     <p class="text-gray-700 mb-2 flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin mr-2"><path d="M12 18.35v-1.15a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v1.15a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2z"/><circle cx="12" cy="12" r="10"/></svg>
-                        ${dojo.address}
+                        ${dojo.address || 'N/A'}
                     </p>
                     <p class="text-gray-700 mb-2 flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user mr-2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                        Pelatih: ${dojo.coach.name}
+                        Pelatih: ${dojo.coach?.name || 'N/A'}
                     </p>
                     <p class="text-gray-700 mb-3 flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-phone mr-2"><rect width="18" height="12" x="3" y="6" rx="2"/><path d="M12 12V6"/><path d="M10 9l2-2 2 2"/></svg>
-                        Kontak: ${dojo.coach.contact}
+                        Kontak: ${dojo.coach?.contact || 'N/A'}
                     </p>
                     <h4 class="text-lg font-semibold text-gray-800 mb-2">Jadwal Latihan:</h4>
                     <ul class="list-disc list-inside text-gray-700">
-                            ${dojo.schedules.map((schedule, index) => (
-                                `<li key=${index}>${schedule}</li>`
-                            )).join('')}
+                            ${schedulesHtml}
                     </ul>
                 </div>
             </div>
@@ -189,7 +191,7 @@ const HomePage = ({ targetSectionId }) => {
             <div className="absolute inset-0 bg-black bg-opacity-50 z-10"></div>
             <div className="relative z-20 p-8 max-w-3xl">
                 <img src="/logo-ksk.png" alt="Logo Kei Shin Kan" className="mx-auto mb-6 h-24 w-24 object-contain rounded-full shadow-lg"/>
-
+                
                 <h1 className="text-6xl font-extrabold mb-4 leading-tight">
                     <span className="text-blue-400">KEI SHIN KAN</span> Jawa Barat
                 </h1>
@@ -201,7 +203,6 @@ const HomePage = ({ targetSectionId }) => {
                         Login
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-log-in ml-2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>
                     </a>
-                    {/* Tombol Jelajahi Dojo sekarang mengarahkan ke jadwal-tempat-section */}
                     <a href="#jadwal-tempat-section" className="inline-flex items-center justify-center px-8 py-4 bg-white text-gray-800 font-semibold text-lg rounded-full shadow-lg hover:bg-gray-100 transform hover:scale-105 transition-all duration-300">
                         Jelajahi Dojo
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right ml-2"><path d="m9 18 6-6-6-6"/></svg>
@@ -211,7 +212,6 @@ const HomePage = ({ targetSectionId }) => {
         </section>
 
         {/* About Us Section */}
-        {/* ID section ini digunakan oleh navigasi "Tentang Kami" */}
         <section id="about-us-homepage" className="container mx-auto py-16 px-8">
             <h2 className="text-4xl font-bold text-center mb-12 text-gray-800">Tentang <span className="text-blue-600">KEI SHIN KAN</span> Jawa Barat</h2>
             <div className="max-w-4xl mx-auto text-lg text-gray-700 leading-relaxed mb-16">
@@ -225,7 +225,6 @@ const HomePage = ({ targetSectionId }) => {
         </section>
 
         {/* Locations & Schedules Section (Tempat & Jadwal Latihan) */}
-        {/* ID section ini digunakan oleh navigasi "Jelajahi Dojo" dan "Tempat & Jadwal" */}
         <section id="jadwal-tempat-section" className="container mx-auto py-16 px-8 mb-16">
             <h2 className="text-4xl font-bold text-center mb-10 text-gray-800">Tempat & Jadwal <span className="text-blue-600">Latihan</span></h2>
             {/* Filter Dropdown Dojo */}
@@ -236,8 +235,15 @@ const HomePage = ({ targetSectionId }) => {
                     {/* Opsi cabang akan diisi oleh JavaScript */}
                 </select>
             </div>
-            <div id="dojo-list-homepage" className="dojo-grid">
+            <div id="dojo-list-homepage" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {/* Dojo cards akan di-render di sini menggunakan JavaScript */}
+                {loadingDojos && <div className="col-span-full text-center py-10 text-blue-600">Memuat dojo...</div>}
+                {errorDojos && <div className="col-span-full text-center py-10 text-red-600">{errorDojos}</div>}
+                {!loadingDojos && dojoData.length === 0 && !errorDojos && (
+                    <div className="col-span-full text-center py-10 text-gray-600">
+                        Tidak ada dojo yang ditemukan.
+                    </div>
+                )}
             </div>
         </section>
 
