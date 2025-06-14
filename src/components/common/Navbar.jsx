@@ -10,19 +10,18 @@ const Navbar = ({ setCurrentView }) => {
     setIsMenuOpen(!isMenuOpen);
   };
 
-  // Fungsi yang dimodifikasi untuk menangani navigasi atau scroll
   const handleNavItemClick = (view, targetId = null) => {
     setCurrentView(view, targetId);
-    setIsMenuOpen(false); // Tutup menu setelah item diklik
+    setIsMenuOpen(false);
   };
 
   const handleAuthAction = (action, view) => {
     if (action) {
-      action(); // Jalankan aksi logout
+      action();
     } else {
       setCurrentView(view);
     }
-    setIsMenuOpen(false); // Tutup menu setelah aksi otentikasi
+    setIsMenuOpen(false);
   };
 
   const navItems = [
@@ -33,7 +32,7 @@ const Navbar = ({ setCurrentView }) => {
   ];
 
   const authNavItems = isAuthenticated ? [
-    { name: 'Dashboard', view: currentUser.role === 'pelatih' ? 'coach-dashboard' : (currentUser.role === 'anggota' ? 'member-profile' : 'home'), icon: LayoutDashboard, targetId: null },
+    { name: 'Dashboard', view: currentUser?.role === 'pelatih' ? 'coach-dashboard' : (currentUser?.role === 'anggota' ? 'member-profile' : 'home'), icon: LayoutDashboard, targetId: null },
     { name: 'Logout', action: logout, icon: LogIn, targetId: null }
   ] : [
     { name: 'Login', view: 'login', icon: LogIn, targetId: null },
