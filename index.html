@@ -201,8 +201,10 @@
 </head>
 <body class="bg-gray-50">
 
-    <!-- Navbar Placeholder -->
-    <div id="navbar-placeholder"></div>
+    <!-- Navbar Placeholder - This div will load content from navbar.html -->
+    <!-- It's important to give it a high z-index and full width to ensure the navbar
+         always covers the top and sits above other content, especially for sticky behavior. -->
+    <div id="navbar-placeholder" class="relative z-50 w-full"></div>
 
     <!-- Message Box Container -->
     <div id="messageBoxContainer"></div>
@@ -421,7 +423,7 @@
     </section>
 
 
-    <!-- Footer Placeholder -->
+    <!-- Footer Placeholder - This div will load content from footer.html -->
     <div id="footer-placeholder"></div>
 
     <script type="module">
@@ -447,6 +449,7 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
+        let currentUser = null; // Variable to store current authenticated user
         let currentDojosData = []; // To store fetched dojo data for public display
         let adminDojosData = []; // To store fetched dojo data for admin panel (including doc IDs)
 
@@ -504,12 +507,10 @@
 
 
         // --- Page Switching & Navigation ---
-        // These elements need to be defined AFTER navbar is loaded,
-        // so their event listeners will be set up in loadNavbarAndAttachListeners()
-        let navLinksContainer;
-        let hamburgerBtn;
-        let authButtonContainer;
-        let findDojoBtn;
+        let navLinksContainer; // Defined here, assigned after navbar loads
+        let hamburgerBtn; // Defined here, assigned after navbar loads
+        let authButtonContainer; // Defined here, assigned after navbar loads
+        let findDojoBtn; // Defined here, assigned after navbar loads
 
         const mainContentArea = document.getElementById('mainContentArea');
         const heroSection = document.getElementById('hero-section');
@@ -558,7 +559,7 @@
                 // where navbar.html and index.html are served from the same domain.
                 const response = await fetch('navbar.html');
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    throw new Error(`HTTP error! status: ${response.status} when fetching navbar.html.`);
                 }
                 const navbarHtml = await response.text();
                 document.getElementById('navbar-placeholder').innerHTML = navbarHtml;
@@ -612,7 +613,7 @@
             }
         }
 
-        // --- Auth State Change Handler (Moved to a separate function) ---
+        // --- Auth State Change Handler ---
         function handleAuthStateChanged(user) {
             currentUser = user;
             const currentPath = window.location.hash.substring(1); 
@@ -646,6 +647,7 @@
                     showPage('admin-dashboard-page'); 
                 }
             } else {
+                // User is signed out
                 console.log("User is signed out.");
                 authButtonContainer.innerHTML = `
                     <button id="navLoginBtn" class="bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 text-white font-bold py-2.5 px-6 rounded-full shadow-md transition duration-300 ease-in-out flex items-center justify-center space-x-2 transform hover:scale-105">
@@ -991,7 +993,7 @@
                 // This code will work correctly when deployed to a web server.
                 const response = await fetch('footer.html');
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    throw new Error(`HTTP error! status: ${response.status} when fetching footer.html.`);
                 }
                 const footerHtml = await response.text();
                 document.getElementById('footer-placeholder').innerHTML = footerHtml;
