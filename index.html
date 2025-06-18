@@ -15,10 +15,10 @@
             color: #374151; /* Darker text for readability on light background */
         }
         /* Page sections for JS toggling (only for main content area and login page) */
-        #mainContentArea, #login-page, #admin-dashboard-page { /* Removed #register-page */
+        #mainContentArea, #login-page, #admin-dashboard-page {
             display: none; /* Hidden by default, managed by JS */
         }
-        #mainContentArea.active, #login-page.active, #admin-dashboard-page.active { /* Removed #register-page */
+        #mainContentArea.active, #login-page.active, #admin-dashboard-page.active {
             display: block;
         }
 
@@ -201,40 +201,8 @@
 </head>
 <body class="bg-gray-50">
 
-    <!-- Navigation Bar -->
-    <nav class="navbar-custom p-4 shadow-md sticky top-0 z-50">
-        <div class="max-w-6xl mx-auto flex justify-between items-center">
-            <div class="flex items-center space-x-2">
-                <!-- Placeholder for Kei Shin Kan Logo -->
-                <img src="https://placehold.co/40x40/FFD700/000000?text=Logo" alt="Kei Shin Kan Logo" class="w-10 h-10 object-contain">
-                <span class="text-amber-500 font-extrabold text-3xl tracking-widest uppercase">KEI SHIN KAN</span>
-                <span class="text-gray-700 font-semibold text-xl ml-1">Jawa Barat</span>
-            </div>
-            
-            <!-- Hamburger Menu Icon (Mobile) -->
-            <div class="md:hidden">
-                <button id="hamburgerBtn" class="text-gray-700 focus:outline-none p-2 rounded-md hover:bg-gray-100 transition duration-200">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
-                    </svg>
-                </button>
-            </div>
-
-            <!-- Navigation Links (Desktop & Mobile) -->
-            <ul id="navLinks" class="nav-links md:flex md:space-x-8 text-gray-700 text-lg font-semibold">
-                <li><a href="#hero-section" class="nav-link block hover:text-amber-500 transition duration-200 ease-in-out py-2 px-3 rounded-md">Beranda</a></li>
-                <li><a href="#about-section" class="nav-link block hover:text-amber-500 transition duration-200 ease-in-out py-2 px-3 rounded-md">Tentang Kami</a></li>
-                <li><a href="#dojo-section" class="nav-link block hover:text-amber-500 transition duration-200 ease-in-out py-2 px-3 rounded-md">Tempat Latihan</a></li>
-                <!-- Conditional Login/Logout/Admin Dashboard Button -->
-                <li id="authButtonContainer">
-                    <button id="navLoginBtn" class="bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 text-white font-bold py-2.5 px-6 rounded-full shadow-md transition duration-300 ease-in-out flex items-center justify-center space-x-2 transform hover:scale-105">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
-                        <span>Login/Daftar</span>
-                    </button>
-                </li>
-            </ul>
-        </div>
-    </nav>
+    <!-- Navbar Placeholder -->
+    <div id="navbar-placeholder"></div>
 
     <!-- Message Box Container -->
     <div id="messageBoxContainer"></div>
@@ -321,13 +289,10 @@
                 </button>
                 <div class="text-center text-sm mt-4">
                     <a href="#" class="font-medium text-blue-600 hover:text-blue-800 transition duration-200">Lupa Password?</a>
-                    <!-- Removed: Belum punya akun? Daftar Sekarang! link -->
                 </div>
             </form>
         </div>
     </section>
-
-    <!-- Removed: Register Page Section -->
 
     <!-- Admin Dashboard Page -->
     <section id="admin-dashboard-page" class="page-section w-full min-h-screen bg-gray-100 py-16">
@@ -432,7 +397,7 @@
                     <button type="button" id="cancelEditBtn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-md shadow-md transition duration-200 ease-in-out">
                         Batal
                     </button>
-                    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-4 rounded-md shadow-md transition duration-200 ease-in-out transform hover:scale-105">
+                    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-4 rounded-md shadow-md transition duration-300 ease-in-out transform hover:scale-105">
                         Simpan Perubahan
                     </button>
                 </div>
@@ -456,18 +421,12 @@
     </section>
 
 
-    <!-- Footer -->
-    <footer class="bg-gray-800 text-gray-300 py-8 mt-10">
-        <div class="max-w-6xl mx-auto text-center px-4">
-            <p>&copy; 2025 Kei Shin Kan Jawa Barat. Hak Cipta Dilindungi.</p>
-            <p class="mt-2 text-sm">Dibangun dengan Semangat Bela Diri dan Teknologi.</p>
-        </div>
-    </footer>
+    <!-- Footer Placeholder -->
+    <div id="footer-placeholder"></div>
 
     <script type="module">
         // Firebase SDK imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        // Removed createUserWithEmailAndPassword from import
         import { getAuth, signInAnonymously, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js"; 
         import { getFirestore, collection, query, onSnapshot, addDoc, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
@@ -509,7 +468,7 @@
                 messageBox.classList.add('hide');
                 messageBox.addEventListener('animationend', () => {
                     messageBox.remove();
-                }, { once: true });
+                }, { once : true });
             }, duration);
         }
 
@@ -517,7 +476,6 @@
         const confirmationModal = document.getElementById('confirmationModal');
         const confirmationMessage = document.getElementById('confirmationMessage');
         const confirmConfirmBtn = document.getElementById('confirmConfirmBtn');
-        // Fixed: Corrected variable name from 'document = document.getElementById' to 'document.getElementById'
         const confirmCancelBtn = document.getElementById('confirmCancelBtn');
 
         function showConfirmationModal(message) {
@@ -546,31 +504,28 @@
 
 
         // --- Page Switching & Navigation ---
-        const navLinksContainer = document.getElementById('navLinks');
-        const hamburgerBtn = document.getElementById('hamburgerBtn');
-        const authButtonContainer = document.getElementById('authButtonContainer'); // Container for login/logout/admin button
-        const findDojoBtn = document.getElementById('findDojoBtn'); 
+        // These elements need to be defined AFTER navbar is loaded,
+        // so their event listeners will be set up in loadNavbarAndAttachListeners()
+        let navLinksContainer;
+        let hamburgerBtn;
+        let authButtonContainer;
+        let findDojoBtn;
 
         const mainContentArea = document.getElementById('mainContentArea');
         const heroSection = document.getElementById('hero-section');
         const aboutSection = document.getElementById('about-section');
         const dojoSection = document.getElementById('dojo-section');
         const loginPage = document.getElementById('login-page');
-        // Removed registerPage variable
         const adminDashboardPage = document.getElementById('admin-dashboard-page'); 
         const dojoListContainer = document.getElementById('dojoList');
         const adminDojoListContainer = document.getElementById('adminDojoList');
 
-
-        // All main page sections (part of landing page)
         const mainSections = [heroSection, aboutSection, dojoSection];
 
         // Function to show a specific page section and hide others
         function showPage(targetPageId) {
-            // Hide all potential main sections and login/admin pages first
             mainContentArea.classList.remove('active');
             loginPage.classList.remove('active');
-            // Removed registerPage.classList.remove('active');
             adminDashboardPage.classList.remove('active');
 
             mainSections.forEach(section => {
@@ -583,53 +538,82 @@
                 adminDashboardPage.classList.add('active');
             } else { // Navigating to a section within the main landing page
                 mainContentArea.classList.add('active');
-                // Ensure the specific target section is displayed within main content
                 const targetElement = document.getElementById(targetPageId);
                 if (targetElement) {
                     targetElement.style.display = 'block';
                 }
             }
-            navLinksContainer.classList.remove('active'); // Close mobile navigation menu
+            if (navLinksContainer) { // Ensure navLinksContainer is defined before trying to remove class
+                navLinksContainer.classList.remove('active'); // Close mobile navigation menu
+            }
         }
 
+        // --- Load Navbar and Attach Listeners ---
+        async function loadNavbarAndAttachListeners() {
+            try {
+                // NOTE: If you see "TypeError: Failed to parse URL from navbar.html" in a local preview
+                // (especially when served as a blob:// URL), this is typically an environment limitation
+                // and NOT a bug in the code itself.
+                // This code will work correctly when deployed to a web server (like Firebase Hosting or Netlify)
+                // where navbar.html and index.html are served from the same domain.
+                const response = await fetch('navbar.html');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const navbarHtml = await response.text();
+                document.getElementById('navbar-placeholder').innerHTML = navbarHtml;
 
-        // Event listener for hamburger menu toggle
-        hamburgerBtn.addEventListener('click', () => {
-            navLinksContainer.classList.toggle('active');
-        });
+                // Now that navbar is loaded, get element references and attach listeners
+                navLinksContainer = document.getElementById('navLinks');
+                hamburgerBtn = document.getElementById('hamburgerBtn');
+                authButtonContainer = document.getElementById('authButtonContainer');
+                findDojoBtn = document.getElementById('findDojoBtn'); // Get the Find Dojo button from hero section
 
-        // Event listeners for smooth scrolling navigation links
-        document.querySelectorAll('.nav-link').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const targetId = this.getAttribute('href').substring(1); 
-                showPage(targetId); 
+                hamburgerBtn.addEventListener('click', () => {
+                    navLinksContainer.classList.toggle('active');
+                });
 
-                const targetElement = document.querySelector(`#${targetId}`);
-                if (targetElement && targetId !== 'hero-section') { 
-                     targetElement.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start' 
+                document.querySelectorAll('.nav-link').forEach(anchor => {
+                    anchor.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        const targetId = this.getAttribute('href').substring(1); 
+                        showPage(targetId); 
+
+                        const targetElement = document.querySelector(`#${targetId}`);
+                        if (targetElement) { 
+                            targetElement.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'start' 
+                            });
+                        }
+                    });
+                });
+
+                // Attach event listener for "Temukan Dojo Terdekat Anda" button
+                if (findDojoBtn) { // Ensure button exists before attaching listener
+                    findDojoBtn.addEventListener('click', () => {
+                        showPage('dojo-section'); 
+                        const targetElement = document.getElementById('dojo-section');
+                        if (targetElement) {
+                            targetElement.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'start'
+                            });
+                        }
                     });
                 }
-            });
-        });
 
-        // Event listener for "Temukan Dojo Terdekat Anda" button
-        findDojoBtn.addEventListener('click', () => {
-            showPage('dojo-section'); 
-            const targetElement = document.getElementById('dojo-section');
-            if (targetElement) {
-                targetElement.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
+                // Call onAuthStateChanged after navbar is loaded and buttons are available
+                onAuthStateChanged(auth, handleAuthStateChanged);
+
+            } catch (error) {
+                console.error("Error loading navbar or attaching listeners:", error);
+                showMessage("Gagal memuat navigasi. Kesalahan ini normal di beberapa lingkungan pratinjau lokal (misal: saat diakses melalui URL blob:) dan akan berfungsi setelah di-deploy ke server web.", 'error');
             }
-        });
+        }
 
-        // --- Auth State Change Listener ---
-        let currentUser = null; 
-        onAuthStateChanged(auth, (user) => {
+        // --- Auth State Change Handler (Moved to a separate function) ---
+        function handleAuthStateChanged(user) {
             currentUser = user;
             const currentPath = window.location.hash.substring(1); 
 
@@ -658,12 +642,10 @@
                     }
                 });
 
-                // If user was on login page, redirect to admin dashboard or home
                 if (currentPath === 'login-page') { 
                     showPage('admin-dashboard-page'); 
                 }
             } else {
-                // User is signed out
                 console.log("User is signed out.");
                 authButtonContainer.innerHTML = `
                     <button id="navLoginBtn" class="bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 text-white font-bold py-2.5 px-6 rounded-full shadow-md transition duration-300 ease-in-out flex items-center justify-center space-x-2 transform hover:scale-105">
@@ -677,7 +659,7 @@
                     showPage('hero-section');
                 }
             }
-        });
+        }
 
 
         // --- Hero Section Image Carousel ---
@@ -788,7 +770,6 @@
         const loginForm = document.getElementById('loginForm');
         const loginEmailInput = document.getElementById('loginEmail');
         const loginPasswordInput = document.getElementById('loginPassword');
-        // Removed goToRegisterLink
 
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -823,12 +804,6 @@
                 showMessage(errorMessage, 'error');
             }
         });
-
-        // Removed Go to Register page from Login page link listener
-
-        // --- Removed Register Functionality ---
-        // Removed registerForm, registerEmailInput, registerPasswordInput, confirmPasswordInput, goToLoginLink
-        // Removed registerForm.addEventListener and goToLoginLink.addEventListener
 
         // --- Admin Dashboard Functionality ---
         const addDojoForm = document.getElementById('addDojoForm');
@@ -999,15 +974,37 @@
                 showMessage("Dojo berhasil diperbarui!", "success");
                 editDojoModal.classList.remove('show');
                 editDojoForm.reset();
-            } catch (error) {
+            }
+            catch (error) {
                 console.error("Error updating dojo:", error);
                 showMessage(`Gagal memperbarui dojo: ${error.message}`, "error");
             }
         });
 
 
+        // --- Load Footer ---
+        async function loadFooter() {
+            try {
+                // NOTE: Similar to navbar.html, if you see "TypeError: Failed to parse URL from footer.html"
+                // in a local preview (especially when served as a blob:// URL), this is typically an
+                // environment limitation and NOT a bug in the code itself.
+                // This code will work correctly when deployed to a web server.
+                const response = await fetch('footer.html');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const footerHtml = await response.text();
+                document.getElementById('footer-placeholder').innerHTML = footerHtml;
+            } catch (error) {
+                console.error("Error loading footer:", error);
+                showMessage("Gagal memuat footer. Kesalahan ini normal di beberapa lingkungan pratinjau lokal (misal: saat diakses melalui URL blob:) dan akan berfungsi setelah di-deploy ke server web.", 'error');
+            }
+        }
+
         // Initial setup on page load
         document.addEventListener('DOMContentLoaded', () => {
+            loadNavbarAndAttachListeners(); // Load navbar and set up its listeners
+            loadFooter(); // Load footer
             initializeFirestoreAndFetchData(); // Start fetching data
         });
     </script>
