@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kei Shin Kan Jabar - Desain Baru</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom font for a clean look */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8FAFC; /* Lighter background, almost white */
+            scroll-behavior: smooth; /* Smooth scrolling for navigation */
+            color: #374151; /* Darker text for readability on light background */
+        }
+        /* Page sections for JS toggling (only for main content area and login page) */
+        #mainContentArea, #login-page, #admin-dashboard-page { /* Removed #register-page */
+            display: none; /* Hidden by default, managed by JS */
+        }
+        #mainContentArea.active, #login-page.active, #admin-dashboard-page.active { /* Removed #register-page */
+            display: block;
+        }
+
+        /* All content sections within mainContentArea */
+        section {
+            padding-top: 5rem; /* Default padding for content */
+            padding-bottom: 5rem;
+            /* Adjust scroll-margin-top for sticky navbar height */
+            scroll-margin-top: 70px; 
+        }
+
+        /* Hero Section adjustments for full screen and smooth scroll */
+        #hero-section {
+            min-height: 100vh; /* Make hero full screen height */
+            padding-top: 0; /* No top padding for hero */
+            scroll-margin-top: 0; /* Hero at the very top, no adjustment needed */
+            background-color: #ECEFF1; /* Light gray for hero background */
+        }
+        .hero-image {
+            width: 100%;
+            height: 100%; /* Fill hero section height */
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+        .hero-image.active {
+            opacity: 1;
+        }
+        /* Dark overlay for text readability on hero with subtle gradient */
+        .hero-overlay {
+            background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.5) 100%); /* Lighter overlay for brighter feel */
+        }
+        /* Navbar style */
+        .navbar-custom {
+            background-color: #FFFFFF; /* Pure white navbar */
+            border-bottom: 1px solid #E5E7EB; /* Subtle bottom border */
+        }
+        /* Hamburger menu specific styles */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                width: 100%;
+                background-color: #FFFFFF; /* White background for mobile menu */
+                position: absolute;
+                top: 64px; /* Below navbar */
+                left: 0;
+                z-index: 20;
+                padding: 1rem 0;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+                border-bottom: 1px solid rgba(0,0,0,0.05);
+            }
+            .nav-links.active {
+                display: flex;
+            }
+            .nav-links a, .nav-links button {
+                padding: 0.75rem 1.5rem;
+                text-align: center;
+                border-bottom: 1px solid rgba(0,0,0,0.05); /* Very light border */
+            }
+            .hamburger {
+                display: block;
+            }
+        }
+        @media (min-width: 769px) {
+            .nav-links {
+                display: flex !important;
+            }
+            .hamburger {
+                display: none;
+            }
+        }
+        /* Specific styling for internal content containers */
+        .content-card-bg {
+            background-color: #FFFFFF; /* White background for content cards */
+            border: 1px solid #E5E7EB; /* Subtle light border */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.02); /* Lighter shadow */
+        }
+        /* Dojo card styling */
+        .dojo-card {
+            background-color: #F8FAFC; /* Slightly different white for cards */
+            border: 1px solid #E5E7EB;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+        }
+        /* Form styling in login */
+        .login-form-bg {
+            background-color: #FFFFFF;
+            border: 1px solid #E5E7EB;
+        }
+        .login-input {
+            background-color: #F8FAFC; /* Lighter input background */
+            border: 1px solid #D1D5DB;
+            color: #1F2937; /* Dark text for inputs */
+        }
+        .login-input::placeholder {
+            color: #9CA3AF;
+        }
+
+        /* Message box styling */
+        .message-box {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            animation: slideIn 0.3s forwards;
+            min-width: 250px;
+            text-align: center;
+        }
+        .message-box.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        .message-box.hide {
+            animation: slideOut 0.3s forwards;
+        }
+        .message-box.success {
+            background-color: #D4EDDA;
+            color: #155724;
+            border: 1px solid #C3E6CB;
+        }
+        .message-box.error {
+            background-color: #F8D7DA;
+            color: #721C24;
+            border: 1px solid #F5C6CB;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(-50%) translateY(-100%); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(-50%) translateY(0); opacity: 1; }
+            to { transform: translateX(-50%) translateY(-100%); opacity: 0; }
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1001;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: #FFFFFF;
+            padding: 2.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 90%;
+            transform: translateY(-20px);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        .modal-overlay.show .modal-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <!-- Navigation Bar -->
+    <nav class="navbar-custom p-4 shadow-md sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <!-- Placeholder for Kei Shin Kan Logo -->
+                <img src="https://placehold.co/40x40/FFD700/000000?text=Logo" alt="Kei Shin Kan Logo" class="w-10 h-10 object-contain">
+                <span class="text-amber-500 font-extrabold text-3xl tracking-widest uppercase">KEI SHIN KAN</span>
+                <span class="text-gray-700 font-semibold text-xl ml-1">Jawa Barat</span>
+            </div>
+            
+            <!-- Hamburger Menu Icon (Mobile) -->
+            <div class="md:hidden">
+                <button id="hamburgerBtn" class="text-gray-700 focus:outline-none p-2 rounded-md hover:bg-gray-100 transition duration-200">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Navigation Links (Desktop & Mobile) -->
+            <ul id="navLinks" class="nav-links md:flex md:space-x-8 text-gray-700 text-lg font-semibold">
+                <li><a href="#hero-section" class="nav-link block hover:text-amber-500 transition duration-200 ease-in-out py-2 px-3 rounded-md">Beranda</a></li>
+                <li><a href="#about-section" class="nav-link block hover:text-amber-500 transition duration-200 ease-in-out py-2 px-3 rounded-md">Tentang Kami</a></li>
+                <li><a href="#dojo-section" class="nav-link block hover:text-amber-500 transition duration-200 ease-in-out py-2 px-3 rounded-md">Tempat Latihan</a></li>
+                <!-- Conditional Login/Logout/Admin Dashboard Button -->
+                <li id="authButtonContainer">
+                    <button id="navLoginBtn" class="bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 text-white font-bold py-2.5 px-6 rounded-full shadow-md transition duration-300 ease-in-out flex items-center justify-center space-x-2 transform hover:scale-105">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
+                        <span>Login/Daftar</span>
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Message Box Container -->
+    <div id="messageBoxContainer"></div>
+
+    <!-- Main Content Area - Contains all sections of the landing page -->
+    <div id="mainContentArea" class="active"> <!-- This wrapper is active by default to show landing page -->
+        <!-- Hero Section -->
+        <section id="hero-section" class="relative w-full h-screen overflow-hidden flex items-center justify-center text-white text-center shadow-lg">
+            <div class="absolute inset-0 hero-overlay z-10"></div>
+            <img src="https://placehold.co/1920x1080/3B82F6/ffffff?text=Karate+Dynamic+1" class="hero-image active" alt="Gambar Karate 1">
+            <img src="https://placehold.co/1920x1080/2563EB/ffffff?text=Karate+Dynamic+2" class="hero-image" alt="Gambar Karate 2">
+            <img src="https://placehold.co/1920x1080/1D4ED8/ffffff?text=Karate+Dynamic+3" class="hero-image" alt="Gambar Karate 3">
+            
+            <div class="relative z-20 p-6 md:p-10 max-w-4xl">
+                <h1 class="text-5xl md:text-7xl font-extrabold mb-4 drop-shadow-xl leading-tight">
+                    <span class="text-amber-400">Kei Shin Kan</span> <span class="text-white">Jawa Barat</span>
+                </h1>
+                <p class="text-xl md:text-2xl font-light mb-8 drop-shadow-md text-gray-100">
+                    Kembangkan Disiplin, Kekuatan, dan Sportivitas dalam Diri Anda. Raih Prestasi Bersama Kami.
+                </p>
+                <button id="findDojoBtn" class="bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold py-3.5 px-10 rounded-full text-xl shadow-xl transform hover:scale-105 transition duration-300 ease-in-out">
+                    Temukan Dojo Terdekat Anda
+                </button>
+            </div>
+        </section>
+
+        <!-- About Us Section -->
+        <section id="about-section" class="py-16 bg-gray-50 shadow-inner">
+            <div class="max-w-4xl mx-auto px-6 text-center content-card-bg rounded-xl p-8">
+                <h2 class="text-4xl font-bold text-gray-800 mb-6">Tentang Kami: Kei Shin Kan Jawa Barat</h2>
+                <p class="text-lg text-gray-700 leading-relaxed">
+                    Karate-Do Kei Shin Kan adalah aliran karate tradisional yang mengedepankan pembentukan karakter, disiplin, dan penguasaan teknik bela diri yang mendalam. Di Jawa Barat, kami berkomitmen untuk mengembangkan potensi para karateka dari berbagai usia, menanamkan nilai-nilai Bushido, serta membina atlet-atlet berprestasi. Kami percaya bahwa karate bukan hanya tentang kekuatan fisik, tetapi juga tentang kekuatan mental dan spiritual. Bergabunglah dengan kami untuk meraih keunggulan diri dan menjadi bagian dari komunitas yang positif.
+                </p>
+            </div>
+        </section>
+
+        <!-- Tempat Latihan Section (Dojo Directory) -->
+        <section id="dojo-section" class="py-16 bg-white">
+            <div class="max-w-4xl mx-auto px-6 content-card-bg rounded-xl p-8">
+                <h2 class="text-4xl font-bold text-gray-800 mb-8 text-center">Tempat Latihan (Dojo & Ranting)</h2>
+                
+                <!-- Filter Section -->
+                <div class="bg-gray-50 p-6 rounded-xl shadow-inner mb-8 border border-gray-200">
+                    <div class="grid grid-cols-1 gap-4 items-end">
+                        <div>
+                            <label for="cabangFilter" class="block text-sm font-medium text-gray-700 mb-1">Pilih Cabang (Kota/Kabupaten)</label>
+                            <select id="cabangFilter" class="login-input mt-1 block w-full pl-3 pr-10 py-2 text-base rounded-lg shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500">
+                                <option value="all">Tampilkan Semua Cabang</option>
+                                <!-- Options will be populated by JavaScript -->
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dojo/Ranting List (Dynamic Content) -->
+                <div id="dojoList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Initial loading message -->
+                    <p class="col-span-full text-center text-gray-500">Memuat data dojo...</p>
+                </div>
+            </div>
+        </section>
+    </div> <!-- End of main content area -->
+
+    <!-- Login Page Section - This is a separate "page" -->
+    <section id="login-page" class="page-section w-full min-h-screen flex items-center justify-center bg-gray-100 text-gray-800">
+        <div class="max-w-md mx-auto p-8 rounded-xl shadow-2xl login-form-bg">
+            <h2 class="text-4xl font-bold text-center text-cyan-600 mb-8">Login Kei Shin Kan</h2>
+            
+            <div class="flex justify-center mb-8">
+                <img src="https://placehold.co/150x150/06B6D4/ffffff?text=Login" alt="Ikon Login" class="rounded-full object-cover shadow-lg border-4 border-cyan-500">
+            </div>
+
+            <form id="loginForm" class="space-y-6">
+                <div>
+                    <label for="loginEmail" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" id="loginEmail" class="login-input mt-1 block w-full py-2.5 px-3 focus:outline-none focus:ring-cyan-500 focus:border-cyan-500" placeholder="nama@email.com" required>
+                </div>
+                <div>
+                    <label for="loginPassword" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" id="loginPassword" class="login-input mt-1 block w-full py-2.5 px-3 focus:outline-none focus:ring-cyan-500 focus:border-cyan-500" placeholder="********" required>
+                </div>
+                <button type="submit" class="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition duration-200 ease-in-out transform hover:scale-105">
+                    Login
+                </button>
+                <div class="text-center text-sm mt-4">
+                    <a href="#" class="font-medium text-blue-600 hover:text-blue-800 transition duration-200">Lupa Password?</a>
+                    <!-- Removed: Belum punya akun? Daftar Sekarang! link -->
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- Removed: Register Page Section -->
+
+    <!-- Admin Dashboard Page -->
+    <section id="admin-dashboard-page" class="page-section w-full min-h-screen bg-gray-100 py-16">
+        <div class="max-w-6xl mx-auto px-6 content-card-bg rounded-xl p-8">
+            <h2 class="text-4xl font-bold text-gray-800 mb-8 text-center">Panel Admin Kei Shin Kan</h2>
+            <p class="text-lg text-gray-700 text-center mb-8">Selamat datang di Panel Admin. Di sini Anda dapat mengelola data dojo.</p>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Add New Dojo Form -->
+                <div class="bg-gray-50 p-6 rounded-xl shadow-inner border border-gray-200">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Tambah Dojo Baru</h3>
+                    <form id="addDojoForm" class="space-y-4">
+                        <div>
+                            <label for="addNama" class="block text-sm font-medium text-gray-700">Nama Dojo</label>
+                            <input type="text" id="addNama" class="login-input mt-1 block w-full py-2 px-3 rounded-md" required>
+                        </div>
+                        <div>
+                            <label for="addAlamat" class="block text-sm font-medium text-gray-700">Alamat</label>
+                            <input type="text" id="addAlamat" class="login-input mt-1 block w-full py-2 px-3 rounded-md" required>
+                        </div>
+                        <div>
+                            <label for="addCabang" class="block text-sm font-medium text-gray-700">Cabang (Kota/Kabupaten)</label>
+                            <input type="text" id="addCabang" class="login-input mt-1 block w-full py-2 px-3 rounded-md" required>
+                        </div>
+                        <div>
+                            <label for="addNamaPelatih" class="block text-sm font-medium text-gray-700">Nama Pelatih</label>
+                            <input type="text" id="addNamaPelatih" class="login-input mt-1 block w-full py-2 px-3 rounded-md" required>
+                        </div>
+                        <div>
+                            <label for="addKontakPelatih" class="block text-sm font-medium text-gray-700">Kontak Pelatih</label>
+                            <input type="tel" id="addKontakPelatih" class="login-input mt-1 block w-full py-2 px-3 rounded-md" required>
+                        </div>
+                        <div>
+                            <label for="addJadwalLatihan" class="block text-sm font-medium text-gray-700">Jadwal Latihan (Pisahkan dengan koma jika lebih dari satu)</label>
+                            <input type="text" id="addJadwalLatihan" class="login-input mt-1 block w-full py-2 px-3 rounded-md" placeholder="Contoh: Senin & Rabu, 16.00-18.00; Jumat, 19.00-21.00">
+                        </div>
+                        <div>
+                            <label for="addImageUrl" class="block text-sm font-medium text-gray-700">URL Gambar Dojo (Opsional)</label>
+                            <input type="url" id="addImageUrl" class="login-input mt-1 block w-full py-2 px-3 rounded-md">
+                        </div>
+                        <div>
+                            <label for="addDeskripsi" class="block text-sm font-medium text-gray-700">Deskripsi (Opsional)</label>
+                            <textarea id="addDeskripsi" rows="3" class="login-input mt-1 block w-full py-2 px-3 rounded-md"></textarea>
+                        </div>
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-md shadow-md transition duration-200 ease-in-out transform hover:scale-105">
+                            Tambah Dojo
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Existing Dojos List (will be populated dynamically) -->
+                <div class="bg-gray-50 p-6 rounded-xl shadow-inner border border-gray-200">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Daftar Dojo Terdaftar</h3>
+                    <div id="adminDojoList" class="space-y-4">
+                        <p class="text-center text-gray-600">Memuat daftar dojo...</p>
+                        <!-- Dojo items with Edit/Delete buttons will go here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Edit Dojo Modal (Initially Hidden) -->
+    <div id="editDojoModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">Edit Detail Dojo</h3>
+            <form id="editDojoForm" class="space-y-4">
+                <input type="hidden" id="editDojoId">
+                <div>
+                    <label for="editNama" class="block text-sm font-medium text-gray-700">Nama Dojo</label>
+                    <input type="text" id="editNama" class="login-input mt-1 block w-full py-2 px-3 rounded-md" required>
+                </div>
+                <div>
+                    <label for="editAlamat" class="block text-sm font-medium text-gray-700">Alamat</label>
+                    <input type="text" id="editAlamat" class="login-input mt-1 block w-full py-2 px-3 rounded-md" required>
+                </div>
+                <div>
+                    <label for="editCabang" class="block text-sm font-medium text-gray-700">Cabang (Kota/Kabupaten)</label>
+                    <input type="text" id="editCabang" class="login-input mt-1 block w-full py-2 px-3 rounded-md" required>
+                </div>
+                <div>
+                    <label for="editNamaPelatih" class="block text-sm font-medium text-gray-700">Nama Pelatih</label>
+                    <input type="text" id="editNamaPelatih" class="login-input mt-1 block w-full py-2 px-3 rounded-md" required>
+                </div>
+                <div>
+                    <label for="editKontakPelatih" class="block text-sm font-medium text-gray-700">Kontak Pelatih</label>
+                    <input type="tel" id="editKontakPelatih" class="login-input mt-1 block w-full py-2 px-3 rounded-md" required>
+                </div>
+                <div>
+                    <label for="editJadwalLatihan" class="block text-sm font-medium text-gray-700">Jadwal Latihan (Pisahkan dengan koma jika lebih dari satu)</label>
+                    <input type="text" id="editJadwalLatihan" class="login-input mt-1 block w-full py-2 px-3 rounded-md" placeholder="Contoh: Senin & Rabu, 16.00-18.00; Jumat, 19.00-21.00">
+                </div>
+                <div>
+                    <label for="editImageUrl" class="block text-sm font-medium text-gray-700">URL Gambar Dojo (Opsional)</label>
+                    <input type="url" id="editImageUrl" class="login-input mt-1 block w-full py-2 px-3 rounded-md">
+                </div>
+                <div>
+                    <label for="editDeskripsi" class="block text-sm font-medium text-gray-700">Deskripsi (Opsional)</label>
+                    <textarea id="editDeskripsi" rows="3" class="login-input mt-1 block w-full py-2 px-3 rounded-md"></textarea>
+                </div>
+                <div class="flex justify-end space-x-4 mt-6">
+                    <button type="button" id="cancelEditBtn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-md shadow-md transition duration-200 ease-in-out">
+                        Batal
+                    </button>
+                    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-4 rounded-md shadow-md transition duration-200 ease-in-out transform hover:scale-105">
+                        Simpan Perubahan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Custom Confirmation Modal (Initially Hidden) -->
+    <div id="confirmationModal" class="modal-overlay">
+        <div class="modal-content text-center">
+            <h3 id="confirmationMessage" class="text-xl font-bold text-gray-800 mb-6">Apakah Anda yakin?</h3>
+            <div class="flex justify-center space-x-4">
+                <button id="confirmCancelBtn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-md shadow-md transition duration-200 ease-in-out">
+                    Batal
+                </button>
+                <button id="confirmConfirmBtn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md shadow-md transition duration-200 ease-in-out">
+                    Ya, Yakin
+                </button>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-gray-300 py-8 mt-10">
+        <div class="max-w-6xl mx-auto text-center px-4">
+            <p>&copy; 2025 Kei Shin Kan Jawa Barat. Hak Cipta Dilindungi.</p>
+            <p class="mt-2 text-sm">Dibangun dengan Semangat Bela Diri dan Teknologi.</p>
+        </div>
+    </footer>
+
+    <script type="module">
+        // Firebase SDK imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        // Removed createUserWithEmailAndPassword from import
+        import { getAuth, signInAnonymously, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js"; 
+        import { getFirestore, collection, query, onSnapshot, addDoc, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Your web app's Firebase configuration (provided by user)
+        const firebaseConfig = {
+            apiKey: "AIzaSyBXwAv8U2-PbirJt9P_mKfH7RkD4SdN1vA",
+            authDomain: "kei-shin-kan-jabar-web.firebaseapp.com",
+            projectId: "kei-shin-kan-jabar-web",
+            storageBucket: "kei-shin-kan-jabar-web.firebasestorage.app",
+            messagingSenderId: "56800160043",
+            appId: "1:56800160043:web:275797166328addae33d6e",
+            measurementId: "G-F9ET23Y11N"
+        };
+        const appId = firebaseConfig.appId;
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let currentDojosData = []; // To store fetched dojo data for public display
+        let adminDojosData = []; // To store fetched dojo data for admin panel (including doc IDs)
+
+        // --- Utility Function for Message Box (replacing alert()) ---
+        function showMessage(message, type = 'success', duration = 3000) {
+            const container = document.getElementById('messageBoxContainer');
+            const messageBox = document.createElement('div');
+            messageBox.className = `message-box ${type}`;
+            messageBox.textContent = message;
+            
+            container.appendChild(messageBox);
+
+            // Trigger reflow to ensure animation plays
+            messageBox.offsetWidth; 
+            messageBox.classList.add('show');
+
+            setTimeout(() => {
+                messageBox.classList.remove('show');
+                messageBox.classList.add('hide');
+                messageBox.addEventListener('animationend', () => {
+                    messageBox.remove();
+                }, { once: true });
+            }, duration);
+        }
+
+        // --- Custom Confirmation Modal ---
+        const confirmationModal = document.getElementById('confirmationModal');
+        const confirmationMessage = document.getElementById('confirmationMessage');
+        const confirmConfirmBtn = document.getElementById('confirmConfirmBtn');
+        // Fixed: Corrected variable name from 'document = document.getElementById' to 'document.getElementById'
+        const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+
+        function showConfirmationModal(message) {
+            return new Promise((resolve) => {
+                confirmationMessage.textContent = message;
+                confirmationModal.classList.add('show');
+
+                const handleConfirm = () => {
+                    confirmationModal.classList.remove('show');
+                    confirmConfirmBtn.removeEventListener('click', handleConfirm);
+                    confirmCancelBtn.removeEventListener('click', handleCancel);
+                    resolve(true);
+                };
+
+                const handleCancel = () => {
+                    confirmationModal.classList.remove('show');
+                    confirmConfirmBtn.removeEventListener('click', handleConfirm);
+                    confirmCancelBtn.removeEventListener('click', handleCancel);
+                    resolve(false);
+                };
+
+                confirmConfirmBtn.addEventListener('click', handleConfirm);
+                confirmCancelBtn.addEventListener('click', handleCancel);
+            });
+        }
+
+
+        // --- Page Switching & Navigation ---
+        const navLinksContainer = document.getElementById('navLinks');
+        const hamburgerBtn = document.getElementById('hamburgerBtn');
+        const authButtonContainer = document.getElementById('authButtonContainer'); // Container for login/logout/admin button
+        const findDojoBtn = document.getElementById('findDojoBtn'); 
+
+        const mainContentArea = document.getElementById('mainContentArea');
+        const heroSection = document.getElementById('hero-section');
+        const aboutSection = document.getElementById('about-section');
+        const dojoSection = document.getElementById('dojo-section');
+        const loginPage = document.getElementById('login-page');
+        // Removed registerPage variable
+        const adminDashboardPage = document.getElementById('admin-dashboard-page'); 
+        const dojoListContainer = document.getElementById('dojoList');
+        const adminDojoListContainer = document.getElementById('adminDojoList');
+
+
+        // All main page sections (part of landing page)
+        const mainSections = [heroSection, aboutSection, dojoSection];
+
+        // Function to show a specific page section and hide others
+        function showPage(targetPageId) {
+            // Hide all potential main sections and login/admin pages first
+            mainContentArea.classList.remove('active');
+            loginPage.classList.remove('active');
+            // Removed registerPage.classList.remove('active');
+            adminDashboardPage.classList.remove('active');
+
+            mainSections.forEach(section => {
+                section.style.display = 'none';
+            });
+
+            if (targetPageId === 'login-page') {
+                loginPage.classList.add('active');
+            } else if (targetPageId === 'admin-dashboard-page') {
+                adminDashboardPage.classList.add('active');
+            } else { // Navigating to a section within the main landing page
+                mainContentArea.classList.add('active');
+                // Ensure the specific target section is displayed within main content
+                const targetElement = document.getElementById(targetPageId);
+                if (targetElement) {
+                    targetElement.style.display = 'block';
+                }
+            }
+            navLinksContainer.classList.remove('active'); // Close mobile navigation menu
+        }
+
+
+        // Event listener for hamburger menu toggle
+        hamburgerBtn.addEventListener('click', () => {
+            navLinksContainer.classList.toggle('active');
+        });
+
+        // Event listeners for smooth scrolling navigation links
+        document.querySelectorAll('.nav-link').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1); 
+                showPage(targetId); 
+
+                const targetElement = document.querySelector(`#${targetId}`);
+                if (targetElement && targetId !== 'hero-section') { 
+                     targetElement.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start' 
+                    });
+                }
+            });
+        });
+
+        // Event listener for "Temukan Dojo Terdekat Anda" button
+        findDojoBtn.addEventListener('click', () => {
+            showPage('dojo-section'); 
+            const targetElement = document.getElementById('dojo-section');
+            if (targetElement) {
+                targetElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+
+        // --- Auth State Change Listener ---
+        let currentUser = null; 
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            const currentPath = window.location.hash.substring(1); 
+
+            if (user) {
+                // User is signed in
+                console.log("User is signed in:", user.email);
+                authButtonContainer.innerHTML = `
+                    <button id="navAdminBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-full shadow-md transition duration-300 ease-in-out flex items-center justify-center space-x-2 transform hover:scale-105 mr-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.524-1.762 2.679-1.762 3.203 0l.863 2.569a1.002 1.002 0 001.523.633l2.569-.863c1.762-.524 1.762 2.679 0 3.203l-.863 2.569a1.002 1.002 0 00-.633 1.523l.863 2.569c.524 1.762-1.762 2.679-3.203 0l-.863-2.569a1.002 1.002 0 00-1.523-.633l-2.569.863c-1.762.524-1.762-2.679 0-3.203l.863-2.569a1.002 1.002 0 00.633-1.523l-.863-2.569z"></path></svg>
+                        <span>Admin Dashboard</span>
+                    </button>
+                    <button id="navLogoutBtn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 px-6 rounded-full shadow-md transition duration-300 ease-in-out flex items-center justify-center space-x-2 transform hover:scale-105">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                        <span>Logout</span>
+                    </button>
+                `;
+                document.getElementById('navAdminBtn').addEventListener('click', () => showPage('admin-dashboard-page'));
+                document.getElementById('navLogoutBtn').addEventListener('click', async () => {
+                    try {
+                        await signOut(auth);
+                        showMessage("Anda telah logout.", "success");
+                        showPage('hero-section'); 
+                    } catch (error) {
+                        console.error("Logout Error:", error);
+                        showMessage("Gagal logout: " + error.message, "error");
+                    }
+                });
+
+                // If user was on login page, redirect to admin dashboard or home
+                if (currentPath === 'login-page') { 
+                    showPage('admin-dashboard-page'); 
+                }
+            } else {
+                // User is signed out
+                console.log("User is signed out.");
+                authButtonContainer.innerHTML = `
+                    <button id="navLoginBtn" class="bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 text-white font-bold py-2.5 px-6 rounded-full shadow-md transition duration-300 ease-in-out flex items-center justify-center space-x-2 transform hover:scale-105">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
+                        <span>Login/Daftar</span>
+                    </button>
+                `;
+                document.getElementById('navLoginBtn').addEventListener('click', () => showPage('login-page'));
+                
+                if (currentPath === 'admin-dashboard-page') {
+                    showPage('hero-section');
+                }
+            }
+        });
+
+
+        // --- Hero Section Image Carousel ---
+        const heroImages = document.querySelectorAll('#hero-section .hero-image');
+        let currentImageIndex = 0;
+
+        function showNextImage() {
+            if (heroImages.length === 0) return;
+            heroImages[currentImageIndex].classList.remove('active');
+            currentImageIndex = (currentImageIndex + 1) % heroImages.length;
+            heroImages[currentImageIndex].classList.add('active');
+        }
+
+        setInterval(showNextImage, 5000);
+
+        // --- Dojo Filtering Logic (Populate filter options and render for public view) ---
+        const cabangFilter = document.getElementById('cabangFilter');
+
+        function populateCabangFilter(dojos) {
+            const uniqueCabangs = [...new Set(dojos.map(dojo => dojo.cabang))].sort();
+            cabangFilter.innerHTML = '<option value="all">Tampilkan Semua Cabang</option>';
+            uniqueCabangs.forEach(cabang => {
+                const option = document.createElement('option');
+                option.value = cabang;
+                option.textContent = cabang;
+                cabangFilter.appendChild(option);
+            });
+        }
+
+        function renderDojos(dojosToRender, filterCabang = 'all') {
+            dojoListContainer.innerHTML = '';
+            const filteredDojos = dojosToRender.filter(dojo => 
+                filterCabang === 'all' || dojo.cabang === filterCabang
+            );
+
+            if (filteredDojos.length === 0) {
+                dojoListContainer.innerHTML = `<p class="col-span-full text-center text-gray-500">Tidak ada dojo/ranting ditemukan di cabang ini.</p>`;
+                return;
+            }
+
+            filteredDojos.forEach(dojo => {
+                const dojoCard = document.createElement('div');
+                dojoCard.classList.add('bg-white', 'p-6', 'rounded-xl', 'shadow-lg', 'border', 'border-gray-200', 'hover:shadow-xl', 'transition-shadow', 'duration-200');
+                
+                let jadwalDisplay = Array.isArray(dojo.jadwalLatihan) ? dojo.jadwalLatihan.join('<br>') : dojo.jadwalLatihan;
+
+                dojoCard.innerHTML = `
+                    <div class="flex items-center space-x-4 mb-4">
+                        <img src="${dojo.imageUrl || 'https://placehold.co/80x80/D1D5DB/ffffff?text=Dojo'}" alt="Gambar Dojo/Pelatih" class="w-20 h-20 rounded-full object-cover shadow-md flex-shrink-0 border-2 border-amber-500">
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900">${dojo.nama}</h3>
+                            <p class="text-gray-600 text-sm">Pelatih: ${dojo.namaPelatih}</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-700 mb-1"><strong class="font-medium">Jadwal:</strong> ${jadwalDisplay}</p>
+                    <p class="text-gray-700 text-sm mb-1"><strong class="font-medium">Lokasi:</strong> ${dojo.alamat}, ${dojo.cabang}</p>
+                    <p class="text-gray-700 text-sm mb-3"><strong class="font-medium">Kontak Pelatih:</strong> ${dojo.kontakPelatih}</p>
+                `;
+                dojoListContainer.appendChild(dojoCard);
+            });
+        }
+
+        cabangFilter.addEventListener('change', (e) => {
+            renderDojos(currentDojosData, e.target.value);
+        });
+
+        // --- Firebase Data Fetching for Public Display ---
+        async function initializeFirestoreAndFetchData() {
+            try {
+                if (!auth.currentUser) {
+                    console.log("Attempting anonymous sign-in for public data access. Make sure 'Anonymous' sign-in is enabled in Firebase Authentication settings.");
+                    await signInAnonymously(auth); 
+                }
+
+                console.log("Firebase App ID used in code:", appId);
+                const dojosCollectionRef = collection(db, `artifacts/${appId}/public/data/dojos`);
+                console.log("Firestore Collection Path being listened to:", `artifacts/${appId}/public/data/dojos`);
+
+                onSnapshot(dojosCollectionRef, (snapshot) => {
+                    const fetchedDojos = [];
+                    snapshot.forEach(doc => {
+                        fetchedDojos.push({ id: doc.id, ...doc.data() }); 
+                    });
+                    console.log("Fetched Dojos from Firestore:", fetchedDojos);
+                    currentDojosData = fetchedDojos; 
+                    adminDojosData = fetchedDojos;
+
+                    populateCabangFilter(currentDojosData);
+                    renderDojos(currentDojosData, cabangFilter.value); 
+
+                    renderAdminDojoList(adminDojosData);
+
+                    if (currentDojosData.length === 0) {
+                        dojoListContainer.innerHTML = `<p class="col-span-full text-center text-gray-500">Tidak ada dojo yang ditemukan di database Anda. Silakan tambahkan data di Firestore.</p>`;
+                    }
+                }, (error) => {
+                    console.error("Error fetching dojo data:", error);
+                    showMessage(`Error memuat data dojo: ${error.message}`, 'error');
+                });
+
+            } catch (error) {
+                console.error("Error initializing Firebase or signing in:", error);
+                showMessage(`Error inisialisasi aplikasi: ${error.message}`, 'error');
+            }
+        }
+
+        // --- Login Functionality ---
+        const loginForm = document.getElementById('loginForm');
+        const loginEmailInput = document.getElementById('loginEmail');
+        const loginPasswordInput = document.getElementById('loginPassword');
+        // Removed goToRegisterLink
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = loginEmailInput.value;
+            const password = loginPasswordInput.value;
+
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                console.log("Login successful!", userCredential.user.email);
+                showMessage("Login berhasil! Selamat datang.", "success");
+                
+                loginEmailInput.value = '';
+                loginPasswordInput.value = '';
+
+            } catch (error) {
+                console.error("Login Error:", error.code, error.message);
+                let errorMessage = "Terjadi kesalahan saat login.";
+                switch (error.code) {
+                    case 'auth/invalid-email':
+                    case 'auth/user-disabled':
+                    case 'auth/user-not-found':
+                    case 'auth/wrong-password':
+                        errorMessage = "Email atau password salah.";
+                        break;
+                    case 'auth/too-many-requests':
+                        errorMessage = "Terlalu banyak percobaan login. Coba lagi nanti.";
+                        break;
+                    default:
+                        errorMessage = `Kesalahan: ${error.message}`;
+                }
+                showMessage(errorMessage, 'error');
+            }
+        });
+
+        // Removed Go to Register page from Login page link listener
+
+        // --- Removed Register Functionality ---
+        // Removed registerForm, registerEmailInput, registerPasswordInput, confirmPasswordInput, goToLoginLink
+        // Removed registerForm.addEventListener and goToLoginLink.addEventListener
+
+        // --- Admin Dashboard Functionality ---
+        const addDojoForm = document.getElementById('addDojoForm');
+        const addNama = document.getElementById('addNama');
+        const addAlamat = document.getElementById('addAlamat');
+        const addCabang = document.getElementById('addCabang');
+        const addNamaPelatih = document.getElementById('addNamaPelatih');
+        const addKontakPelatih = document.getElementById('addKontakPelatih');
+        const addJadwalLatihan = document.getElementById('addJadwalLatihan');
+        const addImageUrl = document.getElementById('addImageUrl');
+        const addDeskripsi = document.getElementById('addDeskripsi');
+
+        addDojoForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!currentUser) {
+                showMessage("Anda harus login untuk menambah dojo.", "error");
+                return;
+            }
+
+            const newDojoData = {
+                nama: addNama.value,
+                alamat: addAlamat.value,
+                cabang: addCabang.value,
+                namaPelatih: addNamaPelatih.value,
+                kontakPelatih: addKontakPelatih.value,
+                // Split jadwalLatihan by semicolon and trim each part
+                jadwalLatihan: addJadwalLatihan.value.split(';').map(item => item.trim()).filter(item => item !== ''),
+                imageUrl: addImageUrl.value || '', // Optional field
+                deskripsi: addDeskripsi.value || '' // Optional field
+            };
+
+            try {
+                const dojosCollectionRef = collection(db, `artifacts/${appId}/public/data/dojos`);
+                await addDoc(dojosCollectionRef, newDojoData);
+                showMessage("Dojo berhasil ditambahkan!", "success");
+                addDojoForm.reset(); // Clear the form
+            } catch (error) {
+                console.error("Error adding dojo:", error);
+                showMessage(`Gagal menambah dojo: ${error.message}`, "error");
+            }
+        });
+
+        function renderAdminDojoList(dojos) {
+            adminDojoListContainer.innerHTML = ''; // Clear current list
+
+            if (dojos.length === 0) {
+                adminDojoListContainer.innerHTML = `<p class="text-center text-gray-600">Belum ada dojo yang terdaftar. Tambahkan yang pertama!</p>`;
+                return;
+            }
+
+            dojos.forEach(dojo => {
+                const dojoItem = document.createElement('div');
+                dojoItem.id = `admin-dojo-${dojo.id}`;
+                dojoItem.classList.add('bg-white', 'p-4', 'rounded-md', 'shadow-sm', 'border', 'border-gray-200', 'flex', 'items-center', 'justify-between');
+                
+                let jadwalDisplay = Array.isArray(dojo.jadwalLatihan) ? dojo.jadwalLatihan.join('; ') : dojo.jadwalLatihan;
+
+                dojoItem.innerHTML = `
+                    <div>
+                        <h4 class="text-lg font-bold text-gray-900">${dojo.nama} (${dojo.cabang})</h4>
+                        <p class="text-sm text-gray-600">Pelatih: ${dojo.namaPelatih}</p>
+                        <p class="text-sm text-gray-600">Jadwal: ${jadwalDisplay}</p>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button data-id="${dojo.id}" class="edit-btn bg-yellow-500 hover:bg-yellow-600 text-white p-2 rounded-full text-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                        </button>
+                        <button data-id="${dojo.id}" class="delete-btn bg-red-500 hover:bg-red-600 text-white p-2 rounded-full text-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1H9a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </div>
+                `;
+                adminDojoListContainer.appendChild(dojoItem);
+            });
+
+            // Add event listeners for edit/delete buttons
+            adminDojoListContainer.querySelectorAll('.edit-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const dojoId = e.currentTarget.dataset.id;
+                    const dojoToEdit = adminDojosData.find(d => d.id === dojoId);
+                    if (dojoToEdit) {
+                        populateEditForm(dojoToEdit);
+                        editDojoModal.classList.add('show');
+                    } else {
+                        showMessage("Dojo tidak ditemukan untuk diedit.", "error");
+                    }
+                });
+            });
+
+            adminDojoListContainer.querySelectorAll('.delete-btn').forEach(button => {
+                button.addEventListener('click', async (e) => {
+                    const dojoId = e.currentTarget.dataset.id;
+                    const confirmed = await showConfirmationModal("Apakah Anda yakin ingin menghapus dojo ini? Tindakan ini tidak dapat dibatalkan.");
+                    
+                    if (confirmed) {
+                        try {
+                            const dojoDocRef = doc(db, `artifacts/${appId}/public/data/dojos`, dojoId);
+                            await deleteDoc(dojoDocRef);
+                            showMessage("Dojo berhasil dihapus!", "success");
+                        } catch (error) {
+                            console.error("Error deleting dojo:", error);
+                            showMessage(`Gagal menghapus dojo: ${error.message}`, "error");
+                        }
+                    } else {
+                        showMessage("Penghapusan dojo dibatalkan.", "info");
+                    }
+                });
+            });
+        }
+
+        // --- Edit Dojo Modal Functionality ---
+        const editDojoModal = document.getElementById('editDojoModal');
+        const editDojoForm = document.getElementById('editDojoForm');
+        const editDojoId = document.getElementById('editDojoId');
+        const editNama = document.getElementById('editNama');
+        const editAlamat = document.getElementById('editAlamat');
+        const editCabang = document.getElementById('editCabang');
+        const editNamaPelatih = document.getElementById('editNamaPelatih');
+        const editKontakPelatih = document.getElementById('editKontakPelatih');
+        const editJadwalLatihan = document.getElementById('editJadwalLatihan');
+        const editImageUrl = document.getElementById('editImageUrl');
+        const editDeskripsi = document.getElementById('editDeskripsi');
+        const cancelEditBtn = document.getElementById('cancelEditBtn');
+
+        function populateEditForm(dojo) {
+            editDojoId.value = dojo.id;
+            editNama.value = dojo.nama || '';
+            editAlamat.value = dojo.alamat || '';
+            editCabang.value = dojo.cabang || '';
+            editNamaPelatih.value = dojo.namaPelatih || '';
+            editKontakPelatih.value = dojo.kontakPelatih || '';
+            // Join array for display in input field
+            editJadwalLatihan.value = Array.isArray(dojo.jadwalLatihan) ? dojo.jadwalLatihan.join('; ') : dojo.jadwalLatihan || '';
+            editImageUrl.value = dojo.imageUrl || '';
+            editDeskripsi.value = dojo.deskripsi || '';
+        }
+
+        cancelEditBtn.addEventListener('click', () => {
+            editDojoModal.classList.remove('show');
+            editDojoForm.reset();
+        });
+
+        editDojoForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!currentUser) {
+                showMessage("Anda harus login untuk mengedit dojo.", "error");
+                return;
+            }
+
+            const dojoIdToUpdate = editDojoId.value;
+            const updatedDojoData = {
+                nama: editNama.value,
+                alamat: editAlamat.value,
+                cabang: editCabang.value,
+                namaPelatih: editNamaPelatih.value,
+                kontakPelatih: editKontakPelatih.value,
+                // Split jadwalLatihan by semicolon and trim each part
+                jadwalLatihan: editJadwalLatihan.value.split(';').map(item => item.trim()).filter(item => item !== ''),
+                imageUrl: editImageUrl.value || '',
+                deskripsi: editDeskripsi.value || ''
+            };
+
+            try {
+                const dojoDocRef = doc(db, `artifacts/${appId}/public/data/dojos`, dojoIdToUpdate);
+                await updateDoc(dojoDocRef, updatedDojoData);
+                showMessage("Dojo berhasil diperbarui!", "success");
+                editDojoModal.classList.remove('show');
+                editDojoForm.reset();
+            } catch (error) {
+                console.error("Error updating dojo:", error);
+                showMessage(`Gagal memperbarui dojo: ${error.message}`, "error");
+            }
+        });
+
+
+        // Initial setup on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeFirestoreAndFetchData(); // Start fetching data
+        });
+    </script>
+</body>
+</html>
