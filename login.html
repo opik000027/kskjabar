@@ -25,6 +25,110 @@
     </script>
     <!-- Link ke Font Awesome untuk ikon -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" xintegrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0V4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Favicon (Logo di tab browser) -->
+    <link rel="icon" href="img/logo-ksk.png" type="image/png">
+
+    <!-- Firebase SDK (PENTING: Pastikan versi yang kompatibel) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js"; // Diperlukan jika akan menggunakan Firestore
+
+        // Variabel global yang disediakan oleh lingkungan Canvas
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        let app;
+        let auth;
+        let db; // Untuk Firestore, jika diperlukan di masa depan
+
+        // Fungsi untuk menginisialisasi Firebase dan otentikasi
+        async function initializeFirebaseAndAuth() {
+            if (firebaseConfig) {
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app); // Inisialisasi Firestore
+
+                try {
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                        console.log("Signed in with custom token.");
+                    } else {
+                        await signInAnonymously(auth);
+                        console.log("Signed in anonymously.");
+                    }
+                } catch (error) {
+                    console.error("Firebase authentication error:", error.message);
+                    // Handle error if sign-in fails
+                }
+            } else {
+                console.error("Firebase config is not available.");
+            }
+        }
+
+        // Panggil inisialisasi Firebase saat DOM dimuat
+        document.addEventListener('DOMContentLoaded', initializeFirebaseAndAuth);
+
+        // Fungsi untuk menangani proses login
+        async function handleLogin(event) {
+            event.preventDefault(); // Mencegah form dari reload halaman
+
+            const emailInput = document.getElementById('email-login').value;
+            const passwordInput = document.getElementById('password-login').value;
+            const messageDiv = document.getElementById('login-message');
+            const loginButton = document.getElementById('login-button');
+
+            messageDiv.textContent = ''; // Bersihkan pesan sebelumnya
+            messageDiv.classList.remove('text-green-500', 'text-red-500');
+            loginButton.disabled = true; // Nonaktifkan tombol saat proses
+
+            if (!auth) {
+                messageDiv.textContent = 'Error: Firebase Auth not initialized.';
+                messageDiv.classList.add('text-red-500');
+                loginButton.disabled = false;
+                return;
+            }
+
+            try {
+                // Melakukan login dengan email dan password
+                const userCredential = await signInWithEmailAndPassword(auth, emailInput, passwordInput);
+                const user = userCredential.user;
+                
+                messageDiv.textContent = 'Login berhasil! Mengarahkan ke Beranda...';
+                messageDiv.classList.add('text-green-500');
+                
+                // Arahkan pengguna ke halaman beranda setelah 2 detik
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 2000);
+
+            } catch (error) {
+                let errorMessage = 'Terjadi kesalahan saat login.';
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                    errorMessage = 'Email atau password salah. Silakan coba lagi.';
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = 'Format email tidak valid.';
+                } else if (error.code === 'auth/too-many-requests') {
+                    errorMessage = 'Terlalu banyak percobaan login gagal. Akun Anda diblokir sementara.';
+                } else {
+                    errorMessage = `Error: ${error.message}`;
+                }
+                messageDiv.textContent = errorMessage;
+                messageDiv.classList.add('text-red-500');
+            } finally {
+                loginButton.disabled = false; // Aktifkan kembali tombol
+            }
+        }
+
+        // Pasang event listener ke form login
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginForm = document.getElementById('login-form');
+            if (loginForm) {
+                loginForm.addEventListener('submit', handleLogin);
+            }
+        });
+    </script>
 </head>
 <body class="bg-gray-100 text-secondary font-inter min-h-screen flex flex-col">
 
@@ -33,7 +137,7 @@
         <div class="container mx-auto flex justify-between items-center px-4">
             <!-- Logo Klub -->
             <a href="index.html" class="flex items-center space-x-2">
-                <img src="https://placehold.co/60x60/B40000/FFFFFF?text=Logo+KSK" alt="Logo KEI SHIN KAN" class="h-12 w-12 rounded-full shadow-md">
+                <img src="img/logo-ksk.png" alt="Logo KEI SHIN KAN" class="h-12 w-12 rounded-full shadow-md">
                 <span class="text-xl font-bold text-primary">KEI SHIN KAN</span>
             </a>
             <!-- Link Kembali ke Beranda -->
@@ -48,16 +152,17 @@
         <section class="w-full max-w-md bg-white rounded-lg shadow-xl p-8 my-8">
             <h2 class="text-4xl font-bold text-center text-primary mb-8">Login Anggota</h2>
             <div class="p-8 bg-gray-50 rounded-xl shadow-lg">
-                <p class="text-lg text-gray-700 mb-6 text-center">Silakan masukkan username dan password Anda.</p>
-                <form class="space-y-4">
+                <p class="text-lg text-gray-700 mb-6 text-center">Silakan masukkan email dan password Anda.</p>
+                <form id="login-form" class="space-y-4">
                     <div>
-                        <input type="text" placeholder="Username" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                        <input type="email" id="email-login" placeholder="Email" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
                     </div>
                     <div>
-                        <input type="password" placeholder="Password" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                        <input type="password" id="password-login" placeholder="Password" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
                     </div>
-                    <button type="submit" class="w-full bg-primary text-white px-6 py-3 rounded-full font-bold hover:bg-red-700 transition duration-300 shadow-md">Login</button>
+                    <button type="submit" id="login-button" class="w-full bg-primary text-white px-6 py-3 rounded-full font-bold hover:bg-red-700 transition duration-300 shadow-md">Login</button>
                 </form>
+                <div id="login-message" class="mt-4 text-center text-lg font-semibold"></div>
                 <p class="mt-6 text-center text-gray-600">Belum punya akun? <a href="pendaftaran.html" class="text-primary hover:underline">Daftar di sini</a></p>
             </div>
         </section>
