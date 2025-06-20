@@ -12,12 +12,12 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        inter: ['Inter', 'sans-serif'], // Font Inter
+                        inter: ['Inter', 'sans-serif'], // Inter font
                     },
                     colors: {
-                        primary: '#B40000', // Contoh warna merah khas klub
-                        secondary: '#333333', // Contoh warna gelap untuk teks
-                        accent: '#F9A826', // Contoh warna aksen
+                        primary: '#B40000', // Primary color for the club (red)
+                        secondary: '#333333', // Secondary color for text (dark)
+                        accent: '#F9A826', // Accent color (yellow)
                     }
                 }
             }
@@ -26,58 +26,58 @@
     <!-- Link ke Font Awesome untuk ikon hamburger -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" xintegrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0V4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
-        /* Mengaktifkan smooth scroll behavior */
+        /* Enable smooth scroll behavior */
         html {
             scroll-behavior: smooth;
-            font-family: 'Inter', sans-serif; /* Menggunakan font Inter secara default */
+            font-family: 'Inter', sans-serif; /* Use Inter font by default */
         }
-        /* Mengatur tinggi hero section agar sesuai dengan viewport */
+        /* Set hero section height to viewport height */
         .hero-section {
-            min-height: 100vh; /* Setidaknya setinggi viewport */
+            min-height: 100vh; /* At least viewport height */
             display: flex;
-            align-items: center; /* Memastikan konten di tengah vertikal */
-            justify-content: center; /* Memastikan konten di tengah horizontal */
+            align-items: center; /* Vertically center content */
+            justify-content: center; /* Horizontally center content */
         }
-        /* Mengatur transisi untuk hero image dan teks */
+        /* Set transition for hero image and text */
         .fade-transition {
             transition: opacity 1.5s ease-in-out;
         }
-        /* Animasi fade in untuk hero section */
+        /* Fade-in animation for hero section */
         .hero-image.active {
             opacity: 1;
         }
         .hero-image.inactive {
             opacity: 0;
         }
-        /* Teks hero tidak lagi menggunakan kelas active/inactive karena tidak berganti */
+        /* Hero text does not use active/inactive classes as it's static */
         .hero-text {
-            opacity: 1; /* Selalu terlihat */
-            transform: translateY(0); /* Selalu di posisi normal */
+            opacity: 1; /* Always visible */
+            transform: translateY(0); /* Always in normal position */
         }
-        /* Offset untuk bagian yang dituju agar tidak tertutup navigasi fixed */
+        /* Offset for target sections to avoid being hidden by fixed navigation */
         .scroll-offset {
-            scroll-margin-top: 5rem; /* Menyesuaikan dengan tinggi navigasi */
+            scroll-margin-top: 5rem; /* Adjust based on navigation height */
         }
     </style>
 </head>
 <body class="bg-gray-100 text-secondary font-inter">
 
-    <!-- Navigasi Bar (Fixed Top) -->
+    <!-- Navigation Bar (Fixed Top) -->
     <nav class="fixed top-0 left-0 w-full bg-white shadow-lg py-4 z-50 rounded-b-lg">
         <div class="container mx-auto flex justify-between items-center px-4">
-            <!-- Logo Klub -->
+            <!-- Club Logo -->
             <a href="#beranda" class="flex items-center space-x-2">
                 <img src="img/logo-ksk.png" alt="Logo KEI SHIN KAN" class="h-12 w-12 rounded-full shadow-md">
-                <!-- Tulisan KEI SHIN KAN diperbesar dan diberi drop shadow -->
+                <!-- KEI SHIN KAN text enlarged and with drop shadow -->
                 <span class="text-2xl md:text-3xl font-extrabold text-primary drop-shadow-lg">KEI SHIN KAN</span>
             </a>
 
-            <!-- Tombol Hamburger untuk Mobile -->
+            <!-- Hamburger Button for Mobile -->
             <button id="hamburger-button" class="md:hidden text-secondary focus:outline-none">
                 <i class="fas fa-bars text-2xl"></i>
             </button>
 
-            <!-- Menu Navigasi Desktop -->
+            <!-- Desktop Navigation Menu -->
             <ul id="navbar-menu" class="hidden md:flex space-x-8 items-center">
                 <li><a href="#beranda" class="text-secondary hover:text-primary transition duration-300 font-semibold px-3 py-2 rounded-md">Beranda</a></li>
                 <li><a href="#tentang-kami" class="text-secondary hover:text-primary transition duration-300 font-semibold px-3 py-2 rounded-md">Tentang Kami</a></li>
@@ -91,7 +91,7 @@
             </ul>
         </div>
 
-        <!-- Menu Navigasi Mobile (Muncul saat Hamburger diklik) -->
+        <!-- Mobile Navigation Menu (Appears when Hamburger is clicked) -->
         <div id="mobile-menu" class="hidden md:hidden bg-white py-4 shadow-inner">
             <ul class="flex flex-col items-center space-y-4">
                 <li><a href="#beranda" class="block text-secondary hover:text-primary transition duration-300 font-semibold px-3 py-2 rounded-md" onclick="toggleMobileMenu()">Beranda</a></li>
@@ -107,19 +107,19 @@
         </div>
     </nav>
 
-    <!-- Bagian Beranda (Hero Section) -->
+    <!-- Home Section (Hero Section) -->
     <section id="beranda" class="hero-section relative w-full overflow-hidden text-white flex items-center justify-center pt-20">
-        <!-- Latar Belakang Gambar yang Berubah Otomatis -->
+        <!-- Auto-changing Background Images -->
         <div id="hero-images" class="absolute inset-0">
-            <!-- Gambar Hero. Ganti dengan URL gambar Anda dari folder img. -->
+            <!-- Hero Images. Replace with your actual image URLs from the img folder. -->
             <img src="img/1.jpg" alt="Hero Image 1" class="hero-image absolute inset-0 w-full h-full object-cover fade-transition active">
             <img src="img/2.jpg" alt="Hero Image 2" class="hero-image absolute inset-0 w-full h-full object-cover fade-transition inactive">
             <img src="img/3.jpg" alt="Hero Image 3" class="hero-image absolute inset-0 w-full h-full object-cover fade-transition inactive">
-            <!-- Overlay Gelap untuk Kontras Teks -->
+            <!-- Dark Overlay for Text Contrast -->
             <div class="absolute inset-0 bg-black opacity-50"></div>
         </div>
 
-        <!-- Konten Teks Ajakan (Sekarang Statis) -->
+        <!-- Call to Action Text (Now Static) -->
         <div class="relative z-10 text-center p-6 bg-black bg-opacity-40 rounded-lg max-w-3xl mx-auto shadow-2xl">
             <h1 id="hero-text-content" class="text-4xl md:text-6xl font-extrabold mb-6 drop-shadow-lg hero-text">
                 Jadilah Bagian dari Keluarga <span class="text-accent drop-shadow-md">KEI SHIN KAN</span> Jawa Barat!
@@ -130,7 +130,7 @@
         </div>
     </section>
 
-    <!-- Bagian Tentang Kami -->
+    <!-- About Us Section -->
     <section id="tentang-kami" class="container mx-auto py-16 px-4 bg-white rounded-lg shadow-md my-8 scroll-offset">
         <h2 class="text-4xl font-bold text-center text-primary mb-8">Tentang Kami</h2>
         <div class="max-w-4xl mx-auto text-lg leading-relaxed text-gray-700">
@@ -146,45 +146,20 @@
         </div>
     </section>
 
-    <!-- Bagian Tempat Latihan -->
+    <!-- Training Locations Section -->
     <section id="tempat-latihan" class="container mx-auto py-16 px-4 bg-white rounded-lg shadow-md my-8 scroll-offset">
         <h2 class="text-4xl font-bold text-center text-primary mb-12">Tempat Latihan Kami</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <!-- Contoh Kartu Tempat Latihan 1. Sesuaikan path gambar jika ada logo dojo. -->
-            <div class="bg-gray-50 p-6 rounded-xl shadow-lg border border-gray-200 hover:shadow-xl transition duration-300 transform hover:-translate-y-1">
-                <img src="https://placehold.co/100x100/FFD700/000000?text=DOJO+A" alt="Logo Dojo A" class="h-24 w-24 mx-auto mb-6 rounded-full object-cover shadow-md">
-                <h3 class="text-2xl font-bold text-center text-primary mb-4">Dojo Antapani</h3>
-                <ul class="text-lg text-gray-700 space-y-2">
-                    <li><i class="fas fa-user-tie text-primary mr-2"></i><strong>Pelatih:</strong> Sensei Budi Santoso</li>
-                    <li><i class="fas fa-phone-alt text-primary mr-2"></i><strong>Kontak:</strong> 0812-3456-7890</li>
-                    <li><i class="fas fa-map-marker-alt text-primary mr-2"></i><strong>Alamat:</strong> GOR Kecamatan Antapani, Jl. Antapani Raya No. 10</li>
-                    <li><i class="fas fa-calendar-alt text-primary mr-2"></i><strong>Jadwal:</strong> Selasa & Kamis (16.00 - 18.00 WIB)</li>
-                </ul>
-            </div>
 
-            <!-- Contoh Kartu Tempat Latihan 2 -->
-            <div class="bg-gray-50 p-6 rounded-xl shadow-lg border border-gray-200 hover:shadow-xl transition duration-300 transform hover:-translate-y-1">
-                <img src="https://placehold.co/100x100/A020F0/FFFFFF?text=DOJO+B" alt="Logo Dojo B" class="h-24 w-24 mx-auto mb-6 rounded-full object-cover shadow-md">
-                <h3 class="text-2xl font-bold text-center text-primary mb-4">Dojo Buah Batu</h3>
-                <ul class="text-lg text-gray-700 space-y-2">
-                    <li><i class="fas fa-user-tie text-primary mr-2"></i><strong>Pelatih:</strong> Sensei Siti Aminah</li>
-                    <li><i class="fas fa-phone-alt text-primary mr-2"></i><strong>Kontak:</strong> 0857-1234-5678</li>
-                    <li><i class="fas fa-map-marker-alt text-primary mr-2"></i><strong>Alamat:</strong> Gedung Serbaguna Buah Batu, Jl. Terusan Buah Batu No. 5</li>
-                    <li><i class="fas fa-calendar-alt text-primary mr-2"></i><strong>Jadwal:</strong> Rabu & Jumat (15.30 - 17.30 WIB)</li>
-                </ul>
-            </div>
+        <!-- Filter Dropdown -->
+        <div class="mb-8 flex justify-center">
+            <select id="city-filter" class="p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary text-lg">
+                <option value="all">Semua Kota/Kabupaten</option>
+                <!-- Options will be populated by JavaScript -->
+            </select>
+        </div>
 
-            <!-- Contoh Kartu Tempat Latihan 3 -->
-            <div class="bg-gray-50 p-6 rounded-xl shadow-lg border border-gray-200 hover:shadow-xl transition duration-300 transform hover:-translate-y-1">
-                <img src="https://placehold.co/100x100/008000/FFFFFF?text=DOJO+C" alt="Logo Dojo C" class="h-24 w-24 mx-auto mb-6 rounded-full object-cover shadow-md">
-                <h3 class="text-2xl font-bold text-center text-primary mb-4">Dojo Pasteur</h3>
-                <ul class="text-lg text-gray-700 space-y-2">
-                    <li><i class="fas fa-user-tie text-primary mr-2"></i><strong>Pelatih:</strong> Sensei Rio Pratama</li>
-                    <li><i class="fas fa-phone-alt text-primary mr-2"></i><strong>Kontak:</strong> 0878-9012-3456</li>
-                    <li><i class="fas fa-map-marker-alt text-primary mr-2"></i><strong>Alamat:</strong> Aula Olahraga Pasteur, Jl. Pasteur No. 20</li>
-                    <li><i class="fas fa-calendar-alt text-primary mr-2"></i><strong>Jadwal:</strong> Senin & Sabtu (19.00 - 21.00 WIB)</li>
-                </ul>
-            </div>
+        <div id="dojo-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Dojo cards will be dynamically inserted here by JavaScript -->
         </div>
     </section>
 
@@ -197,32 +172,32 @@
         </div>
     </footer>
 
-    <!-- JavaScript untuk interaktivitas -->
+    <!-- JavaScript for interactivity -->
     <script>
-        // Data untuk Hero Section Slider
+        // Hero Section Slider Data
         const heroImages = document.querySelectorAll('.hero-image');
         let currentImageIndex = 0;
 
-        // Fungsi untuk mengganti gambar hero
+        // Function to change hero image
         function changeHeroContent() {
             // Fade out current image
             heroImages[currentImageIndex].classList.remove('active');
             heroImages[currentImageIndex].classList.add('inactive');
 
-            // Update index gambar
+            // Update image index
             currentImageIndex = (currentImageIndex + 1) % heroImages.length;
 
             // Fade in new image after a short delay for transition
             setTimeout(() => {
                 heroImages[currentImageIndex].classList.remove('inactive');
                 heroImages[currentImageIndex].classList.add('active');
-            }, 1000); // Penundaan 1 detik agar transisi fade-out terlihat
+            }, 1000); // 1-second delay for fade-out transition to be visible
         }
 
-        // Memulai pergantian gambar setiap 5 detik
+        // Start changing images every 5 seconds
         setInterval(changeHeroContent, 5000);
 
-        // JavaScript untuk Hamburger Menu
+        // JavaScript for Hamburger Menu
         const hamburgerButton = document.getElementById('hamburger-button');
         const mobileMenu = document.getElementById('mobile-menu');
 
@@ -232,24 +207,135 @@
 
         hamburgerButton.addEventListener('click', toggleMobileMenu);
 
-        // Menutup mobile menu saat mengklik tautan di dalamnya (untuk smooth scroll)
+        // Close mobile menu when clicking a link inside it (for smooth scroll)
         const mobileMenuItems = mobileMenu.querySelectorAll('a');
         mobileMenuItems.forEach(item => {
             item.addEventListener('click', () => {
-                // Memberikan sedikit waktu agar smooth scroll bekerja sebelum menu tertutup
-                // Catatan: Untuk link ke halaman terpisah, smooth scroll tidak berlaku,
-                // tapi fungsi ini tetap aman dipanggil.
+                // Provide a small delay for smooth scroll to work before closing the menu
+                // Note: For links to separate pages, smooth scroll doesn't apply,
+                // but this function call is still safe.
                 setTimeout(() => {
                     mobileMenu.classList.add('hidden');
                 }, 300);
             });
         });
 
-        // Menutup mobile menu jika ukuran layar berubah dari mobile ke desktop
+        // Close mobile menu if screen size changes from mobile to desktop
         window.addEventListener('resize', () => {
-            if (window.innerWidth >= 768) { // Ukuran md breakpoint Tailwind
+            if (window.innerWidth >= 768) { // Tailwind md breakpoint
                 mobileMenu.classList.add('hidden');
             }
+        });
+
+        // Dojo Data (Example Data)
+        const dojos = [
+            {
+                name: "Dojo Antapani",
+                city: "Bandung Kota",
+                image: "https://placehold.co/100x100/FFD700/000000?text=DOJO+A", // Replace with your dojo logo if available
+                trainer: "Sensei Budi Santoso",
+                contact: "0812-3456-7890",
+                address: "GOR Kecamatan Antapani, Jl. Antapani Raya No. 10",
+                schedule: "Selasa & Kamis (16.00 - 18.00 WIB)"
+            },
+            {
+                name: "Dojo Buah Batu",
+                city: "Bandung Kota",
+                image: "https://placehold.co/100x100/A020F0/FFFFFF?text=DOJO+B",
+                trainer: "Sensei Siti Aminah",
+                contact: "0857-1234-5678",
+                address: "Gedung Serbaguna Buah Batu, Jl. Terusan Buah Batu No. 5",
+                schedule: "Rabu & Jumat (15.30 - 17.30 WIB)"
+            },
+            {
+                name: "Dojo Pasteur",
+                city: "Bandung Kota",
+                image: "https://placehold.co/100x100/008000/FFFFFF?text=DOJO+C",
+                trainer: "Sensei Rio Pratama",
+                contact: "0878-9012-3456",
+                address: "Aula Olahraga Pasteur, Jl. Pasteur No. 20",
+                schedule: "Senin & Sabtu (19.00 - 21.00 WIB)"
+            },
+            {
+                name: "Dojo Cimahi",
+                city: "Cimahi",
+                image: "https://placehold.co/100x100/ADD8E6/000000?text=DOJO+D",
+                trainer: "Sensei Surya Wijaya",
+                contact: "0811-2233-4455",
+                address: "GOR Kota Cimahi, Jl. Gandawijaya No. 1",
+                schedule: "Senin & Rabu (17.00 - 19.00 WIB)"
+            },
+            {
+                name: "Dojo Soreang",
+                city: "Kab. Bandung",
+                image: "https://placehold.co/100x100/FFC0CB/000000?text=DOJO+E",
+                trainer: "Sensei Indah Permata",
+                contact: "0899-8877-6655",
+                address: "Gedung Pemuda Soreang, Jl. Raya Soreang No. 30",
+                schedule: "Kamis & Sabtu (14.00 - 16.00 WIB)"
+            }
+        ];
+
+        const dojoListContainer = document.getElementById('dojo-list');
+        const cityFilterDropdown = document.getElementById('city-filter');
+
+        // Function to render dojo cards
+        function renderDojos(filteredDojos = dojos) {
+            dojoListContainer.innerHTML = ''; // Clear current dojo list
+            if (filteredDojos.length === 0) {
+                dojoListContainer.innerHTML = '<p class="text-center text-lg text-gray-600 col-span-full">Tidak ada dojo ditemukan di kota ini.</p>';
+                return;
+            }
+
+            filteredDojos.forEach(dojo => {
+                const dojoCard = `
+                    <div class="bg-gray-50 p-6 rounded-xl shadow-lg border border-gray-200 hover:shadow-xl transition duration-300 transform hover:-translate-y-1">
+                        <img src="${dojo.image}" alt="Logo Dojo ${dojo.name}" class="h-24 w-24 mx-auto mb-6 rounded-full object-cover shadow-md">
+                        <h3 class="text-2xl font-bold text-center text-primary mb-4">${dojo.name}</h3>
+                        <ul class="text-lg text-gray-700 space-y-2">
+                            <li><i class="fas fa-user-tie text-primary mr-2"></i><strong>Pelatih:</strong> ${dojo.trainer}</li>
+                            <li><i class="fas fa-phone-alt text-primary mr-2"></i><strong>Kontak:</strong> ${dojo.contact}</li>
+                            <li><i class="fas fa-map-marker-alt text-primary mr-2"></i><strong>Alamat:</strong> ${dojo.address}</li>
+                            <li><i class="fas fa-calendar-alt text-primary mr-2"></i><strong>Jadwal:</strong> ${dojo.schedule}</li>
+                        </ul>
+                    </div>
+                `;
+                dojoListContainer.innerHTML += dojoCard;
+            });
+        }
+
+        // Function to populate the city filter dropdown
+        function populateCityFilter() {
+            const uniqueCities = [...new Set(dojos.map(dojo => dojo.city))].sort(); // Get unique cities and sort them
+            
+            uniqueCities.forEach(city => {
+                const option = document.createElement('option');
+                option.value = city;
+                option.textContent = city;
+                cityFilterDropdown.appendChild(option);
+            });
+        }
+
+        // Function to filter dojos based on selected city
+        function filterDojosByCity() {
+            const selectedCity = cityFilterDropdown.value;
+            let filteredDojos = [];
+
+            if (selectedCity === 'all') {
+                filteredDojos = dojos; // Show all dojos
+            } else {
+                filteredDojos = dojos.filter(dojo => dojo.city === selectedCity);
+            }
+            renderDojos(filteredDojos);
+        }
+
+        // Event listener for filter dropdown
+        cityFilterDropdown.addEventListener('change', filterDojosByCity);
+
+        // Initial render and populate filter on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            populateCityFilter();
+            renderDojos(); // Display all dojos initially
         });
 
     </script>
