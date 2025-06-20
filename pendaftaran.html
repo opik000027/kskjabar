@@ -4,46 +4,48 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pendaftaran Anggota KEI SHIN KAN</title>
-    <!-- Link ke Tailwind CSS CDN -->
+    <!-- Link to Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Konfigurasi Tailwind untuk menambahkan warna dan font kustom jika diperlukan -->
+    <!-- Tailwind configuration for custom colors and fonts -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
-                        inter: ['Inter', 'sans-serif'], // Font Inter
+                        inter: ['Inter', 'sans-serif'], // Inter font
                     },
                     colors: {
-                        primary: '#B40000', // Contoh warna merah khas klub
-                        secondary: '#333333', // Contoh warna gelap untuk teks
-                        accent: '#F9A826', // Contoh warna aksen
+                        primary: '#B40000', // Primary color for the club (red)
+                        secondary: '#333333', // Secondary color for text (dark)
+                        accent: '#F9A826', // Accent color (yellow)
                     }
                 }
             }
         }
     </script>
-    <!-- Link ke Font Awesome untuk ikon -->
+    <!-- Link to Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" xintegrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0V4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Favicon (Logo in browser tab) -->
+    <link rel="icon" href="img/logo-ksk.png" type="image/png">
 </head>
 <body class="bg-gray-100 text-secondary font-inter min-h-screen flex flex-col">
 
-    <!-- Navigasi Bar (Simplified for internal pages) -->
+    <!-- Navigation Bar (Simplified for internal pages) -->
     <nav class="w-full bg-white shadow-lg py-4 z-50 rounded-b-lg">
         <div class="container mx-auto flex justify-between items-center px-4">
-            <!-- Logo Klub -->
+            <!-- Club Logo -->
             <a href="index.html" class="flex items-center space-x-2">
                 <img src="img/logo-ksk.png" alt="Logo KEI SHIN KAN" class="h-12 w-12 rounded-full shadow-md">
                 <span class="text-xl font-bold text-primary">KEI SHIN KAN</span>
             </a>
-            <!-- Link Kembali ke Beranda -->
+            <!-- Back to Home Link -->
             <a href="index.html" class="text-secondary hover:text-primary transition duration-300 font-semibold px-3 py-2 rounded-md">
                 <i class="fas fa-home mr-1"></i> Beranda
             </a>
         </div>
     </nav>
 
-    <!-- Konten Halaman Pendaftaran -->
+    <!-- Registration Page Content -->
     <main class="flex-grow flex items-center justify-center p-4">
         <section class="w-full max-w-md bg-white rounded-lg shadow-xl p-8 my-8">
             <h2 class="text-4xl font-bold text-center text-primary mb-8">Pendaftaran Anggota Baru</h2>
