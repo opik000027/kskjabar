@@ -28,11 +28,11 @@
     <!-- Favicon (Logo di tab browser) -->
     <link rel="icon" href="img/logo-ksk.png" type="image/png">
 
-    <!-- Firebase SDK (PENTING: Pastikan versi yang kompatibel) -->
+    <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
-        import { getFirestore } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js"; // Diperlukan jika akan menggunakan Firestore
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 
         // Variabel global yang disediakan oleh lingkungan Canvas
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
@@ -41,16 +41,17 @@
 
         let app;
         let auth;
-        let db; // Untuk Firestore, jika diperlukan di masa depan
+        let db;
+        let firebaseInitialized = false; // New flag to track Firebase initialization status
 
-        // Fungsi untuk menginisialisasi Firebase dan otentikasi
+        // Function to initialize Firebase and authentication
         async function initializeFirebaseAndAuth() {
             if (firebaseConfig) {
-                app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app); // Inisialisasi Firestore
-
                 try {
+                    app = initializeApp(firebaseConfig);
+                    auth = getAuth(app);
+                    db = getFirestore(app); // Initialize Firestore
+
                     if (initialAuthToken) {
                         await signInWithCustomToken(auth, initialAuthToken);
                         console.log("Signed in with custom token.");
@@ -58,47 +59,50 @@
                         await signInAnonymously(auth);
                         console.log("Signed in anonymously.");
                     }
+                    firebaseInitialized = true; // Set flag to true after successful init
+                    console.log("Firebase Auth initialized successfully.");
                 } catch (error) {
-                    console.error("Firebase authentication error:", error.message);
-                    // Handle error if sign-in fails
+                    console.error("Firebase initialization or authentication error:", error.message);
+                    // Optionally, display a user-friendly message about initialization failure
                 }
             } else {
-                console.error("Firebase config is not available.");
+                console.error("Firebase config is not available. Cannot initialize Firebase.");
             }
         }
 
-        // Panggil inisialisasi Firebase saat DOM dimuat
+        // Call Firebase initialization when DOM is loaded
         document.addEventListener('DOMContentLoaded', initializeFirebaseAndAuth);
 
-        // Fungsi untuk menangani proses login
+        // Function to handle login process
         async function handleLogin(event) {
-            event.preventDefault(); // Mencegah form dari reload halaman
+            event.preventDefault(); // Prevent form from reloading the page
 
             const emailInput = document.getElementById('email-login').value;
             const passwordInput = document.getElementById('password-login').value;
             const messageDiv = document.getElementById('login-message');
             const loginButton = document.getElementById('login-button');
 
-            messageDiv.textContent = ''; // Bersihkan pesan sebelumnya
+            messageDiv.textContent = ''; // Clear previous messages
             messageDiv.classList.remove('text-green-500', 'text-red-500');
-            loginButton.disabled = true; // Nonaktifkan tombol saat proses
+            loginButton.disabled = true; // Disable button during process
 
-            if (!auth) {
-                messageDiv.textContent = 'Error: Firebase Auth not initialized.';
+            // Check if Firebase Auth is initialized before proceeding
+            if (!firebaseInitialized || !auth) {
+                messageDiv.textContent = 'Aplikasi sedang dimuat. Silakan coba lagi sebentar.';
                 messageDiv.classList.add('text-red-500');
                 loginButton.disabled = false;
                 return;
             }
 
             try {
-                // Melakukan login dengan email dan password
+                // Perform login with email and password
                 const userCredential = await signInWithEmailAndPassword(auth, emailInput, passwordInput);
                 const user = userCredential.user;
                 
                 messageDiv.textContent = 'Login berhasil! Mengarahkan ke Beranda...';
                 messageDiv.classList.add('text-green-500');
                 
-                // Arahkan pengguna ke halaman beranda setelah 2 detik
+                // Redirect user to home page after 2 seconds
                 setTimeout(() => {
                     window.location.href = 'index.html';
                 }, 2000);
@@ -117,11 +121,11 @@
                 messageDiv.textContent = errorMessage;
                 messageDiv.classList.add('text-red-500');
             } finally {
-                loginButton.disabled = false; // Aktifkan kembali tombol
+                loginButton.disabled = false; // Re-enable button
             }
         }
 
-        // Pasang event listener ke form login
+        // Attach event listener to the login form
         document.addEventListener('DOMContentLoaded', () => {
             const loginForm = document.getElementById('login-form');
             if (loginForm) {
