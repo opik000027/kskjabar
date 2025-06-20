@@ -30,28 +30,52 @@
 
     <!-- Firebase SDK -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
-        import { getFirestore } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+        // Mengimpor fungsi Firebase dari CDN
+        // Menggunakan versi 10.12.4 (atau versi stabil terbaru yang Anda inginkan)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
         // Variabel global yang disediakan oleh lingkungan Canvas
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        // Mencoba mengambil konfigurasi Firebase dari lingkungan Canvas
+        // Jika tidak tersedia, akan bernilai null
+        let firebaseConfig = (typeof __firebase_config === 'string' && __firebase_config) ? JSON.parse(__firebase_config) : null;
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // --- OPSIONAL: Fallback Konfigurasi Firebase Manual ---
+        // Jika Anda masih mendapatkan error "Firebase config is not available",
+        // Anda bisa meng-uncomment dan mengisi firebaseConfig Anda di sini.
+        // Hapus `const firebaseConfig = ...` di atas jika Anda menggunakan ini.
+        /*
+        firebaseConfig = {
+             apiKey: "AIzaSyCAjAjkoQhx1eB7IxhpA5Yi8Z7wZC7nhzM",
+             authDomain: "kskjabar-f01f1.firebaseapp.com",
+             projectId: "kskjabar-f01f1",
+             storageBucket: "kskjabar-f01f1.firebasestorage.app",
+             messagingSenderId: "383836530077",
+             appId: "1:383836530077:web:6ab44455755626d5fa3b74",
+             measurementId: "G-N251SVP9VN"
+        };
+        */
+        // --- Akhir dari Fallback Konfigurasi Firebase Manual ---
+
 
         let app;
         let auth;
         let db;
-        let firebaseInitialized = false; // New flag to track Firebase initialization status
+        let firebaseInitialized = false; // Flag baru untuk melacak status inisialisasi Firebase
 
-        // Function to initialize Firebase and authentication
+        // Fungsi untuk menginisialisasi Firebase dan otentikasi
         async function initializeFirebaseAndAuth() {
+            // Hanya inisialisasi jika firebaseConfig tersedia
             if (firebaseConfig) {
                 try {
                     app = initializeApp(firebaseConfig);
                     auth = getAuth(app);
-                    db = getFirestore(app); // Initialize Firestore
+                    db = getFirestore(app); // Inisialisasi Firestore
 
+                    // Melakukan otentikasi awal (custom token atau anonymous)
                     if (initialAuthToken) {
                         await signInWithCustomToken(auth, initialAuthToken);
                         console.log("Signed in with custom token.");
@@ -59,73 +83,79 @@
                         await signInAnonymously(auth);
                         console.log("Signed in anonymously.");
                     }
-                    firebaseInitialized = true; // Set flag to true after successful init
+                    firebaseInitialized = true; // Set flag menjadi true setelah inisialisasi berhasil
                     console.log("Firebase Auth initialized successfully.");
                 } catch (error) {
                     console.error("Firebase initialization or authentication error:", error.message);
-                    // Optionally, display a user-friendly message about initialization failure
+                    // Opsional: Tampilkan pesan user-friendly tentang kegagalan inisialisasi
+                    const messageDiv = document.getElementById('login-message');
+                    messageDiv.textContent = `Gagal menginisialisasi Firebase: ${error.message}. Periksa konsol browser.`;
+                    messageDiv.classList.add('text-red-500');
                 }
             } else {
                 console.error("Firebase config is not available. Cannot initialize Firebase.");
+                const messageDiv = document.getElementById('login-message');
+                messageDiv.textContent = 'Konfigurasi Firebase tidak ditemukan. Mohon hubungi administrator.';
+                messageDiv.classList.add('text-red-500');
             }
         }
 
-        // Call Firebase initialization when DOM is loaded
+        // Panggil inisialisasi Firebase saat DOM dimuat
         document.addEventListener('DOMContentLoaded', initializeFirebaseAndAuth);
 
-        // Function to handle login process
+        // Fungsi untuk menangani proses login
         async function handleLogin(event) {
-            event.preventDefault(); // Prevent form from reloading the page
+            event.preventDefault(); // Mencegah form dari reload halaman
 
             const emailInput = document.getElementById('email-login').value;
             const passwordInput = document.getElementById('password-login').value;
             const messageDiv = document.getElementById('login-message');
             const loginButton = document.getElementById('login-button');
 
-            messageDiv.textContent = ''; // Clear previous messages
+            messageDiv.textContent = ''; // Bersihkan pesan sebelumnya
             messageDiv.classList.remove('text-green-500', 'text-red-500');
-            loginButton.disabled = true; // Disable button during process
+            loginButton.disabled = true; // Nonaktifkan tombol saat proses
 
-            // Check if Firebase Auth is initialized before proceeding
+            // Periksa apakah Firebase Auth sudah diinisialisasi sebelum melanjutkan
             if (!firebaseInitialized || !auth) {
-                messageDiv.textContent = 'Aplikasi sedang dimuat. Silakan coba lagi sebentar.';
+                messageDiv.textContent = 'Aplikasi sedang dimuat atau gagal terhubung ke Firebase. Silakan coba lagi sebentar.';
                 messageDiv.classList.add('text-red-500');
                 loginButton.disabled = false;
                 return;
             }
 
             try {
-                // Perform login with email and password
+                // Melakukan login dengan email dan password
                 const userCredential = await signInWithEmailAndPassword(auth, emailInput, passwordInput);
                 const user = userCredential.user;
                 
                 messageDiv.textContent = 'Login berhasil! Mengarahkan ke Beranda...';
                 messageDiv.classList.add('text-green-500');
                 
-                // Redirect user to home page after 2 seconds
+                // Arahkan pengguna ke halaman beranda setelah 2 detik
                 setTimeout(() => {
                     window.location.href = 'index.html';
                 }, 2000);
 
             } catch (error) {
                 let errorMessage = 'Terjadi kesalahan saat login.';
-                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
                     errorMessage = 'Email atau password salah. Silakan coba lagi.';
                 } else if (error.code === 'auth/invalid-email') {
                     errorMessage = 'Format email tidak valid.';
                 } else if (error.code === 'auth/too-many-requests') {
-                    errorMessage = 'Terlalu banyak percobaan login gagal. Akun Anda diblokir sementara.';
+                    errorMessage = 'Terlalu banyak percobaan login gagal. Akun Anda diblokir sementara. Coba lagi nanti.';
                 } else {
-                    errorMessage = `Error: ${error.message}`;
+                    errorMessage = `Error: ${error.message}`; // Menampilkan pesan error Firebase yang lebih spesifik
                 }
                 messageDiv.textContent = errorMessage;
                 messageDiv.classList.add('text-red-500');
             } finally {
-                loginButton.disabled = false; // Re-enable button
+                loginButton.disabled = false; // Aktifkan kembali tombol
             }
         }
 
-        // Attach event listener to the login form
+        // Pasang event listener ke form login
         document.addEventListener('DOMContentLoaded', () => {
             const loginForm = document.getElementById('login-form');
             if (loginForm) {
