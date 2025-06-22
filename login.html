@@ -31,24 +31,12 @@
     <!-- Firebase SDK -->
     <script type="module">
         // Mengimpor fungsi Firebase dari CDN
-        // Menggunakan versi 10.12.4 (atau versi stabil terbaru yang Anda inginkan)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-        import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+        import { getFirestore } from "https://www.www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js"; // Menggunakan Firestore jika diperlukan
 
-        // Variabel global yang disediakan oleh lingkungan Canvas
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        // Mencoba mengambil konfigurasi Firebase dari lingkungan Canvas
-        // Jika tidak tersedia, akan bernilai null
-        let firebaseConfig = (typeof __firebase_config === 'string' && __firebase_config) ? JSON.parse(__firebase_config) : null;
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-        // --- OPSIONAL: Fallback Konfigurasi Firebase Manual ---
-        // Jika Anda masih mendapatkan error "Firebase config is not available",
-        // Anda bisa meng-uncomment dan mengisi firebaseConfig Anda di sini.
-        // Hapus `const firebaseConfig = ...` di atas jika Anda menggunakan ini.
-        /*
-        firebaseConfig = {
+        // Konfigurasi Firebase Anda yang sudah ditanamkan langsung
+        const firebaseConfig = {
              apiKey: "AIzaSyCAjAjkoQhx1eB7IxhpA5Yi8Z7wZC7nhzM",
              authDomain: "kskjabar-f01f1.firebaseapp.com",
              projectId: "kskjabar-f01f1",
@@ -57,37 +45,24 @@
              appId: "1:383836530077:web:6ab44455755626d5fa3b74",
              measurementId: "G-N251SVP9VN"
         };
-        */
-        // --- Akhir dari Fallback Konfigurasi Firebase Manual ---
-
-
+        
         let app;
         let auth;
         let db;
-        let firebaseInitialized = false; // Flag baru untuk melacak status inisialisasi Firebase
+        let firebaseInitialized = false; // Flag untuk melacak status inisialisasi Firebase
 
-        // Fungsi untuk menginisialisasi Firebase dan otentikasi
+        // Fungsi untuk menginisialisasi Firebase
         async function initializeFirebaseAndAuth() {
-            // Hanya inisialisasi jika firebaseConfig tersedia
-            if (firebaseConfig) {
+            if (firebaseConfig) { // Pastikan firebaseConfig ada
                 try {
                     app = initializeApp(firebaseConfig);
                     auth = getAuth(app);
                     db = getFirestore(app); // Inisialisasi Firestore
-
-                    // Melakukan otentikasi awal (custom token atau anonymous)
-                    if (initialAuthToken) {
-                        await signInWithCustomToken(auth, initialAuthToken);
-                        console.log("Signed in with custom token.");
-                    } else {
-                        await signInAnonymously(auth);
-                        console.log("Signed in anonymously.");
-                    }
+                    
                     firebaseInitialized = true; // Set flag menjadi true setelah inisialisasi berhasil
                     console.log("Firebase Auth initialized successfully.");
                 } catch (error) {
-                    console.error("Firebase initialization or authentication error:", error.message);
-                    // Opsional: Tampilkan pesan user-friendly tentang kegagalan inisialisasi
+                    console.error("Firebase initialization error:", error.message);
                     const messageDiv = document.getElementById('login-message');
                     messageDiv.textContent = `Gagal menginisialisasi Firebase: ${error.message}. Periksa konsol browser.`;
                     messageDiv.classList.add('text-red-500');
