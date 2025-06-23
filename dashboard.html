@@ -75,21 +75,7 @@
         .tab-content.active {
             display: block;
         }
-        .loading-spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #B40000;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-            vertical-align: middle;
-            margin-left: 8px;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        /* Removed loading spinner as it's not needed for simple URL input */
     </style>
 
     <!-- Firebase SDK -->
@@ -99,13 +85,9 @@
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
         // Import Firestore functions
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
-        // Import Storage functions
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-storage.js";
-
+        // Firebase Storage imports removed
 
         // Konfigurasi Firebase Anda.
-        // PENTING: Ganti nilai placeholder ini dengan konfigurasi Firebase Anda yang sebenarnya
-        // dari Firebase Console (Project settings -> Your apps -> Web app -> Config).
         const firebaseConfig = {
              apiKey: "AIzaSyCAjAjkoQhx1eB7IxhpA5Yi8Z7wZC7nhzM",
              authDomain: "kskjabar-f01f1.firebaseapp.com",
@@ -119,7 +101,7 @@
         let app;
         let auth;
         let db; // Instansi Firestore
-        let storage; // Instansi Storage
+        // let storage; // Firebase Storage instansi dihapus
         let firebaseInitialized = false;
         let currentUserId = null; // Untuk menyimpan UID pengguna yang diautentikasi
 
@@ -164,14 +146,12 @@
 
         // Fungsi untuk menginisialisasi Firebase dan memverifikasi status login
         async function initializeFirebaseAndAuth() {
-            // Kita tidak perlu memeriksa setiap properti secara individual karena sudah diserahkan oleh user.
-            // Cukup pastikan objek firebaseConfig itu sendiri ada.
             if (firebaseConfig) { 
                 try {
                     app = initializeApp(firebaseConfig);
                     auth = getAuth(app);
                     db = getFirestore(app);
-                    storage = getStorage(app); // Inisialisasi Firebase Storage
+                    // storage = getStorage(app); // Inisialisasi Firebase Storage dihapus
                     
                     firebaseInitialized = true;
                     console.log("Firebase Auth initialized successfully.");
@@ -266,23 +246,7 @@
             });
         }
 
-        // --- Fungsi untuk mengunggah gambar ke Firebase Storage ---
-        async function uploadImage(file) {
-            if (!file) return null;
-
-            const storageRef = ref(storage, `dojo_images/${Date.now()}-${file.name}`);
-            
-            try {
-                const snapshot = await uploadBytes(storageRef, file);
-                const downloadURL = await getDownloadURL(snapshot.ref);
-                console.log("Image uploaded, URL:", downloadURL);
-                return downloadURL;
-            } catch (error) {
-                console.error("Error uploading image:", error);
-                throw new Error(`Gagal mengunggah gambar: ${error.message}`);
-            }
-        }
-
+        // Fungsi uploadImage dihapus karena tidak lagi menggunakan Firebase Storage
         // --- Fungsi Manajemen Dojo ---
         // Fungsi untuk menambahkan Dojo baru
         async function addDojo(event) {
@@ -294,46 +258,36 @@
             const dojoSchedule = document.getElementById('dojo-schedule').value;
             const dojoContact = document.getElementById('dojo-contact').value;
             const dojoCity = document.getElementById('dojo-city-select').value; // Mengambil dari dropdown
-            const dojoImageFile = document.getElementById('dojo-image-upload').files[0]; // Mengambil file
+            const dojoImageURL = document.getElementById('dojo-image-url').value; // Mengambil URL gambar
 
             const messageDiv = document.getElementById('admin-message');
             const addDojoButton = document.getElementById('add-dojo-button');
-            const imageUploadStatus = document.getElementById('image-upload-status');
+            // imageUploadStatus dihapus
 
             messageDiv.textContent = '';
             messageDiv.classList.remove('text-green-500', 'text-red-500');
-            imageUploadStatus.textContent = '';
+            // imageUploadStatus.textContent = ''; // dihapus
             addDojoButton.disabled = true;
-            addDojoButton.innerHTML = '<i class="fas fa-plus-circle mr-2"></i>Menambahkan... <span class="loading-spinner"></span>';
+            addDojoButton.textContent = 'Menambahkan Dojo...'; // Text only, no spinner
 
-
-            if (!firebaseInitialized || !db || !storage) {
+            if (!firebaseInitialized || !db) { // storage check dihapus
                 messageDiv.textContent = 'Firebase belum terinisialisasi.';
                 messageDiv.classList.add('text-red-500');
                 addDojoButton.disabled = false;
-                addDojoButton.innerHTML = '<i class="fas fa-plus-circle mr-2"></i>Tambahkan Dojo';
+                addDojoButton.textContent = 'Tambahkan Dojo';
                 return;
             }
 
-            if (!dojoName || !dojoTrainer || !dojoAddress || !dojoSchedule || !dojoContact || !dojoCity || !dojoImageFile) {
-                messageDiv.textContent = 'Semua kolom harus diisi, termasuk mengunggah gambar.';
+            if (!dojoName || !dojoTrainer || !dojoAddress || !dojoSchedule || !dojoContact || !dojoCity || !dojoImageURL) {
+                messageDiv.textContent = 'Semua kolom harus diisi, termasuk URL gambar.';
                 messageDiv.classList.add('text-red-500');
                 addDojoButton.disabled = false;
-                addDojoButton.innerHTML = '<i class="fas fa-plus-circle mr-2"></i>Tambahkan Dojo';
+                addDojoButton.textContent = 'Tambahkan Dojo';
                 return;
             }
 
             try {
-                // Unggah gambar terlebih dahulu
-                imageUploadStatus.textContent = 'Mengunggah gambar...';
-                imageUploadStatus.classList.remove('text-red-500');
-                imageUploadStatus.classList.add('text-blue-500');
-                const imageUrl = await uploadImage(dojoImageFile);
-                imageUploadStatus.textContent = 'Gambar berhasil diunggah!';
-                imageUploadStatus.classList.remove('text-blue-500');
-                imageUploadStatus.classList.add('text-green-500');
-
-
+                // Tidak ada unggah gambar ke Storage, langsung pakai URL
                 await addDoc(collection(db, dojosCollectionPath), {
                     name: dojoName,
                     trainer: dojoTrainer,
@@ -341,7 +295,7 @@
                     schedule: dojoSchedule,
                     contact: dojoContact,
                     city: dojoCity,
-                    image: imageUrl, // URL gambar yang diunggah
+                    image: dojoImageURL, // Langsung menggunakan URL gambar
                     createdAt: new Date(),
                     createdBy: currentUserId 
                 });
@@ -355,10 +309,10 @@
                 console.error("Error adding dojo:", error);
                 messageDiv.textContent = `Gagal menambahkan dojo: ${error.message}`;
                 messageDiv.classList.add('text-red-500');
-                imageUploadStatus.textContent = ''; // Clear image status on error
+                // imageUploadStatus.textContent = ''; // dihapus
             } finally {
                 addDojoButton.disabled = false;
-                addDojoButton.innerHTML = '<i class="fas fa-plus-circle mr-2"></i>Tambahkan Dojo';
+                addDojoButton.textContent = 'Tambahkan Dojo';
             }
         }
 
@@ -407,7 +361,7 @@
                     messageDiv.classList.add('text-green-500');
                     loadDojos(); // Muat ulang daftar dojo
                     generateStatistics(); // Perbarui statistik
-                } catch (error) {
+                } catch (error) { 
                     console.error("Error deleting dojo:", error);
                     messageDiv.textContent = `Gagal menghapus dojo "${dojoName}": ${error.message}`;
                     messageDiv.classList.add('text-red-500');
@@ -540,8 +494,8 @@
             });
         }
 
-        let allDojosData = []; // Store dojos with their IDs for member management
-        let allMembersData = []; // Store members data
+        let allDojosData = []; // To store all dojos with their IDs for member management
+        let allMembersData = []; // To store members data
 
         async function loadMembers() {
             const membersListDiv = document.getElementById('current-members-list');
@@ -888,13 +842,13 @@
                             </select>
                         </div>
                         <div>
-                            <label for="dojo-image-upload" class="block text-gray-700 text-sm font-bold mb-2">Unggah Gambar/Logo Dojo:</label>
-                            <input type="file" id="dojo-image-upload" accept="image/*" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
-                            <p class="text-sm text-gray-500 mt-1">Pilih file gambar untuk logo dojo (JPG, PNG, dll.).</p>
-                            <div id="image-upload-status" class="text-sm mt-2"></div>
+                            <label for="dojo-image-url" class="block text-gray-700 text-sm font-bold mb-2">URL Gambar/Logo Dojo:</label>
+                            <input type="url" id="dojo-image-url" placeholder="Contoh: https://example.com/dojo-logo.png" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                            <p class="text-sm text-gray-500 mt-1">Tempelkan URL gambar publik untuk logo dojo.</p>
+                            <!-- image-upload-status dihapus -->
                         </div>
                         <button type="submit" id="add-dojo-button" class="w-full bg-primary text-white px-6 py-3 rounded-full font-bold hover:bg-red-700 transition duration-300 shadow-md">
-                            <i class="fas fa-plus-circle mr-2"></i>Tambahkan Dojo
+                            Tambahkan Dojo
                         </button>
                     </form>
                 </div>
