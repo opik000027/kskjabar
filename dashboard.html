@@ -75,6 +75,21 @@
         .tab-content.active {
             display: block;
         }
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #B40000;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 8px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 
     <!-- Firebase SDK -->
@@ -83,7 +98,10 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
         // Import Firestore functions
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+        // Import Storage functions
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-storage.js";
+
 
         // Konfigurasi Firebase Anda yang sudah ditanamkan langsung
         const firebaseConfig = {
@@ -99,6 +117,7 @@
         let app;
         let auth;
         let db; // Instansi Firestore
+        let storage; // Instansi Storage
         let firebaseInitialized = false;
         let currentUserId = null; // Untuk menyimpan UID pengguna yang diautentikasi
 
@@ -109,6 +128,16 @@
         const membersCollectionPath = `artifacts/${appId}/public/data/members`; // Koleksi baru untuk anggota
         const appSettingsDocPath = `artifacts/${appId}/public/data/app_settings/exam_portal`; // Dokumen untuk status portal ujian
 
+        // Data kota/kabupaten untuk dropdown
+        const cities = [
+            "Bandung Kota", "Cimahi", "Kab. Bandung", "Bekasi Kota", "Kab. Bekasi",
+            "Bogor Kota", "Kab. Bogor", "Depok", "Sukabumi Kota", "Kab. Sukabumi",
+            "Tasikmalaya Kota", "Kab. Tasikmalaya", "Cirebon Kota", "Kab. Cirebon",
+            "Garut", "Ciamis", "Indramayu", "Karawang", "Kuningan", "Majalengka",
+            "Pangandaran", "Purwakarta", "Subang", "Sumedang", "Banjar"
+        ].sort(); // Sort alphabetically
+
+
         // Fungsi untuk menginisialisasi Firebase dan memverifikasi status login
         async function initializeFirebaseAndAuth() {
             if (firebaseConfig) {
@@ -116,6 +145,7 @@
                     app = initializeApp(firebaseConfig);
                     auth = getAuth(app);
                     db = getFirestore(app);
+                    storage = getStorage(app); // Inisialisasi Firebase Storage
                     
                     firebaseInitialized = true;
                     console.log("Firebase Auth initialized successfully.");
@@ -130,6 +160,7 @@
                             console.log("User is logged in:", user.email);
                             
                             // Muat semua data yang diperlukan
+                            populateCityDropdown(); // Isi dropdown kota
                             loadDojos();
                             loadMembers();
                             loadExamPortalStatus();
@@ -197,6 +228,35 @@
             document.querySelector(`[onclick="showTab('${tabId}')"]`).classList.add('active');
         }
 
+        // --- Fungsi untuk mengisi dropdown kota/kabupaten ---
+        function populateCityDropdown() {
+            const dojoCitySelect = document.getElementById('dojo-city-select');
+            dojoCitySelect.innerHTML = '<option value="">Pilih Kota/Kabupaten</option>'; // Default option
+            cities.forEach(city => {
+                const option = document.createElement('option');
+                option.value = city;
+                option.textContent = city;
+                dojoCitySelect.appendChild(option);
+            });
+        }
+
+        // --- Fungsi untuk mengunggah gambar ke Firebase Storage ---
+        async function uploadImage(file) {
+            if (!file) return null;
+
+            const storageRef = ref(storage, `dojo_images/${Date.now()}-${file.name}`);
+            
+            try {
+                const snapshot = await uploadBytes(storageRef, file);
+                const downloadURL = await getDownloadURL(snapshot.ref);
+                console.log("Image uploaded, URL:", downloadURL);
+                return downloadURL;
+            } catch (error) {
+                console.error("Error uploading image:", error);
+                throw new Error(`Gagal mengunggah gambar: ${error.message}`);
+            }
+        }
+
         // --- Fungsi Manajemen Dojo ---
         // Fungsi untuk menambahkan Dojo baru
         async function addDojo(event) {
@@ -207,26 +267,47 @@
             const dojoAddress = document.getElementById('dojo-address').value;
             const dojoSchedule = document.getElementById('dojo-schedule').value;
             const dojoContact = document.getElementById('dojo-contact').value;
-            const dojoCity = document.getElementById('dojo-city').value;
-            const dojoImage = document.getElementById('dojo-image').value; // URL Gambar
+            const dojoCity = document.getElementById('dojo-city-select').value; // Mengambil dari dropdown
+            const dojoImageFile = document.getElementById('dojo-image-upload').files[0]; // Mengambil file
 
             const messageDiv = document.getElementById('admin-message');
+            const addDojoButton = document.getElementById('add-dojo-button');
+            const imageUploadStatus = document.getElementById('image-upload-status');
+
             messageDiv.textContent = '';
             messageDiv.classList.remove('text-green-500', 'text-red-500');
+            imageUploadStatus.textContent = '';
+            addDojoButton.disabled = true;
+            addDojoButton.innerHTML = '<i class="fas fa-plus-circle mr-2"></i>Menambahkan... <span class="loading-spinner"></span>';
 
-            if (!firebaseInitialized || !db) {
+
+            if (!firebaseInitialized || !db || !storage) {
                 messageDiv.textContent = 'Firebase belum terinisialisasi.';
                 messageDiv.classList.add('text-red-500');
+                addDojoButton.disabled = false;
+                addDojoButton.innerHTML = '<i class="fas fa-plus-circle mr-2"></i>Tambahkan Dojo';
                 return;
             }
 
-            if (!dojoName || !dojoTrainer || !dojoAddress || !dojoSchedule || !dojoContact || !dojoCity || !dojoImage) {
-                messageDiv.textContent = 'Semua kolom harus diisi.';
+            if (!dojoName || !dojoTrainer || !dojoAddress || !dojoSchedule || !dojoContact || !dojoCity || !dojoImageFile) {
+                messageDiv.textContent = 'Semua kolom harus diisi, termasuk mengunggah gambar.';
                 messageDiv.classList.add('text-red-500');
+                addDojoButton.disabled = false;
+                addDojoButton.innerHTML = '<i class="fas fa-plus-circle mr-2"></i>Tambahkan Dojo';
                 return;
             }
 
             try {
+                // Unggah gambar terlebih dahulu
+                imageUploadStatus.textContent = 'Mengunggah gambar...';
+                imageUploadStatus.classList.remove('text-red-500');
+                imageUploadStatus.classList.add('text-blue-500');
+                const imageUrl = await uploadImage(dojoImageFile);
+                imageUploadStatus.textContent = 'Gambar berhasil diunggah!';
+                imageUploadStatus.classList.remove('text-blue-500');
+                imageUploadStatus.classList.add('text-green-500');
+
+
                 await addDoc(collection(db, dojosCollectionPath), {
                     name: dojoName,
                     trainer: dojoTrainer,
@@ -234,7 +315,7 @@
                     schedule: dojoSchedule,
                     contact: dojoContact,
                     city: dojoCity,
-                    image: dojoImage,
+                    image: imageUrl, // URL gambar yang diunggah
                     createdAt: new Date(),
                     createdBy: currentUserId 
                 });
@@ -248,6 +329,10 @@
                 console.error("Error adding dojo:", error);
                 messageDiv.textContent = `Gagal menambahkan dojo: ${error.message}`;
                 messageDiv.classList.add('text-red-500');
+                imageUploadStatus.textContent = ''; // Clear image status on error
+            } finally {
+                addDojoButton.disabled = false;
+                addDojoButton.innerHTML = '<i class="fas fa-plus-circle mr-2"></i>Tambahkan Dojo';
             }
         }
 
@@ -529,9 +614,6 @@
 
             try {
                 const examDocRef = doc(db, appSettingsDocPath);
-                // Menggunakan getDocs pada referensi koleksi (parent dari exam_portal), lalu memfilter
-                // atau langsung mencoba getDoc pada dokumen spesifik jika appSettingsDocPath benar-benar menunjuk ke dokumen.
-                // Jika appSettingsDocPath adalah path lengkap ke dokumen:
                 const docSnap = await getDoc(examDocRef); // Gunakan getDoc() untuk dokumen tunggal
                 let isOpen = false;
 
@@ -590,8 +672,12 @@
                     dojoCountByCity[dojo.city] = (dojoCountByCity[dojo.city] || 0) + 1;
                 });
                 let dojoCityStatsHtml = '<h4 class="font-semibold text-lg text-primary mb-2">Jumlah Dojo per Cabang:</h4>';
-                for (const city in dojoCountByCity) {
-                    dojoCityStatsHtml += `<p class="text-sm text-gray-700">- ${city}: ${dojoCountByCity[city]} dojo</p>`;
+                if (Object.keys(dojoCountByCity).length === 0) {
+                    dojoCityStatsHtml += '<p class="text-sm text-gray-700">Tidak ada data dojo.</p>';
+                } else {
+                    for (const city in dojoCountByCity) {
+                        dojoCityStatsHtml += `<p class="text-sm text-gray-700">- ${city}: ${dojoCountByCity[city]} dojo</p>`;
+                    }
                 }
                 statsDojoCountDiv.innerHTML = dojoCityStatsHtml;
 
@@ -603,8 +689,12 @@
                     }
                 });
                 let memberCityStatsHtml = '<h4 class="font-semibold text-lg text-primary mb-2">Jumlah Anggota per Cabang:</h4>';
-                for (const city in memberCountByCity) {
-                    memberCityStatsHtml += `<p class="text-sm text-gray-700">- ${city}: ${memberCountByCity[city]} anggota</p>`;
+                if (Object.keys(memberCountByCity).length === 0) {
+                    memberCityStatsHtml += '<p class="text-sm text-gray-700">Tidak ada data anggota.</p>';
+                } else {
+                    for (const city in memberCountByCity) {
+                        memberCityStatsHtml += `<p class="text-sm text-gray-700">- ${city}: ${memberCountByCity[city]} anggota</p>`;
+                    }
                 }
                 statsMemberPerCityDiv.innerHTML = memberCityStatsHtml;
 
@@ -616,8 +706,12 @@
                     }
                 });
                 let memberDojoStatsHtml = '<h4 class="font-semibold text-lg text-primary mb-2">Jumlah Anggota per Dojo:</h4>';
-                for (const dojo in memberCountByDojo) {
-                    memberDojoStatsHtml += `<p class="text-sm text-gray-700">- ${dojo}: ${memberCountByDojo[dojo]} anggota</p>`;
+                if (Object.keys(memberCountByDojo).length === 0) {
+                    memberDojoStatsHtml += '<p class="text-sm text-gray-700">Tidak ada data anggota.</p>';
+                } else {
+                    for (const dojo in memberCountByDojo) {
+                        memberDojoStatsHtml += `<p class="text-sm text-gray-700">- ${dojo}: ${memberCountByDojo[dojo]} anggota</p>`;
+                    }
                 }
                 statsMemberPerDojoDiv.innerHTML = memberDojoStatsHtml;
 
@@ -762,15 +856,18 @@
                             <input type="tel" id="dojo-contact" placeholder="Contoh: 0812-3456-7890" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
                         </div>
                         <div>
-                            <label for="dojo-city" class="block text-gray-700 text-sm font-bold mb-2">Kota/Kabupaten (Cabang):</label>
-                            <input type="text" id="dojo-city" placeholder="Contoh: Bandung Kota, Cimahi, Kab. Bandung" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                            <label for="dojo-city-select" class="block text-gray-700 text-sm font-bold mb-2">Kota/Kabupaten (Cabang):</label>
+                            <select id="dojo-city-select" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                <option value="">Memuat Kota/Kabupaten...</option>
+                            </select>
                         </div>
                         <div>
-                            <label for="dojo-image" class="block text-gray-700 text-sm font-bold mb-2">URL Gambar/Logo Dojo:</label>
-                            <input type="url" id="dojo-image" placeholder="Contoh: https://example.com/dojo-logo.png" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
-                            <p class="text-sm text-gray-500 mt-1">Gunakan URL gambar publik. Untuk upload gambar, Anda bisa menggunakan Firebase Storage.</p>
+                            <label for="dojo-image-upload" class="block text-gray-700 text-sm font-bold mb-2">Unggah Gambar/Logo Dojo:</label>
+                            <input type="file" id="dojo-image-upload" accept="image/*" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                            <p class="text-sm text-gray-500 mt-1">Pilih file gambar untuk logo dojo (JPG, PNG, dll.).</p>
+                            <div id="image-upload-status" class="text-sm mt-2"></div>
                         </div>
-                        <button type="submit" class="w-full bg-primary text-white px-6 py-3 rounded-full font-bold hover:bg-red-700 transition duration-300 shadow-md">
+                        <button type="submit" id="add-dojo-button" class="w-full bg-primary text-white px-6 py-3 rounded-full font-bold hover:bg-red-700 transition duration-300 shadow-md">
                             <i class="fas fa-plus-circle mr-2"></i>Tambahkan Dojo
                         </button>
                     </form>
