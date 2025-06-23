@@ -262,7 +262,10 @@
         // --- Dojo Display and Filter Functions (using Firestore) ---
         const dojoListContainer = document.getElementById('dojo-list');
         const cityFilterDropdown = document.getElementById('city-filter');
-        const dojosCollectionPath = 'dojos'; // Collection name for dojos
+        // Get the application ID from the global variable (provided by Canvas)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        // Updated collection path to match Firestore rules
+        const dojosCollectionPath = `artifacts/${appId}/public/data/dojos`; 
 
         // Function to render dojo cards
         function renderDojos(filteredDojos = allDojos) {
