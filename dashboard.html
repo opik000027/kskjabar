@@ -128,14 +128,36 @@
         const membersCollectionPath = `artifacts/${appId}/public/data/members`; // Koleksi baru untuk anggota
         const appSettingsDocPath = `artifacts/${appId}/public/data/app_settings/exam_portal`; // Dokumen untuk status portal ujian
 
-        // Data kota/kabupaten untuk dropdown
+        // Data kota/kabupaten untuk dropdown (Diperbarui)
         const cities = [
-            "Bandung Kota", "Cimahi", "Kab. Bandung", "Bekasi Kota", "Kab. Bekasi",
-            "Bogor Kota", "Kab. Bogor", "Depok", "Sukabumi Kota", "Kab. Sukabumi",
-            "Tasikmalaya Kota", "Kab. Tasikmalaya", "Cirebon Kota", "Kab. Cirebon",
-            "Garut", "Ciamis", "Indramayu", "Karawang", "Kuningan", "Majalengka",
-            "Pangandaran", "Purwakarta", "Subang", "Sumedang", "Banjar"
-        ].sort(); // Sort alphabetically
+            "Kabupaten Bandung",
+            "Kabupaten Bandung Barat",
+            "Kabupaten Bekasi",
+            "Kabupaten Bogor",
+            "Kabupaten Ciamis",
+            "Kabupaten Cianjur",
+            "Kabupaten Cirebon",
+            "Kabupaten Garut",
+            "Kabupaten Indramayu",
+            "Kabupaten Karawang",
+            "Kabupaten Kuningan",
+            "Kabupaten Majalengka",
+            "Kabupaten Pangandaran",
+            "Kabupaten Purwakarta",
+            "Kabupaten Subang",
+            "Kabupaten Sukabumi",
+            "Kabupaten Sumedang",
+            "Kabupaten Tasikmalaya",
+            "Kota Bandung",
+            "Kota Banjar",
+            "Kota Bekasi",
+            "Kota Bogor",
+            "Kota Cimahi",
+            "Kota Cirebon",
+            "Kota Depok",
+            "Kota Sukabumi",
+            "Kota Tasikmalaya"
+        ].sort(); // Diurutkan secara alfabetis
 
 
         // Fungsi untuk menginisialisasi Firebase dan memverifikasi status login
@@ -381,7 +403,7 @@
                     messageDiv.classList.add('text-green-500');
                     loadDojos(); // Muat ulang daftar dojo
                     generateStatistics(); // Perbarui statistik
-                } catch (error) {
+                } catch (error) { // Menambahkan blok catch yang hilang
                     console.error("Error deleting dojo:", error);
                     messageDiv.textContent = `Gagal menghapus dojo "${dojoName}": ${error.message}`;
                     messageDiv.classList.add('text-red-500');
