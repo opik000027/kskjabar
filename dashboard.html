@@ -63,6 +63,18 @@
         .modal-overlay.active .modal-content {
             transform: translateY(0);
         }
+        /* Styles for tab buttons */
+        .tab-button.active {
+            background-color: #B40000;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
     </style>
 
     <!-- Firebase SDK -->
@@ -86,9 +98,16 @@
         
         let app;
         let auth;
-        let db; // Firestore instance
+        let db; // Instansi Firestore
         let firebaseInitialized = false;
         let currentUserId = null; // Untuk menyimpan UID pengguna yang diautentikasi
+
+        // Mendapatkan ID aplikasi dari variabel global (disediakan oleh Canvas)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        // Nama koleksi untuk dojo, disesuaikan dengan aturan keamanan Firebase
+        const dojosCollectionPath = `artifacts/${appId}/public/data/dojos`; 
+        const membersCollectionPath = `artifacts/${appId}/public/data/members`; // Koleksi baru untuk anggota
+        const appSettingsDocPath = `artifacts/${appId}/public/data/app_settings/exam_portal`; // Dokumen untuk status portal ujian
 
         // Fungsi untuk menginisialisasi Firebase dan memverifikasi status login
         async function initializeFirebaseAndAuth() {
@@ -109,23 +128,34 @@
                             document.getElementById('user-email').textContent = user.email;
                             document.getElementById('welcome-message').classList.remove('hidden');
                             console.log("User is logged in:", user.email);
-                            loadDojos(); // Muat dojo setelah login berhasil
+                            
+                            // Muat semua data yang diperlukan
+                            loadDojos();
+                            loadMembers();
+                            loadExamPortalStatus();
+                            generateStatistics();
+
+                            document.getElementById('welcome-message-initial').classList.add('hidden'); // Sembunyikan pesan awal
+                            showTab('statistics-tab'); // Tampilkan tab statistik secara default
                         } else {
                             // Pengguna tidak login, arahkan kembali ke halaman login
                             console.log("User is not logged in. Redirecting to login page.");
-                            window.location.href = window.location.origin + '/login.html'; // Menggunakan jalur absolut
+                            console.log("Current URL (before redirect attempt):", window.location.href);
+                            console.log("Origin URL:", window.location.origin);
+                            // Coba menggunakan jalur absolut penuh untuk lebih robust
+                            window.location.href = window.location.origin + '/login.html'; 
                         }
                     });
 
                 } catch (error) {
                     console.error("Firebase initialization error:", error.message);
-                    document.getElementById('welcome-message').textContent = `Gagal menginisialisasi Firebase: ${error.message}.`;
-                    document.getElementById('welcome-message').classList.add('text-red-500');
+                    document.getElementById('welcome-message-initial').textContent = `Gagal menginisialisasi Firebase: ${error.message}.`;
+                    document.getElementById('welcome-message-initial').classList.add('text-red-500');
                 }
             } else {
                 console.error("Firebase config is not available. Cannot initialize Firebase.");
-                document.getElementById('welcome-message').textContent = 'Konfigurasi Firebase tidak ditemukan.';
-                document.getElementById('welcome-message').classList.add('text-red-500');
+                document.getElementById('welcome-message-initial').textContent = 'Konfigurasi Firebase tidak ditemukan.';
+                document.getElementById('welcome-message-initial').classList.add('text-red-500');
             }
         }
 
@@ -135,8 +165,11 @@
                 try {
                     await signOut(auth);
                     console.log("User logged out successfully.");
-                    // Arahkan ke halaman login setelah logout
-                    window.location.href = window.location.origin + '/login.html'; // Menggunakan jalur absolut
+                    // Arahkan ke halaman beranda (index.html) setelah logout
+                    console.log("Current URL (before logout redirect):", window.location.href);
+                    console.log("Origin URL:", window.location.origin);
+                    // Arahkan ke halaman beranda (index.html) menggunakan jalur absolut
+                    window.location.href = window.location.origin + '/index.html'; 
                 } catch (error) {
                     console.error("Error during logout:", error.message);
                     const messageDiv = document.getElementById('admin-message'); // Menggunakan admin-message untuk halaman ini
@@ -147,9 +180,24 @@
             }
         }
 
-        // --- Fungsi Manajemen Dojo ---
-        const dojosCollectionPath = 'dojos'; // Nama koleksi untuk dojo
+        // --- Fungsi Tab Navigasi ---
+        function showTab(tabId) {
+            // Sembunyikan semua konten tab
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            // Hapus kelas 'active' dari semua tombol tab
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
 
+            // Tampilkan konten tab yang aktif
+            document.getElementById(tabId).classList.add('active');
+            // Tambahkan kelas 'active' ke tombol yang diklik
+            document.querySelector(`[onclick="showTab('${tabId}')"]`).classList.add('active');
+        }
+
+        // --- Fungsi Manajemen Dojo ---
         // Fungsi untuk menambahkan Dojo baru
         async function addDojo(event) {
             event.preventDefault();
@@ -179,7 +227,6 @@
             }
 
             try {
-                // Tambahkan dokumen baru ke koleksi 'dojos'
                 await addDoc(collection(db, dojosCollectionPath), {
                     name: dojoName,
                     trainer: dojoTrainer,
@@ -188,7 +235,6 @@
                     contact: dojoContact,
                     city: dojoCity,
                     image: dojoImage,
-                    // Opsional, tambahkan stempel waktu atau UID admin yang menambahkannya
                     createdAt: new Date(),
                     createdBy: currentUserId 
                 });
@@ -197,6 +243,7 @@
                 messageDiv.classList.add('text-green-500');
                 document.getElementById('add-dojo-form').reset(); // Bersihkan formulir
                 loadDojos(); // Muat ulang daftar dojo
+                generateStatistics(); // Perbarui statistik
             } catch (error) {
                 console.error("Error adding dojo:", error);
                 messageDiv.textContent = `Gagal menambahkan dojo: ${error.message}`;
@@ -248,6 +295,7 @@
                     messageDiv.textContent = `Dojo "${dojoName}" berhasil dihapus!`;
                     messageDiv.classList.add('text-green-500');
                     loadDojos(); // Muat ulang daftar dojo
+                    generateStatistics(); // Perbarui statistik
                 } catch (error) {
                     console.error("Error deleting dojo:", error);
                     messageDiv.textContent = `Gagal menghapus dojo "${dojoName}": ${error.message}`;
@@ -303,6 +351,288 @@
             }
         }
 
+        // --- Fungsi Manajemen Anggota ---
+        async function addMember(event) {
+            event.preventDefault();
+            const memberName = document.getElementById('member-name').value;
+            const memberEmail = document.getElementById('member-email').value;
+            const memberDojoId = document.getElementById('member-dojo-select').value;
+            const memberMessageDiv = document.getElementById('member-message');
+
+            memberMessageDiv.textContent = '';
+            memberMessageDiv.classList.remove('text-green-500', 'text-red-500');
+
+            if (!firebaseInitialized || !db) {
+                memberMessageDiv.textContent = 'Firebase belum terinisialisasi.';
+                memberMessageDiv.classList.add('text-red-500');
+                return;
+            }
+            if (!memberName || !memberEmail || !memberDojoId) {
+                memberMessageDiv.textContent = 'Nama, Email, dan Dojo harus diisi.';
+                memberMessageDiv.classList.add('text-red-500');
+                return;
+            }
+
+            try {
+                // Get dojo details for the selected dojo ID
+                const selectedDojo = allDojosData.find(d => d.id === memberDojoId);
+                if (!selectedDojo) {
+                    memberMessageDiv.textContent = 'Dojo tidak valid dipilih.';
+                    memberMessageDiv.classList.add('text-red-500');
+                    return;
+                }
+
+                await addDoc(collection(db, membersCollectionPath), {
+                    name: memberName,
+                    email: memberEmail,
+                    dojoId: memberDojoId,
+                    dojoName: selectedDojo.name,
+                    city: selectedDojo.city, // Store city for easier statistics
+                    createdAt: new Date(),
+                    createdBy: currentUserId
+                });
+                memberMessageDiv.textContent = 'Anggota berhasil ditambahkan!';
+                memberMessageDiv.classList.add('text-green-500');
+                document.getElementById('add-member-form').reset();
+                loadMembers();
+                generateStatistics(); // Perbarui statistik
+            } catch (error) {
+                console.error("Error adding member:", error);
+                memberMessageDiv.textContent = `Gagal menambahkan anggota: ${error.message}`;
+                memberMessageDiv.classList.add('text-red-500');
+            }
+        }
+
+        async function deleteMember(memberId, memberName) {
+            showConfirmationModal(`Apakah Anda yakin ingin menghapus anggota "${memberName}"?`, async () => {
+                const memberMessageDiv = document.getElementById('member-message');
+                memberMessageDiv.textContent = '';
+                memberMessageDiv.classList.remove('text-green-500', 'text-red-500');
+
+                if (!firebaseInitialized || !db) {
+                    memberMessageDiv.textContent = 'Firebase belum terinisialisasi.';
+                    memberMessageDiv.classList.add('text-red-500');
+                    return;
+                }
+
+                try {
+                    await deleteDoc(doc(db, membersCollectionPath, memberId));
+                    memberMessageDiv.textContent = `Anggota "${memberName}" berhasil dihapus!`;
+                    memberMessageDiv.classList.add('text-green-500');
+                    loadMembers();
+                    generateStatistics(); // Perbarui statistik
+                } catch (error) {
+                    console.error("Error deleting member:", error);
+                    memberMessageDiv.textContent = `Gagal menghapus anggota "${memberName}": ${error.message}`;
+                    memberMessageDiv.classList.add('text-red-500');
+                }
+            });
+        }
+
+        let allDojosData = []; // Store dojos with their IDs for member management
+        let allMembersData = []; // Store members data
+
+        async function loadMembers() {
+            const membersListDiv = document.getElementById('current-members-list');
+            membersListDiv.innerHTML = '<p class="text-center text-gray-500">Memuat anggota...</p>';
+            const dojoSelect = document.getElementById('member-dojo-select');
+            dojoSelect.innerHTML = '<option value="">Pilih Dojo</option>'; // Reset options
+
+            if (!firebaseInitialized || !db) {
+                membersListDiv.innerHTML = '<p class="text-center text-red-500">Gagal memuat anggota: Firebase belum terinisialisasi.</p>';
+                return;
+            }
+
+            try {
+                // First, load dojos to populate the select dropdown
+                const dojosSnapshot = await getDocs(collection(db, dojosCollectionPath));
+                allDojosData = [];
+                dojosSnapshot.forEach(d => {
+                    allDojosData.push({ id: d.id, ...d.data() });
+                    const option = document.createElement('option');
+                    option.value = d.id;
+                    option.textContent = d.data().name;
+                    dojoSelect.appendChild(option);
+                });
+
+                // Then, load members
+                const membersSnapshot = await getDocs(collection(db, membersCollectionPath));
+                allMembersData = [];
+                membersListDiv.innerHTML = '';
+
+                if (membersSnapshot.empty) {
+                    membersListDiv.innerHTML = '<p class="text-center text-gray-600">Belum ada anggota yang ditambahkan.</p>';
+                    return;
+                }
+
+                membersSnapshot.forEach(m => {
+                    allMembersData.push({ id: m.id, ...m.data() });
+                    const member = m.data();
+                    const memberCard = `
+                        <div class="bg-gray-50 p-4 rounded-lg shadow-md border border-gray-200">
+                            <h4 class="text-xl font-bold text-primary mb-2">${member.name}</h4>
+                            <p class="text-sm text-gray-700"><strong>Email:</strong> ${member.email}</p>
+                            <p class="text-sm text-gray-700"><strong>Dojo:</strong> ${member.dojoName || 'N/A'}</p>
+                            <p class="text-sm text-gray-700"><strong>Cabang:</strong> ${member.city || 'N/A'}</p>
+                            <div class="mt-4 flex justify-end space-x-2">
+                                <button class="bg-red-500 text-white px-3 py-1 rounded-md text-sm hover:bg-red-600" onclick="deleteMember('${m.id}', '${member.name}')">Hapus</button>
+                            </div>
+                        </div>
+                    `;
+                    membersListDiv.innerHTML += memberCard;
+                });
+            } catch (error) {
+                console.error("Error loading members:", error);
+                membersListDiv.innerHTML = `<p class="text-center text-red-500">Gagal memuat anggota: ${error.message}</p>`;
+            }
+        }
+
+
+        // --- Fungsi Kontrol Portal Ujian ---
+        async function toggleExamPortal() {
+            const currentStatus = document.getElementById('exam-status').textContent === 'Terbuka';
+            const newStatus = !currentStatus;
+            const messageDiv = document.getElementById('admin-message');
+
+            messageDiv.textContent = '';
+            messageDiv.classList.remove('text-green-500', 'text-red-500');
+
+            if (!firebaseInitialized || !db) {
+                messageDiv.textContent = 'Firebase belum terinisialisasi.';
+                messageDiv.classList.add('text-red-500');
+                return;
+            }
+
+            try {
+                // Get the document reference
+                const examDocRef = doc(db, appSettingsDocPath);
+                await updateDoc(examDocRef, { isOpen: newStatus }, { merge: true }); // Use merge to create if not exists
+                messageDiv.textContent = `Portal ujian berhasil ${newStatus ? 'dibuka' : 'ditutup'}!`;
+                messageDiv.classList.add('text-green-500');
+                loadExamPortalStatus(); // Update display
+            } catch (error) {
+                console.error("Error toggling exam portal:", error);
+                messageDiv.textContent = `Gagal mengubah status portal: ${error.message}`;
+                messageDiv.classList.add('text-red-500');
+            }
+        }
+
+        async function loadExamPortalStatus() {
+            const examStatusSpan = document.getElementById('exam-status');
+            const examToggleButton = document.getElementById('exam-toggle-button');
+
+            if (!firebaseInitialized || !db) {
+                examStatusSpan.textContent = 'Error';
+                examToggleButton.disabled = true;
+                return;
+            }
+
+            try {
+                const examDocRef = doc(db, appSettingsDocPath);
+                // Menggunakan getDocs pada referensi koleksi (parent dari exam_portal), lalu memfilter
+                // atau langsung mencoba getDoc pada dokumen spesifik jika appSettingsDocPath benar-benar menunjuk ke dokumen.
+                // Jika appSettingsDocPath adalah path lengkap ke dokumen:
+                const docSnap = await getDoc(examDocRef); // Gunakan getDoc() untuk dokumen tunggal
+                let isOpen = false;
+
+                if (!docSnap.exists()) {
+                    console.log("Exam portal settings not found, creating default.");
+                    // Jika dokumen tidak ada, buat dengan status default (tertutup)
+                    await setDoc(examDocRef, { isOpen: false });
+                } else {
+                    isOpen = docSnap.data().isOpen;
+                }
+                
+                examStatusSpan.textContent = isOpen ? 'Terbuka' : 'Tertutup';
+                examToggleButton.textContent = isOpen ? 'Tutup Portal' : 'Buka Portal';
+                examToggleButton.classList.toggle('bg-red-500', isOpen);
+                examToggleButton.classList.toggle('bg-green-500', !isOpen);
+                examToggleButton.classList.toggle('hover:bg-red-600', isOpen);
+                examToggleButton.classList.toggle('hover:bg-green-600', !isOpen);
+
+            } catch (error) {
+                console.error("Error loading exam portal status:", error);
+                examStatusSpan.textContent = `Error: ${error.message}`;
+                examToggleButton.disabled = true;
+            }
+        }
+
+
+        // --- Fungsi Statistik ---
+        async function generateStatistics() {
+            const statsDojoCountDiv = document.getElementById('stats-dojo-count');
+            const statsMemberCountDiv = document.getElementById('stats-member-count');
+            const statsMemberPerCityDiv = document.getElementById('stats-member-per-city');
+            const statsMemberPerDojoDiv = document.getElementById('stats-member-per-dojo');
+
+            statsDojoCountDiv.innerHTML = '<p>Memuat...</p>';
+            statsMemberCountDiv.innerHTML = '<p>Memuat...</p>';
+            statsMemberPerCityDiv.innerHTML = '<p>Memuat...</p>';
+            statsMemberPerDojoDiv.innerHTML = '<p>Memuat...</p>';
+
+            if (!firebaseInitialized || !db) {
+                statsDojoCountDiv.innerHTML = '<p class="text-red-500">Error: Firebase tidak terinisialisasi.</p>';
+                return;
+            }
+
+            try {
+                // Fetch all dojos
+                const dojosSnapshot = await getDocs(collection(db, dojosCollectionPath));
+                const dojos = dojosSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                // Fetch all members
+                const membersSnapshot = await getDocs(collection(db, membersCollectionPath));
+                const members = membersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                // 1. Statistik Jumlah Dojo di Setiap Cabang
+                const dojoCountByCity = {};
+                dojos.forEach(dojo => {
+                    dojoCountByCity[dojo.city] = (dojoCountByCity[dojo.city] || 0) + 1;
+                });
+                let dojoCityStatsHtml = '<h4 class="font-semibold text-lg text-primary mb-2">Jumlah Dojo per Cabang:</h4>';
+                for (const city in dojoCountByCity) {
+                    dojoCityStatsHtml += `<p class="text-sm text-gray-700">- ${city}: ${dojoCountByCity[city]} dojo</p>`;
+                }
+                statsDojoCountDiv.innerHTML = dojoCityStatsHtml;
+
+                // 2. Statistik Jumlah Anggota di Setiap Cabang
+                const memberCountByCity = {};
+                members.forEach(member => {
+                    if (member.city) {
+                        memberCountByCity[member.city] = (memberCountByCity[member.city] || 0) + 1;
+                    }
+                });
+                let memberCityStatsHtml = '<h4 class="font-semibold text-lg text-primary mb-2">Jumlah Anggota per Cabang:</h4>';
+                for (const city in memberCountByCity) {
+                    memberCityStatsHtml += `<p class="text-sm text-gray-700">- ${city}: ${memberCountByCity[city]} anggota</p>`;
+                }
+                statsMemberPerCityDiv.innerHTML = memberCityStatsHtml;
+
+                // 3. Statistik Jumlah Anggota di Setiap Dojo
+                const memberCountByDojo = {};
+                members.forEach(member => {
+                    if (member.dojoName) {
+                        memberCountByDojo[member.dojoName] = (memberCountByDojo[member.dojoName] || 0) + 1;
+                    }
+                });
+                let memberDojoStatsHtml = '<h4 class="font-semibold text-lg text-primary mb-2">Jumlah Anggota per Dojo:</h4>';
+                for (const dojo in memberCountByDojo) {
+                    memberDojoStatsHtml += `<p class="text-sm text-gray-700">- ${dojo}: ${memberCountByDojo[dojo]} anggota</p>`;
+                }
+                statsMemberPerDojoDiv.innerHTML = memberDojoStatsHtml;
+
+                // Total Member Count
+                statsMemberCountDiv.innerHTML = `<h4 class="font-semibold text-lg text-primary mb-2">Total Anggota:</h4><p class="text-sm text-gray-700">${members.length} anggota</p>`;
+
+            } catch (error) {
+                console.error("Error generating statistics:", error);
+                statsDojoCountDiv.innerHTML = `<p class="text-red-500">Gagal memuat statistik: ${error.message}</p>`;
+                statsMemberCountDiv.innerHTML = '';
+                statsMemberPerCityDiv.innerHTML = '';
+                statsMemberPerDojoDiv.innerHTML = '';
+            }
+        }
+
 
         // Panggil inisialisasi Firebase saat DOM dimuat
         document.addEventListener('DOMContentLoaded', initializeFirebaseAndAuth);
@@ -314,9 +644,28 @@
                 logoutButton.addEventListener('click', handleLogout);
             }
 
+            // Menghubungkan tombol tab
+            document.getElementById('show-statistics').addEventListener('click', () => showTab('statistics-tab'));
+            document.getElementById('show-dojo-management').addEventListener('click', () => showTab('dojo-management-tab'));
+            document.getElementById('show-member-management').addEventListener('click', () => showTab('member-management-tab'));
+            document.getElementById('show-exam-portal').addEventListener('click', () => showTab('exam-portal-tab'));
+
+            // Hubungkan form tambah dojo
             const addDojoForm = document.getElementById('add-dojo-form');
             if (addDojoForm) {
                 addDojoForm.addEventListener('submit', addDojo);
+            }
+
+            // Hubungkan form tambah anggota
+            const addMemberForm = document.getElementById('add-member-form');
+            if (addMemberForm) {
+                addMemberForm.addEventListener('submit', addMember);
+            }
+
+            // Hubungkan tombol toggle portal ujian
+            const examToggleButton = document.getElementById('exam-toggle-button');
+            if (examToggleButton) {
+                examToggleButton.addEventListener('click', toggleExamPortal);
             }
         });
     </script>
@@ -324,7 +673,7 @@
 <body class="bg-gray-100 text-secondary font-inter min-h-screen flex flex-col">
 
     <!-- Navigasi Bar (Simplified for internal pages) -->
-    <nav class="w-full bg-white shadow-lg py-4 z-50 rounded-b-lg">
+    <nav class="fixed top-0 left-0 w-full bg-white shadow-lg py-4 z-50 rounded-b-lg">
         <div class="container mx-auto flex justify-between items-center px-4">
             <!-- Logo Klub -->
             <a href="index.html" class="flex items-center space-x-2">
@@ -339,59 +688,152 @@
     </nav>
 
     <!-- Konten Halaman Dashboard Admin -->
-    <main class="flex-grow flex items-center justify-center p-4">
-        <section class="w-full max-w-4xl bg-white rounded-lg shadow-xl p-8 my-8">
+    <main class="flex-grow flex items-center justify-center p-4 pt-20"> <!-- Added pt-20 for fixed nav -->
+        <section class="w-full max-w-5xl bg-white rounded-lg shadow-xl p-8 my-8">
             <h2 class="text-4xl font-bold text-center text-primary mb-6">Dashboard Admin</h2>
+            <!-- Initial loading message / Firebase initialization status -->
+            <p id="welcome-message-initial" class="text-center text-gray-500 mb-4">Memuat halaman admin...</p>
+
             <p id="welcome-message" class="text-xl text-gray-700 mb-8 hidden">Selamat datang, <span id="user-email" class="font-bold text-primary"></span>. Anda memiliki akses admin.</p>
             
             <div id="admin-message" class="mt-4 text-center text-lg font-semibold mb-6"></div>
 
-            <!-- Form Tambah Dojo Baru -->
-            <div class="mb-10 p-6 bg-gray-50 rounded-lg shadow-md border border-gray-200">
-                <h3 class="text-2xl font-bold text-primary mb-6 text-center">Tambah Dojo Baru</h3>
-                <form id="add-dojo-form" class="space-y-4">
-                    <div>
-                        <label for="dojo-name" class="block text-gray-700 text-sm font-bold mb-2">Nama Dojo:</label>
-                        <input type="text" id="dojo-name" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
-                    </div>
-                    <div>
-                        <label for="dojo-trainer" class="block text-gray-700 text-sm font-bold mb-2">Nama Pelatih:</label>
-                        <input type="text" id="dojo-trainer" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
-                    </div>
-                    <div>
-                        <label for="dojo-address" class="block text-gray-700 text-sm font-bold mb-2">Alamat Tempat Latihan:</label>
-                        <textarea id="dojo-address" rows="2" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary resize-y" required></textarea>
-                    </div>
-                    <div>
-                        <label for="dojo-schedule" class="block text-gray-700 text-sm font-bold mb-2">Jadwal Latihan:</label>
-                        <input type="text" id="dojo-schedule" placeholder="Contoh: Senin & Rabu (19.00 - 21.00 WIB)" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
-                    </div>
-                    <div>
-                        <label for="dojo-contact" class="block text-gray-700 text-sm font-bold mb-2">Kontak Pelatih:</label>
-                        <input type="tel" id="dojo-contact" placeholder="Contoh: 0812-3456-7890" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
-                    </div>
-                    <div>
-                        <label for="dojo-city" class="block text-gray-700 text-sm font-bold mb-2">Kota/Kabupaten (Cabang):</label>
-                        <input type="text" id="dojo-city" placeholder="Contoh: Bandung Kota, Cimahi, Kab. Bandung" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
-                    </div>
-                    <div>
-                        <label for="dojo-image" class="block text-gray-700 text-sm font-bold mb-2">URL Gambar/Logo Dojo:</label>
-                        <input type="url" id="dojo-image" placeholder="Contoh: https://example.com/dojo-logo.png" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
-                        <p class="text-sm text-gray-500 mt-1">Gunakan URL gambar publik. Untuk upload gambar, Anda bisa menggunakan Firebase Storage.</p>
-                    </div>
-                    <button type="submit" class="w-full bg-primary text-white px-6 py-3 rounded-full font-bold hover:bg-red-700 transition duration-300 shadow-md">
-                        <i class="fas fa-plus-circle mr-2"></i>Tambahkan Dojo
-                    </button>
-                </form>
+            <!-- Navigation Tabs -->
+            <div class="flex flex-wrap justify-center gap-4 mb-8">
+                <button id="show-statistics" class="tab-button bg-gray-200 text-secondary px-6 py-3 rounded-full font-bold hover:bg-gray-300 transition duration-300" onclick="showTab('statistics-tab')">Statistik</button>
+                <button id="show-dojo-management" class="tab-button bg-gray-200 text-secondary px-6 py-3 rounded-full font-bold hover:bg-gray-300 transition duration-300" onclick="showTab('dojo-management-tab')">Manajemen Dojo</button>
+                <button id="show-member-management" class="tab-button bg-gray-200 text-secondary px-6 py-3 rounded-full font-bold hover:bg-gray-300 transition duration-300" onclick="showTab('member-management-tab')">Manajemen Anggota</button>
+                <button id="show-exam-portal" class="tab-button bg-gray-200 text-secondary px-6 py-3 rounded-full font-bold hover:bg-gray-300 transition duration-300" onclick="showTab('exam-portal-tab')">Kontrol Ujian</button>
             </div>
 
-            <!-- Daftar Dojo Saat Ini -->
-            <div class="p-6 bg-gray-50 rounded-lg shadow-md border border-gray-200">
-                <h3 class="text-2xl font-bold text-primary mb-6 text-center">Daftar Dojo Saat Ini</h3>
-                <div id="current-dojos-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <p class="text-center text-gray-500 col-span-full">Memuat dojo...</p>
+            <!-- Tab Content: Statistik -->
+            <div id="statistics-tab" class="tab-content active p-6 bg-gray-50 rounded-lg shadow-md border border-gray-200">
+                <h3 class="text-2xl font-bold text-primary mb-6 text-center">Statistik Umum</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
+                        <div id="stats-dojo-count"><p class="text-center text-gray-500">Memuat statistik dojo...</p></div>
+                    </div>
+                    <div class="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
+                        <div id="stats-member-count"><p class="text-center text-gray-500">Memuat total anggota...</p></div>
+                    </div>
+                    <div class="p-4 bg-white rounded-lg shadow-sm border border-gray-100 col-span-full">
+                        <div id="stats-member-per-city"><p class="text-center text-gray-500">Memuat anggota per cabang...</p></div>
+                    </div>
+                    <div class="p-4 bg-white rounded-lg shadow-sm border border-gray-100 col-span-full">
+                        <div id="stats-member-per-dojo"><p class="text-center text-gray-500">Memuat anggota per dojo...</p></div>
+                    </div>
+                    <!-- Placeholder for other statistics like attendance, payments -->
+                    <div class="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
+                        <h4 class="font-semibold text-lg text-primary mb-2">Kehadiran:</h4>
+                        <p class="text-sm text-gray-700">Fitur ini akan datang!</p>
+                    </div>
+                     <div class="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
+                        <h4 class="font-semibold text-lg text-primary mb-2">Status Pembayaran:</h4>
+                        <p class="text-sm text-gray-700">Fitur ini akan datang!</p>
+                    </div>
                 </div>
             </div>
+
+            <!-- Tab Content: Manajemen Dojo -->
+            <div id="dojo-management-tab" class="tab-content p-6 bg-gray-50 rounded-lg shadow-md border border-gray-200">
+                <h3 class="text-2xl font-bold text-primary mb-6 text-center">Manajemen Dojo</h3>
+                <!-- Form Tambah Dojo Baru -->
+                <div class="mb-10 p-6 bg-white rounded-lg shadow-sm border border-gray-100">
+                    <h4 class="text-xl font-bold text-primary mb-4 text-center">Tambah Dojo Baru</h4>
+                    <form id="add-dojo-form" class="space-y-4">
+                        <div>
+                            <label for="dojo-name" class="block text-gray-700 text-sm font-bold mb-2">Nama Dojo:</label>
+                            <input type="text" id="dojo-name" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        </div>
+                        <div>
+                            <label for="dojo-trainer" class="block text-gray-700 text-sm font-bold mb-2">Nama Pelatih:</label>
+                            <input type="text" id="dojo-trainer" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        </div>
+                        <div>
+                            <label for="dojo-address" class="block text-gray-700 text-sm font-bold mb-2">Alamat Tempat Latihan:</label>
+                            <textarea id="dojo-address" rows="2" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary resize-y" required></textarea>
+                        </div>
+                        <div>
+                            <label for="dojo-schedule" class="block text-gray-700 text-sm font-bold mb-2">Jadwal Latihan:</label>
+                            <input type="text" id="dojo-schedule" placeholder="Contoh: Senin & Rabu (19.00 - 21.00 WIB)" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        </div>
+                        <div>
+                            <label for="dojo-contact" class="block text-gray-700 text-sm font-bold mb-2">Kontak Pelatih:</label>
+                            <input type="tel" id="dojo-contact" placeholder="Contoh: 0812-3456-7890" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        </div>
+                        <div>
+                            <label for="dojo-city" class="block text-gray-700 text-sm font-bold mb-2">Kota/Kabupaten (Cabang):</label>
+                            <input type="text" id="dojo-city" placeholder="Contoh: Bandung Kota, Cimahi, Kab. Bandung" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        </div>
+                        <div>
+                            <label for="dojo-image" class="block text-gray-700 text-sm font-bold mb-2">URL Gambar/Logo Dojo:</label>
+                            <input type="url" id="dojo-image" placeholder="Contoh: https://example.com/dojo-logo.png" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                            <p class="text-sm text-gray-500 mt-1">Gunakan URL gambar publik. Untuk upload gambar, Anda bisa menggunakan Firebase Storage.</p>
+                        </div>
+                        <button type="submit" class="w-full bg-primary text-white px-6 py-3 rounded-full font-bold hover:bg-red-700 transition duration-300 shadow-md">
+                            <i class="fas fa-plus-circle mr-2"></i>Tambahkan Dojo
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Daftar Dojo Saat Ini -->
+                <div class="p-6 bg-white rounded-lg shadow-sm border border-gray-100">
+                    <h4 class="text-xl font-bold text-primary mb-4 text-center">Daftar Dojo Saat Ini</h4>
+                    <div id="current-dojos-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <p class="text-center text-gray-500 col-span-full">Memuat dojo...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content: Manajemen Anggota -->
+            <div id="member-management-tab" class="tab-content p-6 bg-gray-50 rounded-lg shadow-md border border-gray-200">
+                <h3 class="text-2xl font-bold text-primary mb-6 text-center">Manajemen Anggota</h3>
+                <!-- Form Tambah Anggota Baru -->
+                <div class="mb-10 p-6 bg-white rounded-lg shadow-sm border border-gray-100">
+                    <h4 class="text-xl font-bold text-primary mb-4 text-center">Tambah Anggota Baru</h4>
+                    <form id="add-member-form" class="space-y-4">
+                        <div>
+                            <label for="member-name" class="block text-gray-700 text-sm font-bold mb-2">Nama Lengkap:</label>
+                            <input type="text" id="member-name" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        </div>
+                        <div>
+                            <label for="member-email" class="block text-gray-700 text-sm font-bold mb-2">Email Anggota:</label>
+                            <input type="email" id="member-email" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        </div>
+                        <div>
+                            <label for="member-dojo-select" class="block text-gray-700 text-sm font-bold mb-2">Pilih Dojo:</label>
+                            <select id="member-dojo-select" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                <option value="">Memuat Dojo...</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="w-full bg-primary text-white px-6 py-3 rounded-full font-bold hover:bg-red-700 transition duration-300 shadow-md">
+                            <i class="fas fa-user-plus mr-2"></i>Tambahkan Anggota
+                        </button>
+                    </form>
+                    <div id="member-message" class="mt-4 text-center text-lg font-semibold"></div>
+                </div>
+
+                <!-- Daftar Anggota Saat Ini -->
+                <div class="p-6 bg-white rounded-lg shadow-sm border border-gray-100">
+                    <h4 class="text-xl font-bold text-primary mb-4 text-center">Daftar Anggota Saat Ini</h4>
+                    <div id="current-members-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <p class="text-center text-gray-500 col-span-full">Memuat anggota...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content: Kontrol Portal Ujian -->
+            <div id="exam-portal-tab" class="tab-content p-6 bg-gray-50 rounded-lg shadow-md border border-gray-200">
+                <h3 class="text-2xl font-bold text-primary mb-6 text-center">Kontrol Portal Ujian</h3>
+                <div class="flex flex-col items-center justify-center p-6 bg-white rounded-lg shadow-sm border border-gray-100 space-y-4">
+                    <p class="text-lg text-gray-700">Status Portal Ujian Saat Ini: <span id="exam-status" class="font-bold text-primary">Memuat...</span></p>
+                    <button id="exam-toggle-button" class="bg-green-500 text-white px-8 py-3 rounded-full font-bold hover:bg-green-600 transition duration-300 shadow-md">
+                        Buka Portal
+                    </button>
+                    <p class="text-sm text-gray-500 mt-2">Tombol ini akan mengubah status akses portal ujian untuk anggota.</p>
+                </div>
+            </div>
+
         </section>
     </main>
 
