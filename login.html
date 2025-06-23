@@ -33,7 +33,7 @@
         // Mengimpor fungsi Firebase dari CDN
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-        import { getFirestore } from "https://www.www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js"; // Menggunakan Firestore jika diperlukan
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
         // Konfigurasi Firebase Anda yang sudah ditanamkan langsung
         const firebaseConfig = {
@@ -104,12 +104,12 @@
                 const userCredential = await signInWithEmailAndPassword(auth, emailInput, passwordInput);
                 const user = userCredential.user;
                 
-                messageDiv.textContent = 'Login berhasil! Mengarahkan ke Beranda...';
+                messageDiv.textContent = 'Login berhasil! Mengarahkan ke Dashboard...';
                 messageDiv.classList.add('text-green-500');
                 
-                // Arahkan pengguna ke halaman beranda setelah 2 detik
+                // Arahkan pengguna ke halaman dashboard setelah 2 detik
                 setTimeout(() => {
-                    window.location.href = 'index.html';
+                    window.location.replace('dashboard.html'); // Menggunakan window.location.replace()
                 }, 2000);
 
             } catch (error) {
