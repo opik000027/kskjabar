@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin KEI SHIN KAN</title>
+    <!-- Link ke Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Konfigurasi Tailwind untuk menambahkan warna dan font kustom jika diperlukan -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'], // Font Inter
+                    },
+                    colors: {
+                        primary: '#B40000', // Contoh warna merah khas klub
+                        secondary: '#333333', // Contoh warna gelap untuk teks
+                        accent: '#F9A826', // Contoh warna aksen
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Link ke Font Awesome untuk ikon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" xintegrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0V4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Favicon (Logo di tab browser) -->
+    <link rel="icon" href="img/logo-ksk.png" type="image/png">
+
+    <style>
+        /* Styles for the custom confirmation modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease-in-out;
+        }
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+    </style>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Mengimpor fungsi Firebase dari CDN
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+        // Import Firestore functions
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+
+        // Konfigurasi Firebase Anda yang sudah ditanamkan langsung
+        const firebaseConfig = {
+             apiKey: "AIzaSyCAjAjkoQhx1eB7IxhpA5Yi8Z7wZC7nhzM",
+             authDomain: "kskjabar-f01f1.firebaseapp.com",
+             projectId: "kskjabar-f01f1",
+             storageBucket: "kskjabar-f01f1.firebasestorage.app",
+             messagingSenderId: "383836530077",
+             appId: "1:383836530077:web:6ab44455755626d5fa3b74",
+             measurementId: "G-N251SVP9VN"
+        };
+        
+        let app;
+        let auth;
+        let db; // Firestore instance
+        let firebaseInitialized = false;
+        let currentUserId = null; // Untuk menyimpan UID pengguna yang diautentikasi
+
+        // Fungsi untuk menginisialisasi Firebase dan memverifikasi status login
+        async function initializeFirebaseAndAuth() {
+            if (firebaseConfig) {
+                try {
+                    app = initializeApp(firebaseConfig);
+                    auth = getAuth(app);
+                    db = getFirestore(app);
+                    
+                    firebaseInitialized = true;
+                    console.log("Firebase Auth initialized successfully.");
+
+                    // Memeriksa status otentikasi saat halaman dimuat
+                    onAuthStateChanged(auth, (user) => {
+                        if (user) {
+                            // Pengguna telah login, tampilkan informasi pengguna
+                            currentUserId = user.uid; // Simpan UID
+                            document.getElementById('user-email').textContent = user.email;
+                            document.getElementById('welcome-message').classList.remove('hidden');
+                            console.log("User is logged in:", user.email);
+                            loadDojos(); // Muat dojo setelah login berhasil
+                        } else {
+                            // Pengguna tidak login, arahkan kembali ke halaman login
+                            console.log("User is not logged in. Redirecting to login page.");
+                            window.location.href = window.location.origin + '/login.html'; // Menggunakan jalur absolut
+                        }
+                    });
+
+                } catch (error) {
+                    console.error("Firebase initialization error:", error.message);
+                    document.getElementById('welcome-message').textContent = `Gagal menginisialisasi Firebase: ${error.message}.`;
+                    document.getElementById('welcome-message').classList.add('text-red-500');
+                }
+            } else {
+                console.error("Firebase config is not available. Cannot initialize Firebase.");
+                document.getElementById('welcome-message').textContent = 'Konfigurasi Firebase tidak ditemukan.';
+                document.getElementById('welcome-message').classList.add('text-red-500');
+            }
+        }
+
+        // Fungsi untuk menangani proses logout
+        async function handleLogout() {
+            if (auth) {
+                try {
+                    await signOut(auth);
+                    console.log("User logged out successfully.");
+                    // Arahkan ke halaman login setelah logout
+                    window.location.href = window.location.origin + '/login.html'; // Menggunakan jalur absolut
+                } catch (error) {
+                    console.error("Error during logout:", error.message);
+                    const messageDiv = document.getElementById('admin-message'); // Menggunakan admin-message untuk halaman ini
+                    messageDiv.textContent = `Gagal logout: ${error.message}`;
+                    messageDiv.classList.add('text-red-500');
+                    messageDiv.classList.remove('hidden');
+                }
+            }
+        }
+
+        // --- Fungsi Manajemen Dojo ---
+        const dojosCollectionPath = 'dojos'; // Nama koleksi untuk dojo
+
+        // Fungsi untuk menambahkan Dojo baru
+        async function addDojo(event) {
+            event.preventDefault();
+
+            const dojoName = document.getElementById('dojo-name').value;
+            const dojoTrainer = document.getElementById('dojo-trainer').value;
+            const dojoAddress = document.getElementById('dojo-address').value;
+            const dojoSchedule = document.getElementById('dojo-schedule').value;
+            const dojoContact = document.getElementById('dojo-contact').value;
+            const dojoCity = document.getElementById('dojo-city').value;
+            const dojoImage = document.getElementById('dojo-image').value; // URL Gambar
+
+            const messageDiv = document.getElementById('admin-message');
+            messageDiv.textContent = '';
+            messageDiv.classList.remove('text-green-500', 'text-red-500');
+
+            if (!firebaseInitialized || !db) {
+                messageDiv.textContent = 'Firebase belum terinisialisasi.';
+                messageDiv.classList.add('text-red-500');
+                return;
+            }
+
+            if (!dojoName || !dojoTrainer || !dojoAddress || !dojoSchedule || !dojoContact || !dojoCity || !dojoImage) {
+                messageDiv.textContent = 'Semua kolom harus diisi.';
+                messageDiv.classList.add('text-red-500');
+                return;
+            }
+
+            try {
+                // Tambahkan dokumen baru ke koleksi 'dojos'
+                await addDoc(collection(db, dojosCollectionPath), {
+                    name: dojoName,
+                    trainer: dojoTrainer,
+                    address: dojoAddress,
+                    schedule: dojoSchedule,
+                    contact: dojoContact,
+                    city: dojoCity,
+                    image: dojoImage,
+                    // Opsional, tambahkan stempel waktu atau UID admin yang menambahkannya
+                    createdAt: new Date(),
+                    createdBy: currentUserId 
+                });
+
+                messageDiv.textContent = 'Dojo berhasil ditambahkan!';
+                messageDiv.classList.add('text-green-500');
+                document.getElementById('add-dojo-form').reset(); // Bersihkan formulir
+                loadDojos(); // Muat ulang daftar dojo
+            } catch (error) {
+                console.error("Error adding dojo:", error);
+                messageDiv.textContent = `Gagal menambahkan dojo: ${error.message}`;
+                messageDiv.classList.add('text-red-500');
+            }
+        }
+
+        // Fungsi untuk menampilkan modal konfirmasi kustom (pengganti alert/confirm)
+        function showConfirmationModal(message, onConfirm) {
+            document.getElementById('modal-message').textContent = message;
+            const modalOverlay = document.getElementById('confirmation-modal-overlay');
+            modalOverlay.classList.add('active');
+
+            const confirmBtn = document.getElementById('modal-confirm-btn');
+            const cancelBtn = document.getElementById('modal-cancel-btn');
+
+            const handleConfirm = () => {
+                onConfirm();
+                modalOverlay.classList.remove('active');
+                confirmBtn.removeEventListener('click', handleConfirm);
+                cancelBtn.removeEventListener('click', handleCancel);
+            };
+
+            const handleCancel = () => {
+                modalOverlay.classList.remove('active');
+                confirmBtn.removeEventListener('click', handleConfirm);
+                cancelBtn.removeEventListener('click', handleCancel);
+            };
+
+            confirmBtn.addEventListener('click', handleConfirm);
+            cancelBtn.addEventListener('click', handleCancel);
+        }
+
+        // Fungsi untuk menghapus Dojo
+        async function deleteDojo(dojoId, dojoName) {
+            showConfirmationModal(`Apakah Anda yakin ingin menghapus dojo "${dojoName}"?`, async () => {
+                const messageDiv = document.getElementById('admin-message');
+                messageDiv.textContent = '';
+                messageDiv.classList.remove('text-green-500', 'text-red-500');
+
+                if (!firebaseInitialized || !db) {
+                    messageDiv.textContent = 'Firebase belum terinisialisasi.';
+                    messageDiv.classList.add('text-red-500');
+                    return;
+                }
+
+                try {
+                    await deleteDoc(doc(db, dojosCollectionPath, dojoId));
+                    messageDiv.textContent = `Dojo "${dojoName}" berhasil dihapus!`;
+                    messageDiv.classList.add('text-green-500');
+                    loadDojos(); // Muat ulang daftar dojo
+                } catch (error) {
+                    console.error("Error deleting dojo:", error);
+                    messageDiv.textContent = `Gagal menghapus dojo "${dojoName}": ${error.message}`;
+                    messageDiv.classList.add('text-red-500');
+                }
+            });
+        }
+
+        // Fungsi untuk memuat dan menampilkan semua Dojo
+        async function loadDojos() {
+            const dojosListDiv = document.getElementById('current-dojos-list');
+            dojosListDiv.innerHTML = '<p class="text-center text-gray-500">Memuat dojo...</p>';
+
+            if (!firebaseInitialized || !db) {
+                dojosListDiv.innerHTML = '<p class="text-center text-red-500">Gagal memuat dojo: Firebase belum terinisialisasi.</p>';
+                return;
+            }
+
+            try {
+                const querySnapshot = await getDocs(collection(db, dojosCollectionPath));
+                dojosListDiv.innerHTML = ''; // Bersihkan pesan pemuatan
+
+                if (querySnapshot.empty) {
+                    dojosListDiv.innerHTML = '<p class="text-center text-gray-600">Belum ada dojo yang ditambahkan.</p>';
+                    return;
+                }
+
+                querySnapshot.forEach((docItem) => {
+                    const dojo = docItem.data();
+                    const dojoId = docItem.id; // Dapatkan ID dokumen untuk potensi edit/hapus
+                    const dojoCard = `
+                        <div class="bg-gray-50 p-4 rounded-lg shadow-md border border-gray-200">
+                            <img src="${dojo.image}" onerror="this.onerror=null;this.src='https://placehold.co/100x100/CCCCCC/000000?text=No+Image';" alt="Logo Dojo ${dojo.name}" class="h-16 w-16 rounded-full object-cover mx-auto mb-3">
+                            <h4 class="text-xl font-bold text-primary text-center mb-2">${dojo.name}</h4>
+                            <p class="text-sm text-gray-700"><strong>Pelatih:</strong> ${dojo.trainer}</p>
+                            <p class="text-sm text-gray-700"><strong>Kota:</strong> ${dojo.city}</p>
+                            <p class="text-sm text-gray-700"><strong>Alamat:</strong> ${dojo.address}</p>
+                            <p class="text-sm text-gray-700"><strong>Jadwal:</strong> ${dojo.schedule}</p>
+                            <p class="text-sm text-gray-700"><strong>Kontak:</strong> ${dojo.contact}</p>
+                            <div class="mt-4 flex justify-end space-x-2">
+                                <!-- Tombol Edit (fungsionalitas nanti) -->
+                                <button class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-600">Edit</button>
+                                <button class="bg-red-500 text-white px-3 py-1 rounded-md text-sm hover:bg-red-600" onclick="deleteDojo('${dojoId}', '${dojo.name}')">Hapus</button>
+                            </div>
+                        </div>
+                    `;
+                    dojosListDiv.innerHTML += dojoCard;
+                });
+
+            } catch (error) {
+                console.error("Error loading dojos:", error);
+                dojosListDiv.innerHTML = `<p class="text-center text-red-500">Gagal memuat dojo: ${error.message}</p>`;
+            }
+        }
+
+
+        // Panggil inisialisasi Firebase saat DOM dimuat
+        document.addEventListener('DOMContentLoaded', initializeFirebaseAndAuth);
+
+        // Menghubungkan tombol logout dan form tambah dojo
+        document.addEventListener('DOMContentLoaded', () => {
+            const logoutButton = document.getElementById('logout-button');
+            if (logoutButton) {
+                logoutButton.addEventListener('click', handleLogout);
+            }
+
+            const addDojoForm = document.getElementById('add-dojo-form');
+            if (addDojoForm) {
+                addDojoForm.addEventListener('submit', addDojo);
+            }
+        });
+    </script>
+</head>
+<body class="bg-gray-100 text-secondary font-inter min-h-screen flex flex-col">
+
+    <!-- Navigasi Bar (Simplified for internal pages) -->
+    <nav class="w-full bg-white shadow-lg py-4 z-50 rounded-b-lg">
+        <div class="container mx-auto flex justify-between items-center px-4">
+            <!-- Logo Klub -->
+            <a href="index.html" class="flex items-center space-x-2">
+                <img src="img/logo-ksk.png" alt="Logo KEI SHIN KAN" class="h-12 w-12 rounded-full shadow-md">
+                <span class="text-xl font-bold text-primary">KEI SHIN KAN</span>
+            </a>
+            <!-- Tombol Logout -->
+            <button id="logout-button" class="bg-primary text-white px-5 py-2 rounded-full font-bold hover:bg-red-700 transition duration-300 shadow-md">
+                <i class="fas fa-sign-out-alt mr-2"></i>Logout
+            </button>
+        </div>
+    </nav>
+
+    <!-- Konten Halaman Dashboard Admin -->
+    <main class="flex-grow flex items-center justify-center p-4">
+        <section class="w-full max-w-4xl bg-white rounded-lg shadow-xl p-8 my-8">
+            <h2 class="text-4xl font-bold text-center text-primary mb-6">Dashboard Admin</h2>
+            <p id="welcome-message" class="text-xl text-gray-700 mb-8 hidden">Selamat datang, <span id="user-email" class="font-bold text-primary"></span>. Anda memiliki akses admin.</p>
+            
+            <div id="admin-message" class="mt-4 text-center text-lg font-semibold mb-6"></div>
+
+            <!-- Form Tambah Dojo Baru -->
+            <div class="mb-10 p-6 bg-gray-50 rounded-lg shadow-md border border-gray-200">
+                <h3 class="text-2xl font-bold text-primary mb-6 text-center">Tambah Dojo Baru</h3>
+                <form id="add-dojo-form" class="space-y-4">
+                    <div>
+                        <label for="dojo-name" class="block text-gray-700 text-sm font-bold mb-2">Nama Dojo:</label>
+                        <input type="text" id="dojo-name" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                    </div>
+                    <div>
+                        <label for="dojo-trainer" class="block text-gray-700 text-sm font-bold mb-2">Nama Pelatih:</label>
+                        <input type="text" id="dojo-trainer" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                    </div>
+                    <div>
+                        <label for="dojo-address" class="block text-gray-700 text-sm font-bold mb-2">Alamat Tempat Latihan:</label>
+                        <textarea id="dojo-address" rows="2" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary resize-y" required></textarea>
+                    </div>
+                    <div>
+                        <label for="dojo-schedule" class="block text-gray-700 text-sm font-bold mb-2">Jadwal Latihan:</label>
+                        <input type="text" id="dojo-schedule" placeholder="Contoh: Senin & Rabu (19.00 - 21.00 WIB)" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                    </div>
+                    <div>
+                        <label for="dojo-contact" class="block text-gray-700 text-sm font-bold mb-2">Kontak Pelatih:</label>
+                        <input type="tel" id="dojo-contact" placeholder="Contoh: 0812-3456-7890" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                    </div>
+                    <div>
+                        <label for="dojo-city" class="block text-gray-700 text-sm font-bold mb-2">Kota/Kabupaten (Cabang):</label>
+                        <input type="text" id="dojo-city" placeholder="Contoh: Bandung Kota, Cimahi, Kab. Bandung" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                    </div>
+                    <div>
+                        <label for="dojo-image" class="block text-gray-700 text-sm font-bold mb-2">URL Gambar/Logo Dojo:</label>
+                        <input type="url" id="dojo-image" placeholder="Contoh: https://example.com/dojo-logo.png" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        <p class="text-sm text-gray-500 mt-1">Gunakan URL gambar publik. Untuk upload gambar, Anda bisa menggunakan Firebase Storage.</p>
+                    </div>
+                    <button type="submit" class="w-full bg-primary text-white px-6 py-3 rounded-full font-bold hover:bg-red-700 transition duration-300 shadow-md">
+                        <i class="fas fa-plus-circle mr-2"></i>Tambahkan Dojo
+                    </button>
+                </form>
+            </div>
+
+            <!-- Daftar Dojo Saat Ini -->
+            <div class="p-6 bg-gray-50 rounded-lg shadow-md border border-gray-200">
+                <h3 class="text-2xl font-bold text-primary mb-6 text-center">Daftar Dojo Saat Ini</h3>
+                <div id="current-dojos-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <p class="text-center text-gray-500 col-span-full">Memuat dojo...</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Custom Confirmation Modal -->
+    <div id="confirmation-modal-overlay" class="modal-overlay">
+        <div class="modal-content">
+            <p id="modal-message" class="text-lg font-semibold mb-6"></p>
+            <div class="flex justify-center space-x-4">
+                <button id="modal-confirm-btn" class="bg-red-500 text-white px-5 py-2 rounded-full font-bold hover:bg-red-600 transition duration-300">Konfirmasi</button>
+                <button id="modal-cancel-btn" class="bg-gray-300 text-gray-800 px-5 py-2 rounded-full font-bold hover:bg-gray-400 transition duration-300">Batal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-8 rounded-t-lg mt-auto">
+        <div class="container mx-auto text-center px-4">
+            <p class="mb-2">&copy; 2025 KEI SHIN KAN Jawa Barat. Hak Cipta Dilindungi.</p>
+            <p class="mb-2"><i class="fas fa-map-marker-alt mr-2"></i>Sekretariat: Jl. Contoh Alamat No. 123, Bandung, Jawa Barat</p>
+            <p><i class="fas fa-phone-alt mr-2"></i>Telepon: (022) 1234-5678</p>
+        </div>
+    </footer>
+
+</body>
+</html>
