@@ -103,7 +103,9 @@
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-storage.js";
 
 
-        // Konfigurasi Firebase Anda yang sudah ditanamkan langsung
+        // Konfigurasi Firebase Anda.
+        // PENTING: Ganti nilai placeholder ini dengan konfigurasi Firebase Anda yang sebenarnya
+        // dari Firebase Console (Project settings -> Your apps -> Web app -> Config).
         const firebaseConfig = {
              apiKey: "AIzaSyCAjAjkoQhx1eB7IxhpA5Yi8Z7wZC7nhzM",
              authDomain: "kskjabar-f01f1.firebaseapp.com",
@@ -111,7 +113,7 @@
              storageBucket: "kskjabar-f01f1.firebasestorage.app",
              messagingSenderId: "383836530077",
              appId: "1:383836530077:web:6ab44455755626d5fa3b74",
-             measurementId: "G-N251SVP9VN"
+             measurementId: "G-N251SVP9VN" 
         };
         
         let app;
@@ -162,7 +164,9 @@
 
         // Fungsi untuk menginisialisasi Firebase dan memverifikasi status login
         async function initializeFirebaseAndAuth() {
-            if (firebaseConfig) {
+            // Kita tidak perlu memeriksa setiap properti secara individual karena sudah diserahkan oleh user.
+            // Cukup pastikan objek firebaseConfig itu sendiri ada.
+            if (firebaseConfig) { 
                 try {
                     app = initializeApp(firebaseConfig);
                     auth = getAuth(app);
@@ -207,7 +211,7 @@
                 }
             } else {
                 console.error("Firebase config is not available. Cannot initialize Firebase.");
-                document.getElementById('welcome-message-initial').textContent = 'Konfigurasi Firebase tidak ditemukan.';
+                document.getElementById('welcome-message-initial').textContent = 'Konfigurasi Firebase tidak ditemukan. Mohon perbarui di kode.';
                 document.getElementById('welcome-message-initial').classList.add('text-red-500');
             }
         }
@@ -403,7 +407,7 @@
                     messageDiv.classList.add('text-green-500');
                     loadDojos(); // Muat ulang daftar dojo
                     generateStatistics(); // Perbarui statistik
-                } catch (error) { // Menambahkan blok catch yang hilang
+                } catch (error) {
                     console.error("Error deleting dojo:", error);
                     messageDiv.textContent = `Gagal menghapus dojo "${dojoName}": ${error.message}`;
                     messageDiv.classList.add('text-red-500');
