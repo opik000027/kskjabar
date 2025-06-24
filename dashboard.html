@@ -58,7 +58,7 @@
             border: 2px solid #F9A826;
         }
 
-        /* Modal Styles - Diambil dari member_detail.html */
+        /* Modal Styles */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -85,298 +85,241 @@
             text-align: center;
             transform: translateY(-20px);
             transition: transform 0.3s ease-in-out;
-            overflow-y: auto; /* Allow scrolling if content overflows, as a last resort for modal content */
-            max-width: 90vw; /* Constrain modal width to viewport */
-            max-height: 90vh; /* Constrain modal height to viewport */
-            padding: 0.8rem; /* Reduced padding around the ID card and buttons */
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start; /* Align content to start for better control */
-            align-items: center;
-            box-sizing: border-box; /* Include padding in dimensions */
+            max-width: 90%; /* Default modal width */
+            padding: 1.5rem; /* Default modal padding */
         }
         .modal-overlay.active .modal-content {
             transform: translateY(0);
         }
 
-        /* ID Card content wrapper - This is the actual ID card size */
+        /* ID Card content wrapper - Simple version for dashboard */
         .id-card-content-wrapper {
-            width: 5.83in; /* A5 Portrait Width */
-            height: 8.27in; /* A5 Portrait Height */
-            padding: 0.2in; /* Slightly reduced padding for A5 size */
+            width: 3.5in; /* Typical ID card width */
+            height: 5in; /* Typical ID card height (potrait) */
+            padding: 0.25in;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
-            justify-content: space-between; /* Distribute space vertically */
+            justify-content: space-between;
             background-color: white;
-            border: 1px solid #d3d3d3; /* Light grey border for a softer look */
-            border-radius: 0.25rem; /* Slightly larger border radius for A5 */
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
             position: relative;
-            overflow: hidden; /* Important for clean edges */
-            flex-shrink: 0; /* Prevent it from shrinking within modal-content */
-            margin-bottom: 0.8rem; /* Reduced space between ID card and buttons */
-            font-family: 'Inter', sans-serif; /* Ensure Inter font for the card */
-            color: #333333; /* Default text color */
+            overflow: hidden;
+            flex-shrink: 0;
+            font-family: 'Inter', sans-serif;
+            color: #333333;
         }
 
         .id-card-header {
-            background-color: #B40000; /* Primary red background for header */
-            border-radius: 0.2rem 0.2rem 0 0; /* Match wrapper rounding for top */
-            box-shadow: none;
-            margin: -0.2in -0.2in 0.05in -0.2in; /* Adjusted for new wrapper padding, smaller bottom margin */
-            padding: 0.15in; /* Adjusted padding */
-            width: calc(100% + 0.4in); /* Fill width, accounting for margins */
+            background-color: #B40000;
+            border-radius: 0.4rem 0.4rem 0 0;
+            margin: -0.25in -0.25in 0.1in -0.25in;
+            padding: 0.15in;
+            width: calc(100% + 0.5in);
             height: auto;
             flex-shrink: 0;
-            display: flex; /* Ensure flex for centering header content */
+            display: flex;
             justify-content: center;
             align-items: center;
-            color: white; /* White text for header */
+            color: white;
         }
         .id-card-header img {
-            height: 55px; /* Lebih besar */
-            width: 55px; /* Lebih besar */
-            border: 2px solid #F9A826; /* Accent yellow border */
-            border-radius: 50%; /* Rounded logo */
+            height: 40px;
+            width: 40px;
+            border: 2px solid #F9A826;
+            border-radius: 50%;
             object-fit: cover;
-            margin-right: 0.15in; /* Sedikit lebih besar */
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2); /* Subtle shadow for logo */
+            margin-right: 0.1in;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }
         .id-card-header h4 {
-            font-size: 1.6rem; /* Lebih besar */
-            font-weight: 800; /* Extra bold */
+            font-size: 1.2rem;
+            font-weight: 700;
             margin-bottom: 0;
-            line-height: 1.1; /* Tighter line height */
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.3); /* Subtle text shadow */
+            line-height: 1.2;
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.2);
         }
 
-        .id-card-content { /* Main content area */
-            flex-grow: 1; /* Allow content to grow and push footer down */
+        .id-card-content {
+            flex-grow: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center; /* Center content vertically */
-            padding: 0.15in 0; /* Padding vertikal sedikit lebih besar */
+            justify-content: center;
+            padding: 0.1in 0;
         }
 
         .id-card-content img.member-photo {
-            width: 1.5in; /* Ukuran foto lebih besar */
-            height: 1.5in; /* Ukuran foto lebih besar */
+            width: 100px;
+            height: 100px;
             border-radius: 50%;
             object-fit: cover;
-            margin: 0.15in auto 0.25in auto; /* Margin atas dan bawah lebih besar */
-            border: 5px solid #F9A826; /* Border lebih tebal */
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Bayangan lebih menonjol */
+            margin: 0.1in auto 0.15in auto;
+            border: 3px solid #F9A826;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
             flex-shrink: 0;
         }
         .id-card-content p, .id-card-content strong {
-            font-size: 0.18in; /* Ukuran teks lebih besar */
-            line-height: 1.5; /* Line height lebih santai */
-            margin-bottom: 0.08in; /* Margin bawah lebih besar */
+            font-size: 0.14in;
+            line-height: 1.3;
+            margin-bottom: 0.05in;
             word-break: break-word;
-            color: #333333; /* Warna teks gelap */
-        }
-        .id-card-content strong {
-            font-weight: 700; /* Tebal untuk label */
-        }
-        .id-card-content .name-text {
-            font-size: 0.25in; /* Ukuran nama lebih besar */
-            font-weight: 800; /* Extra bold untuk nama */
-            color: #B40000; /* Merah primary untuk nama */
-            margin-bottom: 0.1in; /* Margin bawah lebih besar */
-        }
-        .id-card-content .detail-table {
-            width: 90%; /* Lebar tabel */
-            margin-top: 0.1in; /* Margin atas tabel */
-            border-collapse: collapse; /* Hilangkan spasi antar border sel */
-            font-size: 0.16in; /* Ukuran font tabel */
             color: #333333;
         }
-        .id-card-content .detail-table td {
-            padding: 0.05in 0.1in; /* Padding dalam sel */
-            text-align: left; /* Teks rata kiri */
-            border-bottom: 1px solid #eee; /* Border bawah halus */
+        .id-card-content .name-text {
+            font-size: 0.18in;
+            font-weight: 700;
+            color: #B40000;
+            margin-bottom: 0.08in;
         }
-        .id-card-content .detail-table tr:last-child td {
-            border-bottom: none; /* Hilangkan border bawah pada baris terakhir */
+        /* Reverting detail-table to simpler lines */
+        .id-card-content .detail-line {
+            display: flex;
+            flex-direction: column;
+            text-align: center;
+            margin-bottom: 0.05in;
         }
-        .id-card-content .detail-table td:first-child {
-            font-weight: 700; /* Label lebih tebal */
-            width: 30%; /* Lebar kolom label */
-            color: #555555; /* Warna label sedikit lebih terang */
-        }
-
 
         .id-card-content .barcode-area {
             display: flex;
-            flex-direction: column; /* Stack QR and text */
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            margin-top: 0.15in; /* Mengurangi spasi di atas QR code */
-            margin-bottom: 0.08in; /* Mengurangi spasi di bawah QR code */
+            margin-top: 0.15in;
+            margin-bottom: 0.08in;
             flex-shrink: 0;
         }
         #id-card-preview-qrcode {
-            width: 1.8in; /* Mengurangi ukuran QR code */
-            height: 1.8in; /* Mengurangi ukuran QR code */
-            padding: 4px; /* Mengurangi padding untuk background QR */
+            width: 1.5in;
+            height: 1.5in;
+            padding: 2px;
             background-color: white;
             flex-shrink: 0;
-            border: 2px solid #d3d3d3; /* Border QR code lebih jelas */
-            border-radius: 0.15rem; /* Sedikit lebih melengkung */
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Bayangan halus untuk QR */
+            border: 1px solid #d3d3d3;
+            border-radius: 0.1rem;
         }
         .id-card-content .text-xs {
-            font-size: 0.13in; /* Ukuran teks lebih besar */
-            color: #666666; /* Warna abu-abu lebih lembut */
-            margin-top: 0.06in; /* Mengurangi margin atas */
+            font-size: 0.12in;
+            color: #666666;
+            margin-top: 0.05in;
         }
         
         .id-card-footer {
-            background-color: #333333; /* Background gelap */
+            background-color: #333333;
             color: white;
-            font-size: 0.11in; /* Ukuran font lebih kecil untuk multi-line footer */
-            margin: 0.08in -0.2in -0.2in -0.2in; /* Disesuaikan untuk padding wrapper baru */
-            padding: 0.12in; /* Padding lebih kecil */
-            border-radius: 0 0 0.2rem 0.2rem; /* Sesuai dengan pembulatan wrapper bawah */
-            width: calc(100% + 0.4in);
+            font-size: 0.12in;
+            margin: 0.1in -0.25in -0.25in -0.25in;
+            padding: 0.15in;
+            border-radius: 0 0 0.4rem 0.4rem;
+            width: calc(100% + 0.5in);
             text-align: center;
             flex-shrink: 0;
-            line-height: 1.2; /* Line height lebih ketat */
-            box-shadow: 0 -2px 5px rgba(0,0,0,0.15); /* Bayangan lebih menonjol untuk footer */
+            line-height: 1.2;
+            box-shadow: 0 -1px 3px rgba(0,0,0,0.1);
         }
         .id-card-footer p {
-            font-size: 0.11in; /* Pastikan p di dalam footer memiliki font konsisten */
+            font-size: 0.12in;
             margin: 0;
-            font-weight: 400; /* Font weight reguler */
+            font-weight: 500;
         }
         .id-card-footer i {
-            margin-right: 4px; /* Margin ikon lebih kecil */
-            color: #F9A826; /* Warna aksen untuk ikon */
+            margin-right: 4px;
+            color: #F9A826;
         }
 
         /* Modal Action Buttons styling */
         .modal-actions {
-            padding: 1.2rem; /* Padding lebih besar untuk container tombol */
-            background-color: white; /* Sesuai dengan background konten modal */
-            border-top: 1px solid #eee; /* Garis pemisah */
-            width: 100%; /* Ambil lebar penuh konten modal */
-            box-sizing: border-box; /* Sertakan padding dalam lebar */
-            border-radius: 0 0 0.5rem 0.5rem; /* Sudut bawah melengkung */
-            flex-shrink: 0; /* Cegah penyusutan */
+            padding: 0.8rem;
+            background-color: white;
+            border-top: 1px solid #eee;
+            width: 100%;
+            box-sizing: border-box;
+            border-radius: 0 0 0.5rem 0.5rem;
+            flex-shrink: 0;
         }
         .modal-actions button {
-            font-size: 1.1rem; /* Ukuran teks tombol lebih besar */
-            padding: 0.8rem 1.6rem; /* Padding tombol disesuaikan */
-            border-radius: 0.6rem; /* Tombol lebih melengkung */
-            font-weight: 600; /* Semi-bold */
+            font-size: 1rem;
+            padding: 0.6rem 1.2rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
         }
-        /* Specific button colors (Tailwind classes) are in the HTML */
 
-
-        /* Print styles */
+        /* Print styles - Reverted to simpler, non-A5 explicit print for dashboard */
         @media print {
-            @page {
-                size: A5 portrait; /* Set page size to A5 portrait */
-                margin: 0 !important; /* Remove all default margins */
-                padding: 0 !important; /* Remove all default paddings */
-            }
-
-            html, body {
-                width: 100vw;
-                height: 100vh;
-                margin: 0 !important;
-                padding: 0 !important;
-                display: block;
-                overflow: hidden;
-                background-color: white; /* Ensure white background for the entire page */
-            }
-
-            /* Hide everything that is NOT the ID card preview modal when printing */
             body > *:not(#id-card-preview-modal-overlay) {
                 display: none !important;
             }
-
-            /* Make the modal overlay visible and cover the whole page for printing */
             #id-card-preview-modal-overlay {
-                display: flex !important; /* Use flex to center the card */
-                position: absolute !important; /* Absolute positioning for print */
+                display: flex !important;
+                position: absolute !important;
                 top: 0 !important;
                 left: 0 !important;
-                width: 100vw !important; /* Full viewport width */
-                height: 100vh !important; /* Full viewport height */
-                background-color: white !important; /* Ensure white background for print */
+                width: 100vw !important;
+                height: 100vh !important;
+                background-color: white !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 justify-content: center !important;
                 align-items: center !important;
                 opacity: 1 !important;
                 visibility: visible !important;
-                z-index: 9999 !important; /* Ensure it's on top */
+                z-index: 9999 !important;
             }
-            
-            /* The actual ID card wrapper should be exactly A5 portrait size */
             #id-card-preview-modal-overlay .id-card-content-wrapper {
-                width: 5.83in !important; /* A5 Portrait Width */
-                height: 8.27in !important; /* A5 Portrait Height */
-                border: 1px solid #000 !important; /* A professional border */
-                border-radius: 0.25rem !important; /* Match border-radius */
-                box-shadow: none !important; /* No shadow on print */
-                margin: 0 !important; /* Ensure no external margins */
-                overflow: hidden !important; /* Prevent content overflow */
-                /* All padding and internal layout is handled by the wrapper's own rules */
+                width: 3.5in !important; /* Revert to original ID card size for dashboard print */
+                height: 5in !important;
+                border: 1px solid #000 !important;
+                border-radius: 0.5rem !important;
+                box-shadow: none !important;
+                margin: 0 !important;
+                overflow: hidden !important;
             }
-
-            /* Hide modal control buttons when printing */
             #id-card-preview-modal-overlay .modal-actions {
                 display: none !important;
             }
-
-            /* Ensure header/footer margins match the wrapper's padding for edge-to-edge look */
             #id-card-preview-modal-overlay .id-card-header,
             #id-card-preview-modal-overlay .id-card-footer {
-                margin-left: -0.2in !important; /* Matches new wrapper padding */
-                margin-right: -0.2in !important; /* Matches new wrapper padding */
-                width: calc(100% + 0.4in) !important; /* Span full width of content wrapper */
-                border-radius: 0 !important; /* Remove rounding for full edge-to-edge in print */
+                margin-left: -0.25in !important;
+                margin-right: -0.25in !important;
+                width: calc(100% + 0.5in) !important;
+                border-radius: 0 !important;
             }
             #id-card-preview-modal-overlay .id-card-header {
-                border-top-left-radius: 0.25rem !important;
-                border-top-right-radius: 0.25rem !important;
-                margin-top: -0.2in !important; /* Pull to top edge */
-                padding-top: 0.15in !important; /* Keep internal header padding */
+                border-top-left-radius: 0.4rem !important;
+                border-top-right-radius: 0.4rem !important;
+                margin-top: -0.25in !important;
+                padding-top: 0.15in !important;
                 padding-bottom: 0.15in !important;
             }
             #id-card-preview-modal-overlay .id-card-footer {
-                border-bottom-left-radius: 0.25rem !important;
-                border-bottom-right-radius: 0.25rem !important;
-                margin-bottom: -0.2in !important; /* Pull to bottom edge */
-                padding-top: 0.12in !important; /* Smaller padding for footer */
-                padding-bottom: 0.12in !important;
+                border-bottom-left-radius: 0.4rem !important;
+                border-bottom-right-radius: 0.4rem !important;
+                margin-bottom: -0.25in !important;
+                padding-top: 0.15in !important;
+                padding-bottom: 0.15in !important;
             }
-
-            /* Adjust internal element margins/sizes to fit better in the tight space */
             #id-card-preview-modal-overlay img.member-photo {
-                width: 1.2in !important;
-                height: 1.2in !important;
-                margin-top: 0.15in !important;
-                margin-bottom: 0.2in !important;
+                width: 100px !important;
+                height: 100px !important;
+                margin-top: 0.1in !important;
+                margin-bottom: 0.15in !important;
             }
             #id-card-preview-modal-overlay p, #id-card-preview-modal-overlay strong {
-                font-size: 0.16in !important; /* Consistent with non-print modal */
-                line-height: 1.4 !important;
+                font-size: 0.14in !important;
+                line-height: 1.3 !important;
                 margin-bottom: 0.05in !important;
             }
             #id-card-preview-modal-overlay .barcode-area {
-                margin-top: 0.2in !important;
-                margin-bottom: 0.1in !important;
+                margin-top: 0.15in !important;
+                margin-bottom: 0.08in !important;
             }
             #id-card-preview-qrcode {
-                width: 1.8in !important; /* Consistent with non-print modal */
-                height: 1.8in !important;
+                width: 1.5in !important;
+                height: 1.5in !important;
             }
             #id-card-preview-modal-overlay .text-xs {
-                font-size: 0.13in !important; /* Consistent with non-print modal */
+                font-size: 0.12in !important;
             }
         }
     </style>
@@ -570,39 +513,43 @@
             };
         }
 
-        // Fungsi untuk menampilkan modal pratinjau ID Card - Diambil dari member_detail.html
+        // Fungsi untuk menampilkan modal pratinjau ID Card - Reverted to a simpler version
         async function showIdCardPreviewModal(memberData) {
             const previewModalOverlay = document.getElementById('id-card-preview-modal-overlay');
             const previewIdCardArea = document.getElementById('id-card-preview-content'); 
 
-            document.getElementById('preview-id-card-photo').src = memberData.photoUrl || 'https://placehold.co/200x200/CCCCCC/000000?text=Foto+Anggota';
-            document.getElementById('preview-id-card-name').textContent = memberData.name.toUpperCase();
+            // Reverted photo and name size/style
+            document.getElementById('preview-id-card-photo').src = memberData.photoUrl || 'https://placehold.co/100x100/CCCCCC/000000?text=Foto';
+            document.getElementById('preview-id-card-name').textContent = memberData.name; // Not necessarily uppercase now
             
-            const detailTableBody = document.getElementById('preview-id-card-detail-table-body');
-            detailTableBody.innerHTML = `
-                <tr>
-                    <td>TTL</td>
-                    <td>: ${memberData.placeOfBirth || 'N/A'}, ${memberData.dateOfBirth || 'N/A'}</td>
-                </tr>
-                <tr>
-                    <td>Sabuk</td>
-                    <td>: ${memberData.beltLevel || 'N/A'}</td>
-                </tr>
-                <tr>
-                    <td>Dojo</td>
-                    <td>: ${memberData.dojoName || 'N/A'}</td>
-                </tr>
-                <tr>
-                    <td>Cabang</td>
-                    <td>: ${memberData.city || 'N/A'}</td>
-                </tr>
+            // Reverted to simpler detail display, not a table
+            previewIdCardArea.querySelector('.id-card-content').innerHTML = `
+                <img id="preview-id-card-photo" src="${memberData.photoUrl || 'https://placehold.co/100x100/CCCCCC/000000?text=Foto'}" alt="Foto Anggota" class="member-photo">
+                <p class="font-bold text-xl mb-2 name-text" id="preview-id-card-name">${memberData.name || 'Nama Tidak Tersedia'}</p>
+                <div class="text-sm text-gray-700 text-center space-y-1 px-4">
+                    <p class="detail-line">TTL: ${memberData.placeOfBirth || 'N/A'}, ${memberData.dateOfBirth || 'N/A'}</p>
+                    <p class="detail-line">Sabuk: ${memberData.beltLevel || 'N/A'}</p>
+                    <p class="detail-line">Dojo: ${memberData.dojoName || 'N/A'}</p>
+                    <p class="detail-line">Cabang: ${memberData.city || 'N/A'}</p>
+                </div>
+                <div class="barcode-area">
+                    <canvas id="id-card-preview-qrcode"></canvas>
+                    <p class="text-xs text-gray-600 mt-2">Scan untuk Kehadiran</p>
+                </div>
             `;
 
-            const previewQrcodeCanvas = document.getElementById('id-card-preview-qrcode');
-            if (previewQrcodeCanvas && typeof window.QRious !== 'undefined') {
-                previewQrcodeCanvas.innerHTML = '';
+            // Re-get elements after innerHTML update
+            const newPhotoElement = previewIdCardArea.querySelector('#preview-id-card-photo');
+            const newNameElement = previewIdCardArea.querySelector('#preview-id-card-name');
+            const newQrcodeCanvas = previewIdCardArea.querySelector('#id-card-preview-qrcode');
+
+            if (newPhotoElement) newPhotoElement.src = memberData.photoUrl || 'https://placehold.co/100x100/CCCCCC/000000?text=Foto';
+            if (newNameElement) newNameElement.textContent = memberData.name; // Keep as is
+
+            if (newQrcodeCanvas && typeof window.QRious !== 'undefined') {
+                newQrcodeCanvas.innerHTML = '';
                 new window.QRious({
-                    element: previewQrcodeCanvas,
+                    element: newQrcodeCanvas,
                     value: String(memberData.id),
                     size: 128,
                     foreground: '#000000',
@@ -721,19 +668,7 @@
                     <h4 class="text-3xl font-bold text-white">KEI SHIN KAN</h4>
                 </div>
                 <div class="id-card-content">
-                    <img id="preview-id-card-photo" src="" alt="Foto Anggota" class="member-photo">
-                    <p class="font-bold text-xl mb-2 name-text" id="preview-id-card-name"></p>
-                    
-                    <table class="detail-table">
-                        <tbody id="preview-id-card-detail-table-body">
-                            <!-- Detail akan diisi oleh JavaScript -->
-                        </tbody>
-                    </table>
-
-                    <div class="barcode-area">
-                        <canvas id="id-card-preview-qrcode"></canvas>
-                        <p class="text-xs text-gray-600 mt-2">Scan untuk Kehadiran</p>
-                    </div>
+                    <!-- Content populated by JS -->
                 </div>
                 <div class="id-card-footer">
                     <p>&copy; 2025 KEI SHIN KAN Jawa Barat</p>
