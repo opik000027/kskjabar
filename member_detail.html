@@ -27,8 +27,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <!-- Favicon (Logo di tab browser) -->
     <link rel="icon" href="img/logo-ksk.png" type="image/png">
-    <!-- JsBarcode CDN untuk membuat barcode -->
-    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@latest/dist/JsBarcode.all.min.js"></script>
+    <!-- qrcode.js CDN for QR Code -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode.js/1.0.0/qrcode.min.js"></script>
 
     <style>
         .member-detail-container {
@@ -50,17 +50,18 @@
             width: 1.5rem; /* Consistent icon width */
             text-align: center;
         }
-        .barcode-container {
+        .qrcode-container {
             text-align: center;
             margin-top: 2rem;
             padding-top: 1rem;
             border-top: 1px solid #eee;
         }
-        .barcode-container svg {
+        .qrcode-container div {
             margin: 0 auto;
             display: block;
             max-width: 90%;
-            height: 100px; /* Adjust height as needed */
+            width: 150px; /* Set QR code container dimensions */
+            height: 150px;
         }
         @media print {
             body > *:not(.print-area) {
@@ -87,6 +88,7 @@
     <script type="module">
         // Mengimpor fungsi Firebase dari CDN
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
         // Konfigurasi Firebase Anda.
@@ -101,23 +103,46 @@
         };
         
         let app;
+        let auth; // Instansi Auth
         let db;
         let firebaseInitialized = false;
 
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const membersCollectionPath = `artifacts/${appId}/public/data/members`;
 
-        async function initializeFirebase() {
+        async function initializeFirebaseAndAuth() {
             if (firebaseConfig) { 
                 try {
                     app = initializeApp(firebaseConfig);
+                    auth = getAuth(app); // Get Auth instance
                     db = getFirestore(app);
                     firebaseInitialized = true;
                     console.log("Firebase initialized for member_detail.html.");
-                    loadMemberDetails(); // Muat detail anggota setelah Firebase terinisialisasi
+
+                    // Sign in anonymously if no user is authenticated
+                    onAuthStateChanged(auth, async (user) => {
+                        if (user) {
+                            console.log("User already signed in:", user.uid);
+                            loadMemberDetails(); // Muat detail anggota setelah Firebase terinisialisasi dan pengguna login
+                        } else {
+                            try {
+                                await signInAnonymously(auth);
+                                console.log("Signed in anonymously.");
+                                loadMemberDetails(); // Muat detail anggota setelah sign-in anonim berhasil
+                            } catch (error) {
+                                console.error("Anonymous sign-in failed:", error.message);
+                                // Pesan ini kemungkinan besar berarti Anda perlu mengaktifkan "Anonymous" sign-in provider di konsol Firebase Anda.
+                                // Buka Firebase Console -> Authentication -> tab "Sign-in method" -> Aktifkan "Anonymous".
+                                document.getElementById('member-details-card').innerHTML = `<p class="text-center text-red-500">Gagal login untuk memuat detail: ${error.message}<br>Harap pastikan "Anonymous" Sign-in Provider diaktifkan di Firebase Authentication Anda.</p>`;
+                                // Redirect jika otentikasi gagal, misalnya ke index.html atau halaman error khusus
+                                // window.location.href = window.location.origin + '/index.html'; 
+                            }
+                        }
+                    });
+
                 } catch (error) {
                     console.error("Firebase initialization error for member_detail.html:", error.message);
-                    document.getElementById('member-details-card').innerHTML = `<p class="text-center text-red-500">Gagal memuat detail: ${error.message}</p>`;
+                    document.getElementById('member-details-card').innerHTML = `<p class="text-center text-red-500">Gagal menginisialisasi Firebase: ${error.message}</p>`;
                 }
             } else {
                 console.error("Firebase config is not available. Cannot initialize Firebase for member_detail.html.");
@@ -153,6 +178,7 @@
                         <div class="text-center mb-6">
                             <img src="${member.photoUrl || 'https://placehold.co/150x150/CCCCCC/000000?text=Foto'}" alt="Foto Anggota" class="w-36 h-36 rounded-full object-cover mx-auto mb-4 border-4 border-primary shadow-lg">
                             <h2 class="text-3xl font-bold text-primary mb-2">${member.name || 'Nama Tidak Tersedia'}</h2>
+                            <p class="text-lg text-gray-700"><strong>Nomor Anggota:</strong> ${memberId}</p>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-lg text-gray-700">
                             <div class="detail-item"><i class="fas fa-calendar-alt"></i><strong>Tanggal Lahir:</strong> ${member.dateOfBirth || 'N/A'}</div>
@@ -169,21 +195,23 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="barcode-container">
-                            <h3 class="text-xl font-bold text-secondary mb-2">Barcode Kehadiran</h3>
-                            <svg id="member-detail-barcode"></svg>
+                        <div class="qrcode-container">
+                            <h3 class="text-xl font-bold text-secondary mb-2">QR Code Kehadiran</h3>
+                            <div id="member-detail-qrcode"></div>
                             <p class="text-sm text-gray-600 mt-2">ID Anggota: ${memberId}</p>
                         </div>
                     `;
-                    // Generate Barcode
-                    const barcodeSvg = document.getElementById('member-detail-barcode');
-                    if (barcodeSvg) {
-                        JsBarcode(barcodeSvg, memberId, {
-                            format: "CODE128",
-                            lineColor: "#333",
-                            width: 2,
-                            height: 80,
-                            displayValue: false
+                    // Generate QR Code
+                    const qrcodeContainer = document.getElementById('member-detail-qrcode');
+                    if (qrcodeContainer) {
+                        qrcodeContainer.innerHTML = ''; // Clear previous QR code
+                        new QRCode(qrcodeContainer, {
+                            text: String(memberId), // Data to encode in QR code
+                            width: 150,      // Width of the QR code
+                            height: 150,     // Height of the QR code
+                            colorDark : "#000000",
+                            colorLight : "#ffffff",
+                            correctLevel : QRCode.CorrectLevel.H
                         });
                     }
                 } else {
@@ -195,7 +223,7 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', initializeFirebase);
+        document.addEventListener('DOMContentLoaded', initializeFirebaseAndAuth);
     </script>
 </head>
 <body class="bg-gray-100 text-secondary font-inter min-h-screen flex flex-col">
