@@ -27,8 +27,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <!-- Favicon (Logo di tab browser) -->
     <link rel="icon" href="img/logo-ksk.png" type="image/png">
-    <!-- qrious.js CDN for QR Code (pengganti qrcode.js yang bermasalah dengan CSP) -->
+    <!-- qrious.js CDN for QR Code -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <!-- html2canvas CDN for converting HTML to canvas/image -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
         .member-detail-container {
@@ -67,46 +69,59 @@
 
         /* Styling for the printable ID card section */
         #printable-id-card-area {
-            display: none; /* Hidden by default, only for print */
+            display: none; /* Hidden by default, only for print/download */
+            position: absolute; /* Use absolute to prevent it from taking up space */
+            top: -9999px; /* Move off-screen */
+            left: -9999px;
             text-align: center;
             font-family: 'Inter', sans-serif;
             color: #333333;
+            /* Ensure it has a fixed size for consistent image generation */
+            width: 3.375in; /* Standard ID card width (CR80) */
+            height: 2.125in; /* Standard ID card height (CR80) */
+            padding: 0; /* No padding on the container itself */
+            overflow: hidden; /* Important to prevent content overflow when rendering */
+            background-color: white; /* Ensure it has a background for html2canvas */
+            box-sizing: content-box; /* Default box model */
         }
         
         #printable-id-card-area .id-card-content-wrapper {
-            /* This div will be the actual ID card size for screen preview */
-            width: 3.375in; /* Standard ID card width (CR80) */
-            height: 2.125in; /* Standard ID card height (CR80) */
+            /* This div will contain the actual ID card content */
+            width: 100%; /* Take full width of parent (#printable-id-card-area) */
+            height: 100%; /* Take full height of parent */
             padding: 0.15in; /* Adjusted padding for print */
-            box-sizing: border-box; /* Include padding in width/height */
+            box-sizing: border-box; /* Crucial: padding included in width/height */
             display: flex;
             flex-direction: column;
             justify-content: space-between; /* Space out content and footer */
             background-color: white; /* Ensure white background */
-            border: 1px solid #ccc; /* Add a light border */
-            border-radius: 0.25rem; /* Slight rounding */
-            position: relative; /* For absolute positioning of elements if needed */
+            border: 1px solid #000; /* Add a light border */
+            border-radius: 0.15rem; /* Slight rounding */
+            position: relative;
+            overflow: hidden; /* Ensure content doesn't spill out of the border */
         }
 
         #printable-id-card-area .id-card-header {
             background-color: #ffffff;
-            border-radius: 0.25rem 0.25rem 0 0;
+            border-radius: 0.15rem 0.15rem 0 0; /* Match wrapper rounding for top */
             box-shadow: none;
-            margin: -0.15in -0.15in 0.15in -0.15in; /* Adjust margin to fill the top, accounting for padding */
+            margin: -0.15in -0.15in 0.05in -0.15in; /* Adjust margin to fill the top, smaller bottom margin */
             padding: 0.1in;
-            width: calc(100% + 0.3in); /* Fill width, accounting for negative margin */
+            width: calc(100% + 0.3in);
             border-bottom: 1px solid #B40000;
             height: auto;
+            flex-shrink: 0; /* Prevent header from shrinking */
         }
         #printable-id-card-area .id-card-header img {
             height: 30px;
             width: 30px;
             border: 1px solid #F9A826;
-            margin-right: 0.15rem;
+            margin-right: 0.1rem;
         }
         #printable-id-card-area .id-card-header h4 {
             font-size: 0.9rem;
             margin-bottom: 0;
+            line-height: 1.2; /* Adjust line height for header text */
         }
 
         #printable-id-card-area img.member-photo {
@@ -114,40 +129,51 @@
             height: 50px;
             border-radius: 50%;
             object-fit: cover;
-            margin: 0 auto 0.2rem auto;
+            margin: 0.05in auto 0.05in auto; /* Adjusted margins */
             border: 2px solid #F9A826;
             box-shadow: none;
+            flex-shrink: 0;
         }
         #printable-id-card-area p, #printable-id-card-area strong {
-            font-size: 0.6rem;
+            font-size: 0.09in;
             line-height: 1.1;
-            margin-bottom: 0.05rem;
+            margin-bottom: 0.02in; /* Reduced margin */
+            word-break: break-word; /* Ensure long text wraps */
         }
         #printable-id-card-area .barcode-area {
             display: flex;
             justify-content: center;
-            margin-top: 0.3rem;
-            margin-bottom: 0.1rem;
+            margin-top: 0.05in; /* Adjusted margin */
+            margin-bottom: 0.05in; /* Adjusted margin */
+            flex-grow: 1; /* Allow this section to take available space */
+            align-items: center; /* Center QR code vertically */
         }
         #printable-id-card-qrcode {
-            width: 60px;
-            height: 60px;
+            width: 0.6in;
+            height: 0.6in;
             padding: 1px;
             background-color: white;
+            flex-shrink: 0;
         }
         #printable-id-card-area .text-xs {
-            font-size: 0.5rem;
+            font-size: 0.07in;
         }
         
         #printable-id-card-area .id-card-footer {
-            background-color: #333333; /* Dark background */
+            background-color: #333333;
             color: white;
-            font-size: 0.5rem;
-            padding: 0.15rem;
-            border-radius: 0 0 0.25rem 0.25rem; /* Bottom rounded corners */
-            margin: 0.15in -0.15in -0.15in -0.15in; /* Adjust to fill bottom and compensate padding */
-            width: calc(100% + 0.3in); /* Match header width */
+            font-size: 0.07in; /* Smaller font for footer */
+            padding: 0.08in 0.15in; /* Adjusted padding */
+            border-radius: 0 0 0.15rem 0.15rem; /* Match wrapper rounding for bottom */
+            margin: 0.05in -0.15in -0.15in -0.15in; /* Adjust to fill bottom and compensate padding */
+            width: calc(100% + 0.3in);
             text-align: center;
+            flex-shrink: 0;
+            line-height: 1.1;
+        }
+        #printable-id-card-area .id-card-footer p { /* Override p within footer */
+            font-size: 0.07in; /* Ensure p inside footer has smaller font */
+            margin: 0; /* Remove extra margin from p */
         }
         #printable-id-card-area .id-card-footer i {
             margin-right: 2px;
@@ -162,13 +188,13 @@
             }
 
             html, body {
-                width: 100vw; /* Use viewport units to ensure full screen fill */
+                width: 100vw;
                 height: 100vh;
-                margin: 0 !important; /* Force no margins */
-                padding: 0 !important; /* Force no paddings */
+                margin: 0 !important;
+                padding: 0 !important;
                 display: block;
                 overflow: hidden;
-                background-color: white;
+                background-color: white; /* Ensure white background for the entire page */
             }
 
             /* Hide everything not part of the ID card for printing */
@@ -177,23 +203,25 @@
             }
 
             #printable-id-card-area {
+                /* For printing, this acts as the full page container */
                 display: flex !important;
                 flex-direction: column;
                 align-items: center;
                 justify-content: center;
-                position: absolute; /* Changed from fixed to absolute */
+                position: absolute;
                 top: 0;
                 left: 0;
-                width: 100vw; /* Full viewport width */
-                height: 100vh; /* Full viewport height */
+                width: 100vw;
+                height: 100vh;
                 margin: 0 !important;
                 padding: 0 !important;
                 box-shadow: none;
                 border: none;
-                background-color: transparent;
+                background-color: transparent; /* No background here, will be covered by .id-card-content-wrapper */
             }
             
             #printable-id-card-area .id-card-content-wrapper {
+                /* This is the actual ID card, positioned at the center of the print page */
                 width: 3.375in; /* Standard ID card width (CR80) */
                 height: 2.125in; /* Standard ID card height (CR80) */
                 padding: 0.15in; /* Adjusted padding for print */
@@ -206,54 +234,58 @@
                 justify-content: space-between; /* Distribute content */
                 position: relative;
                 overflow: hidden;
-                /* No transform needed here, centering done by parent flexbox */
+                /* Important: Disable any transforms or positioning that conflict with @page margins */
+                transform: none !important;
+                top: auto !important;
+                left: auto !important;
             }
 
+            /* Force important values for header and footer margins and width */
             #printable-id-card-area .id-card-header,
             #printable-id-card-area .id-card-footer {
                 margin-left: -0.15in !important;
                 margin-right: -0.15in !important;
-                width: calc(100% + 0.3in) !important; /* Span full width of content wrapper */
-                box-shadow: none;
-                border-radius: 0 !important; /* Remove rounding for full edge-to-edge in print */
+                width: calc(100% + 0.3in) !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
             }
 
             #printable-id-card-area .id-card-header {
-                border-top-left-radius: 0.15rem !important; /* Match wrapper rounding */
+                border-top-left-radius: 0.15rem !important;
                 border-top-right-radius: 0.15rem !important;
-                margin-top: -0.15in !important; /* Pull to top edge */
-                padding-top: 0.1in !important; /* Keep internal header padding */
+                margin-top: -0.15in !important;
+                padding-top: 0.1in !important;
                 padding-bottom: 0.1in !important;
             }
 
             #printable-id-card-area .id-card-footer {
-                border-bottom-left-radius: 0.15rem !important; /* Match wrapper rounding */
+                border-bottom-left-radius: 0.15rem !important;
                 border-bottom-right-radius: 0.15rem !important;
-                margin-bottom: -0.15in !important; /* Pull to bottom edge */
-                padding-top: 0.08in !important; /* Smaller padding for footer */
+                margin-bottom: -0.15in !important;
+                padding-top: 0.08in !important;
                 padding-bottom: 0.08in !important;
             }
 
+            /* Adjust internal element margins/sizes to fit better in the tight space */
             #printable-id-card-area img.member-photo {
-                margin-top: 0.1in !important; /* Adjust photo margin for better spacing */
-                margin-bottom: 0.1in !important;
-            }
-            #printable-id-card-area p, #printable-id-card-area strong {
-                font-size: 0.09in !important; /* Use absolute unit for more control */
-                line-height: 1.1 !important;
-                margin-bottom: 0.03in !important; /* Adjust for tight spacing */
-            }
-            #printable-id-card-area .barcode-area {
                 margin-top: 0.05in !important;
                 margin-bottom: 0.05in !important;
             }
+            #printable-id-card-area p, #printable-id-card-area strong {
+                font-size: 0.08in !important; /* Slightly smaller font for more content */
+                line-height: 1.05 !important;
+                margin-bottom: 0.01in !important;
+            }
+            #printable-id-card-area .barcode-area {
+                margin-top: 0.04in !important;
+                margin-bottom: 0.04in !important;
+            }
             #printable-id-card-qrcode {
-                width: 0.6in !important; /* Use absolute unit for QR code */
-                height: 0.6in !important;
-                padding: 1px !important;
+                width: 0.55in !important; /* Slightly smaller QR code */
+                height: 0.55in !important;
             }
             #printable-id-card-area .text-xs {
-                font-size: 0.07in !important; /* Smaller font for "Scan untuk Kehadiran" */
+                font-size: 0.06in !important;
             }
         }
     </style>
@@ -428,18 +460,79 @@
             }
         }
 
+        // Fungsi untuk mengunduh ID Card sebagai gambar
+        async function downloadIdCard() {
+            const printableArea = document.getElementById('printable-id-card-area');
+            const memberName = document.getElementById('printable-id-card-name').textContent || 'ID_Card';
+
+            // Pastikan area cetak terlihat dan memiliki ukuran yang benar sebelum di-render
+            const originalDisplay = printableArea.style.display;
+            const originalPosition = printableArea.style.position;
+            const originalTop = printableArea.style.top;
+            const originalLeft = printableArea.style.left;
+
+            printableArea.style.display = 'block'; // Ensure it's rendered
+            printableArea.style.position = 'static'; // Temporarily make it static for html2canvas
+            printableArea.style.top = '0';
+            printableArea.style.left = '0';
+
+            try {
+                // Render the ID card area to a canvas
+                const canvas = await html2canvas(printableArea, {
+                    scale: 4, // Increase scale for higher resolution
+                    useCORS: true, // Needed if images are from different origins
+                    backgroundColor: '#ffffff' // Ensure white background for the image
+                });
+
+                // Create a download link for the image
+                const link = document.createElement('a');
+                link.download = `${memberName.replace(/\s/g, '_')}_ID_Card.png`;
+                link.href = canvas.toDataURL('image/png');
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                console.log("ID Card berhasil diunduh.");
+
+            } catch (error) {
+                console.error("Error downloading ID Card:", error);
+                alert("Gagal mengunduh ID Card. Pastikan semua gambar memiliki CORS yang diizinkan atau coba lagi.");
+            } finally {
+                // Restore original styles
+                printableArea.style.display = originalDisplay;
+                printableArea.style.position = originalPosition;
+                printableArea.style.top = originalTop;
+                printableArea.style.left = originalLeft;
+            }
+        }
+
+
         // Fungsi baru untuk mencetak ID Card dari halaman member_detail
         function printMemberIdCard() {
             const mainContent = document.querySelector('main');
             const navBar = document.querySelector('nav');
             const footer = document.querySelector('footer');
             const printableArea = document.getElementById('printable-id-card-area');
+            const idCardWrapper = printableArea.querySelector('.id-card-content-wrapper');
 
             // Sembunyikan elemen utama dan tampilkan hanya area cetak ID card
             mainContent.style.display = 'none';
             navBar.style.display = 'none';
             footer.style.display = 'none';
-            printableArea.style.display = 'flex'; // Use flex to center the content within the print area
+            
+            // Set printable area to occupy full screen to center the card
+            printableArea.style.display = 'flex';
+            printableArea.style.position = 'absolute';
+            printableArea.style.top = '0';
+            printableArea.style.left = '0';
+            printableArea.style.width = '100vw';
+            printableArea.style.height = '100vh';
+            printableArea.style.margin = '0';
+            printableArea.style.padding = '0';
+
+
+            // Temporarily hide the border of the id-card-content-wrapper for cleaner print, if desired
+            // idCardWrapper.style.border = 'none'; // Optional: if you don't want the border in print
 
             window.print();
 
@@ -449,6 +542,9 @@
                 navBar.style.display = '';
                 footer.style.display = '';
                 printableArea.style.display = 'none'; // Sembunyikan area ID card lagi
+
+                // idCardWrapper.style.border = ''; // Optional: restore border
+
             }, 500); // Penundaan kecil untuk memastikan browser selesai dengan dialog cetak
         }
 
@@ -459,6 +555,12 @@
             const printMemberIdCardBtn = document.getElementById('print-member-id-card-btn');
             if (printMemberIdCardBtn) {
                 printMemberIdCardBtn.addEventListener('click', printMemberIdCard);
+            }
+
+            // Menghubungkan tombol "Download ID Card"
+            const downloadIdCardBtn = document.getElementById('download-id-card-btn');
+            if (downloadIdCardBtn) {
+                downloadIdCardBtn.addEventListener('click', downloadIdCard);
             }
         });
     </script>
@@ -479,7 +581,10 @@
                     <i class="fas fa-arrow-left mr-2"></i>Kembali ke Dashboard
                 </a>
                 <button id="print-member-id-card-btn" class="bg-blue-500 text-white px-5 py-2 rounded-full font-bold hover:bg-blue-600 transition duration-300 shadow-md">
-                    <i class="fas fa-id-card mr-2"></i>Cetak ID Card
+                    <i class="fas fa-print mr-2"></i>Cetak ID Card
+                </button>
+                <button id="download-id-card-btn" class="bg-green-500 text-white px-5 py-2 rounded-full font-bold hover:bg-green-600 transition duration-300 shadow-md">
+                    <i class="fas fa-download mr-2"></i>Download ID Card
                 </button>
             </div>
         </div>
@@ -493,7 +598,7 @@
     </main>
 
     <!-- New section for the printable ID card (hidden by default) -->
-    <div id="printable-id-card-area" class="fixed top-0 left-0 w-screen h-screen flex items-center justify-center z-50">
+    <div id="printable-id-card-area">
         <div class="id-card-content-wrapper">
             <div class="id-card-header flex items-center justify-center p-4 border-b-2 border-primary">
                 <img src="img/logo-ksk.png" alt="Logo KEI SHIN KAN" class="h-12 w-12 rounded-full object-cover mr-4">
