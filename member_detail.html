@@ -27,8 +27,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <!-- Favicon (Logo di tab browser) -->
     <link rel="icon" href="img/logo-ksk.png" type="image/png">
-    <!-- qrcode.js CDN for QR Code -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode.js/1.0.0/qrcode.min.js"></script>
+    <!-- qrious.js CDN for QR Code (pengganti qrcode.js yang bermasalah dengan CSP) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 
     <style>
         .member-detail-container {
@@ -56,7 +56,8 @@
             padding-top: 1rem;
             border-top: 1px solid #eee;
         }
-        .qrcode-container div {
+        /* Mengubah styling dari div ke canvas untuk QRious */
+        .qrcode-container canvas {
             margin: 0 auto;
             display: block;
             max-width: 90%;
@@ -197,32 +198,32 @@
                         </div>
                         <div class="qrcode-container">
                             <h3 class="text-xl font-bold text-secondary mb-2">QR Code Kehadiran</h3>
-                            <div id="member-detail-qrcode"></div>
+                            <!-- Mengubah elemen div menjadi canvas untuk QRious -->
+                            <canvas id="member-detail-qrcode"></canvas>
                             <p class="text-sm text-gray-600 mt-2">ID Anggota: ${memberId}</p>
                         </div>
                     `;
-                    // Generate QR Code
-                    const qrcodeContainer = document.getElementById('member-detail-qrcode');
-                    if (qrcodeContainer) {
-                        // Memeriksa apakah QRCode didefinisikan sebelum mencoba menggunakannya
-                        if (typeof window.QRCode !== 'undefined') { // Perbaikan di sini: menggunakan window.QRCode
-                            qrcodeContainer.innerHTML = ''; // Hapus QR code sebelumnya
-                            new window.QRCode(qrcodeContainer, { // Perbaikan di sini: menggunakan window.QRCode
-                                text: String(memberId), // Data yang akan di-encode di QR code
-                                width: 150,      // Lebar QR code
-                                height: 150,     // Tinggi QR code
-                                colorDark : "#000000",
-                                colorLight : "#ffffff",
-                                correctLevel : window.QRCode.CorrectLevel.H // Menggunakan window.QRCode di sini juga
+                    // Generate QR Code menggunakan QRious
+                    const qrcodeCanvas = document.getElementById('member-detail-qrcode');
+                    if (qrcodeCanvas) {
+                        // Memeriksa apakah QRious didefinisikan sebelum mencoba menggunakannya
+                        if (typeof window.QRious !== 'undefined') {
+                            new window.QRious({
+                                element: qrcodeCanvas,
+                                value: String(memberId), // Data yang akan di-encode di QR code
+                                size: 150,      // Lebar dan tinggi QR code
+                                foreground: '#000000',
+                                background: '#ffffff',
+                                level: 'H' // Tingkat koreksi kesalahan (L, M, Q, H)
                             });
                             console.log("QR Code berhasil dibuat di member_detail.html.");
                         } else {
-                            console.error("Error: Library QRCode (qrcode.js) tidak dimuat atau tidak didefinisikan di member_detail.html.");
+                            console.error("Error: Library QRious (qrious.js) tidak dimuat atau tidak didefinisikan di member_detail.html.");
                             // Secara opsional, perbarui UI untuk memberi tahu pengguna
                             detailsCard.querySelector('.qrcode-container').innerHTML += `<p class="text-red-500">Gagal membuat QR Code: Library tidak dimuat. Refresh halaman atau hubungi admin.</p>`;
                         }
                     } else {
-                        console.error("Elemen container QR Code tidak ditemukan di member_detail.html!");
+                        console.error("Elemen canvas QR Code tidak ditemukan di member_detail.html!");
                     }
                 } else {
                     detailsCard.innerHTML = '<p class="text-center text-red-500">Detail anggota tidak ditemukan.</p>';
