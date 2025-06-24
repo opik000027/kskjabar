@@ -130,8 +130,11 @@
             const memberId = urlParams.get('id');
             const detailsCard = document.getElementById('member-details-card');
 
+            console.log("URL Params:", window.location.search); // Debugging: Log the full URL parameters
+            console.log("Retrieved Member ID:", memberId);     // Debugging: Log the retrieved ID
+
             if (!memberId) {
-                detailsCard.innerHTML = '<p class="text-center text-red-500">ID Anggota tidak ditemukan di URL.</p>';
+                detailsCard.innerHTML = '<p class="text-center text-red-500">ID Anggota tidak ditemukan di URL. Pastikan Anda membuka halaman ini dari tombol "Detail" di dashboard.</p>';
                 return;
             }
 
