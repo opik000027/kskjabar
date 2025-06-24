@@ -171,19 +171,19 @@
         }
 
         .id-card-content img.member-photo {
-            width: 100px; /* Same photo size */
-            height: 100px;
+            width: 1.2in; /* Make photo larger */
+            height: 1.2in; /* Make photo larger */
             border-radius: 50%;
             object-fit: cover;
-            margin: 0.08in auto 0.12in auto; /* Adjusted margins */
+            margin: 0.15in auto 0.2in auto; /* Adjusted margins to give more space */
             border: 4px solid #F9A826; /* Thicker accent border */
             box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25); /* More prominent shadow */
             flex-shrink: 0;
         }
         .id-card-content p, .id-card-content strong {
-            font-size: 0.14in; /* Slightly larger font */
-            line-height: 1.3; /* More relaxed line height */
-            margin-bottom: 0.03in; /* Reduced margin */
+            font-size: 0.16in; /* Make text larger */
+            line-height: 1.4; /* More relaxed line height */
+            margin-bottom: 0.05in; /* Adjusted margin */
             word-break: break-word;
             color: #333333; /* Ensure dark text */
         }
@@ -191,16 +191,16 @@
             font-weight: 700; /* Bold for labels */
         }
         .id-card-content .name-text {
-            font-size: 0.18in; /* Larger for name */
+            font-size: 0.22in; /* Make name larger */
             font-weight: 800; /* Extra bold for name */
             color: #B40000; /* Primary red for name */
-            margin-bottom: 0.05in;
+            margin-bottom: 0.08in; /* Adjusted margin */
         }
         .id-card-content .detail-line {
             display: flex;
             flex-direction: column; /* Stack label and value if needed */
             text-align: center;
-            margin-bottom: 0.05in;
+            margin-bottom: 0.06in; /* Adjusted margin */
         }
 
         .id-card-content .barcode-area {
@@ -208,51 +208,51 @@
             flex-direction: column; /* Stack QR and text */
             justify-content: center;
             align-items: center;
-            margin-top: 0.15in; /* More space above QR code */
-            margin-bottom: 0.08in; /* More space below QR code */
+            margin-top: 0.2in; /* More space above QR code */
+            margin-bottom: 0.1in; /* More space below QR code */
             flex-shrink: 0;
         }
         #id-card-preview-qrcode {
-            width: 1.6in; /* Larger QR code */
-            height: 1.6in;
-            padding: 3px; /* More padding for QR background */
+            width: 1.8in; /* Make QR code larger */
+            height: 1.8in; /* Make QR code larger */
+            padding: 4px; /* More padding for QR background */
             background-color: white;
             flex-shrink: 0;
             border: 1px solid #d3d3d3; /* Subtle border for QR */
             border-radius: 0.1rem; /* Slight rounding */
         }
         .id-card-content .text-xs {
-            font-size: 0.11in; /* Larger font */
+            font-size: 0.13in; /* Make text larger */
             color: #666666; /* Softer gray text */
-            margin-top: 0.05in;
+            margin-top: 0.06in; /* Adjusted margin */
         }
         
         .id-card-footer {
             background-color: #333333; /* Dark background */
             color: white;
-            font-size: 0.11in; /* Slightly smaller font for footer */
-            margin: 0.08in -0.2in -0.2in -0.2in; /* Adjusted for new wrapper padding */
-            padding: 0.12in; /* Adjusted padding */
+            font-size: 0.13in; /* Make font larger for footer */
+            margin: 0.1in -0.2in -0.2in -0.2in; /* Adjusted for new wrapper padding */
+            padding: 0.15in; /* Adjusted padding */
             border-radius: 0 0 0.2rem 0.2rem; /* Match wrapper rounding for bottom */
             width: calc(100% + 0.4in);
             text-align: center;
             flex-shrink: 0;
-            line-height: 1.2;
+            line-height: 1.3; /* More relaxed line height */
             box-shadow: 0 -1px 3px rgba(0,0,0,0.1); /* Subtle shadow for footer */
         }
         .id-card-footer p {
-            font-size: 0.11in; /* Ensure p inside footer has consistent font */
+            font-size: 0.13in; /* Ensure p inside footer has consistent font */
             margin: 0;
             font-weight: 500; /* Medium font weight */
         }
         .id-card-footer i {
-            margin-right: 4px; /* Larger icon margin */
+            margin-right: 5px; /* Larger icon margin */
             color: #F9A826; /* Accent color for icons */
         }
 
         /* Modal Action Buttons styling */
         .modal-actions {
-            padding: 0.8rem; /* Padding for the button container */
+            padding: 1rem; /* Padding for the button container */
             background-color: white; /* Match modal content background */
             border-top: 1px solid #eee; /* Separator line */
             width: 100%; /* Take full width of modal content */
@@ -261,8 +261,8 @@
             flex-shrink: 0; /* Prevent from shrinking */
         }
         .modal-actions button {
-            font-size: 0.95rem; /* Larger button text */
-            padding: 0.6rem 1.2rem; /* Adjusted padding for buttons */
+            font-size: 1rem; /* Larger button text */
+            padding: 0.7rem 1.4rem; /* Adjusted padding for buttons */
             border-radius: 0.5rem; /* Rounded buttons */
             font-weight: 600; /* Semi-bold */
         }
@@ -346,32 +346,32 @@
                 border-bottom-left-radius: 0.25rem !important;
                 border-bottom-right-radius: 0.25rem !important;
                 margin-bottom: -0.2in !important; /* Pull to bottom edge */
-                padding-top: 0.12in !important; /* Smaller padding for footer */
-                padding-bottom: 0.12in !important;
+                padding-top: 0.15in !important; /* Smaller padding for footer */
+                padding-bottom: 0.15in !important;
             }
 
             /* Adjust internal element margins/sizes to fit better in the tight space */
             #id-card-preview-modal-overlay img.member-photo {
-                width: 90px !important;
-                height: 90px !important;
-                margin-top: 0.08in !important;
-                margin-bottom: 0.12in !important;
+                width: 1.2in !important;
+                height: 1.2in !important;
+                margin-top: 0.15in !important;
+                margin-bottom: 0.2in !important;
             }
             #id-card-preview-modal-overlay p, #id-card-preview-modal-overlay strong {
-                font-size: 0.14in !important; /* Consistent with non-print modal */
-                line-height: 1.3 !important;
-                margin-bottom: 0.03in !important;
+                font-size: 0.16in !important; /* Consistent with non-print modal */
+                line-height: 1.4 !important;
+                margin-bottom: 0.05in !important;
             }
             #id-card-preview-modal-overlay .barcode-area {
-                margin-top: 0.15in !important;
-                margin-bottom: 0.08in !important;
+                margin-top: 0.2in !important;
+                margin-bottom: 0.1in !important;
             }
             #id-card-preview-qrcode {
-                width: 1.6in !important; /* Consistent with non-print modal */
-                height: 1.6in !important;
+                width: 1.8in !important; /* Consistent with non-print modal */
+                height: 1.8in !important;
             }
             #id-card-preview-modal-overlay .text-xs {
-                font-size: 0.11in !important; /* Consistent with non-print modal */
+                font-size: 0.13in !important; /* Consistent with non-print modal */
             }
         }
     </style>
