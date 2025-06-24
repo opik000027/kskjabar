@@ -27,6 +27,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" xintegrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0V4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <!-- Favicon (Logo di tab browser) -->
     <link rel="icon" href="img/logo-ksk.png" type="image/png">
+    <!-- JsBarcode CDN untuk membuat barcode -->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@latest/dist/JsBarcode.all.min.js"></script>
 
     <style>
         /* Styles for the custom confirmation modal */
@@ -75,7 +77,78 @@
         .tab-content.active {
             display: block;
         }
-        /* Removed loading spinner as it's not needed for simple URL input */
+        /* Styles for the ID Card modal */
+        #id-card-modal-overlay {
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+        #id-card-modal-content {
+            background-color: #f0f0f0; /* Light gray background for the card */
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            max-width: 350px; /* Standard ID card width */
+            width: 90%;
+            color: #333333;
+            text-align: center;
+            position: relative;
+            font-family: 'Inter', sans-serif;
+            border: 2px solid #B40000; /* Border color matching primary */
+        }
+        #id-card-modal-content h4 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #B40000;
+            margin-bottom: 0.5rem;
+        }
+        #id-card-modal-content p {
+            font-size: 0.9rem;
+            margin-bottom: 0.2rem;
+        }
+        #id-card-modal-content img.member-photo {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #F9A826; /* Accent color border for photo */
+            margin: 0 auto 1rem auto;
+        }
+        #id-card-modal-content svg.barcode {
+            margin: 1rem auto;
+            display: block;
+            max-width: 90%; /* Ensure barcode fits */
+            height: 80px; /* Adjust height as needed */
+        }
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #id-card-modal-overlay, #id-card-modal-overlay * {
+                visibility: visible;
+            }
+            #id-card-modal-overlay {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: auto;
+                background: none;
+                display: block;
+            }
+            #id-card-modal-content {
+                width: 3.5in; /* Standard ID card size for printing */
+                height: 2.25in;
+                margin: 0;
+                padding: 0.5in;
+                box-shadow: none;
+                border: none;
+                position: static;
+                transform: none;
+                page-break-after: always;
+            }
+            .modal-close-btn, .print-btn {
+                display: none; /* Hide buttons when printing */
+            }
+        }
     </style>
 
     <!-- Firebase SDK -->
@@ -566,9 +639,9 @@
                     const memberCard = `
                         <div class="bg-gray-50 p-4 rounded-lg shadow-md border border-gray-200">
                             <h4 class="text-xl font-bold text-primary mb-2">${member.name}</h4>
-                            <p class="text-sm text-gray-700"><strong>Email:</strong> ${member.email}</p>
-                            <p class="text-sm text-gray-700"><strong>TTL:</strong> ${member.placeOfBirth}, ${member.dateOfBirth}</p>
-                            <p class="text-sm text-gray-700"><strong>Sabuk:</strong> ${member.beltLevel}</p>
+                            <p class="text-sm text-gray-700"><strong>Email:</strong> ${member.email || 'N/A'}</p>
+                            <p class="text-sm text-gray-700"><strong>TTL:</strong> ${member.placeOfBirth || 'N/A'}, ${member.dateOfBirth || 'N/A'}</p>
+                            <p class="text-sm text-gray-700"><strong>Sabuk:</strong> ${member.beltLevel || 'N/A'}</p>
                             <p class="text-sm text-gray-700"><strong>Dojo:</strong> ${member.dojoName || 'N/A'}</p>
                             <p class="text-sm text-gray-700"><strong>Cabang:</strong> ${member.city || 'N/A'}</p>
                             <div class="mt-2 text-sm">
@@ -577,6 +650,7 @@
                                 <a href="${member.photoUrl}" target="_blank" class="text-blue-500 hover:underline"><i class="fas fa-image mr-1"></i>Foto Anggota</a>
                             </div>
                             <div class="mt-4 flex justify-end space-x-2">
+                                <button class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-600" onclick="generateIdCard('${m.id}')"><i class="fas fa-id-card mr-1"></i>ID Card</button>
                                 <button class="bg-red-500 text-white px-3 py-1 rounded-md text-sm hover:bg-red-600" onclick="deleteMember('${m.id}', '${member.name}')">Hapus</button>
                             </div>
                         </div>
@@ -587,6 +661,76 @@
                 console.error("Error loading members:", error);
                 membersListDiv.innerHTML = `<p class="text-center text-red-500">Gagal memuat anggota: ${error.message}</p>`;
             }
+        }
+
+        // --- Fungsi untuk menghasilkan ID Card dan Barcode ---
+        function generateIdCard(memberId) {
+            const member = allMembersData.find(m => m.id === memberId);
+
+            if (!member) {
+                console.error("Member not found for ID:", memberId);
+                document.getElementById('admin-message').textContent = 'Anggota tidak ditemukan untuk membuat ID Card.';
+                document.getElementById('admin-message').classList.add('text-red-500');
+                return;
+            }
+
+            // Populate ID Card Modal
+            document.getElementById('id-card-member-photo').src = member.photoUrl || 'https://placehold.co/100x100/CCCCCC/000000?text=Foto';
+            document.getElementById('id-card-member-photo').alt = `Foto ${member.name}`;
+            document.getElementById('id-card-member-name').textContent = member.name;
+            document.getElementById('id-card-member-dob').textContent = `TTL: ${member.placeOfBirth}, ${member.dateOfBirth}`;
+            document.getElementById('id-card-member-belt').textContent = `Sabuk: ${member.beltLevel}`;
+            document.getElementById('id-card-member-dojo').textContent = `Dojo: ${member.dojoName}`;
+            document.getElementById('id-card-member-city').textContent = `Cabang: ${member.city}`;
+            
+            // Generate Barcode
+            // Pastikan SVG element ada dan bersih sebelum generate
+            const barcodeSvg = document.getElementById('id-card-barcode');
+            barcodeSvg.innerHTML = ''; // Clear previous barcode
+            JsBarcode(barcodeSvg, member.id, {
+                format: "CODE128", // Atau EAN13, CODE39, dll.
+                lineColor: "#333",
+                width: 2,
+                height: 60,
+                displayValue: false // Tidak menampilkan teks ID di bawah barcode jika terlalu panjang
+            });
+
+            // Show the modal
+            document.getElementById('id-card-modal-overlay').classList.add('active');
+        }
+
+        function closeIdCardModal() {
+            document.getElementById('id-card-modal-overlay').classList.remove('active');
+        }
+
+        function printIdCard() {
+            const printContent = document.getElementById('id-card-modal-content');
+            const originalContents = document.body.innerHTML;
+            const header = document.querySelector('nav'); // Get the navigation bar
+            const footer = document.querySelector('footer'); // Get the footer
+
+            // Temporarily hide elements not part of the ID card
+            const elementsToHide = document.querySelectorAll('body > *:not(#id-card-modal-overlay)');
+            elementsToHide.forEach(el => {
+                if (el !== header && el !== footer) { // Don't hide header/footer if they are intended to be printed, though typically they are not for ID cards.
+                    el.style.visibility = 'hidden';
+                }
+            });
+
+            // Ensure only the ID card is visible for printing
+            const idCardOverlay = document.getElementById('id-card-modal-overlay');
+            idCardOverlay.style.position = 'static'; // Change to static for printing layout
+            idCardOverlay.style.background = 'none'; // Remove background for printing
+
+            window.print();
+
+            // Restore original visibility and styles after printing
+            elementsToHide.forEach(el => {
+                el.style.visibility = 'visible';
+            });
+            idCardOverlay.style.position = 'fixed';
+            idCardOverlay.style.background = 'rgba(0, 0, 0, 0.8)';
+            closeIdCardModal(); // Close the modal after print dialog is closed
         }
 
 
@@ -778,6 +922,10 @@
             if (examToggleButton) {
                 examToggleButton.addEventListener('click', toggleExamPortal);
             }
+
+            // Hubungkan tombol cetak dan tutup ID card modal
+            document.getElementById('print-id-card-btn').addEventListener('click', printIdCard);
+            document.getElementById('close-id-card-modal-btn').addEventListener('click', closeIdCardModal);
         });
     </script>
 </head>
@@ -983,6 +1131,25 @@
             <div class="flex justify-center space-x-4">
                 <button id="modal-confirm-btn" class="bg-red-500 text-white px-5 py-2 rounded-full font-bold hover:bg-red-600 transition duration-300">Konfirmasi</button>
                 <button id="modal-cancel-btn" class="bg-gray-300 text-gray-800 px-5 py-2 rounded-full font-bold hover:bg-gray-400 transition duration-300">Batal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ID Card Modal -->
+    <div id="id-card-modal-overlay" class="modal-overlay">
+        <div id="id-card-modal-content" class="modal-content">
+            <h4 class="text-center mb-4">Kartu Anggota KEI SHIN KAN</h4>
+            <img id="id-card-member-photo" src="" alt="Foto Anggota" class="member-photo">
+            <p class="font-bold text-xl" id="id-card-member-name"></p>
+            <p id="id-card-member-dob"></p>
+            <p id="id-card-member-belt"></p>
+            <p id="id-card-member-dojo"></p>
+            <p id="id-card-member-city"></p>
+            <svg id="id-card-barcode" class="barcode"></svg>
+            <p class="text-xs text-gray-600">Scan untuk Kehadiran</p>
+            <div class="mt-6 flex justify-center space-x-4">
+                <button id="print-id-card-btn" class="bg-green-500 text-white px-4 py-2 rounded-full font-bold hover:bg-green-600 transition duration-300"><i class="fas fa-print mr-2"></i>Cetak Kartu</button>
+                <button id="close-id-card-modal-btn" class="bg-gray-400 text-white px-4 py-2 rounded-full font-bold hover:bg-gray-500 transition duration-300">Tutup</button>
             </div>
         </div>
     </div>
