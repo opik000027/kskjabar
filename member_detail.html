@@ -97,12 +97,14 @@
             overflow: hidden; /* Ensure content inside modal is clipped if it overflows */
             max-height: 90vh; /* Prevents modal from being too tall on small screens */
             /* Adjusted padding and dimensions for modal content to hold the ID card */
-            padding: 1rem; /* Add padding around the ID card inside the modal */
-            width: calc(3.375in + 2rem); /* ID card width + padding */
-            height: calc(2.125in + 2rem); /* ID card height + padding */
+            padding: 0; /* Remove padding from modal-content itself */
             display: flex; /* Use flex to center ID card within this modal content */
+            flex-direction: column; /* Stack ID card and buttons */
             justify-content: center;
             align-items: center;
+            /* Explicitly set min-width/min-height to prevent shrinking too much */
+            min-width: 3.375in;
+            min-height: 2.125in;
         }
         .modal-overlay.active .modal-content {
             transform: translateY(0);
@@ -212,6 +214,17 @@
         .id-card-footer i {
             margin-right: 2px;
         }
+
+        /* Modal Action Buttons styling */
+        .modal-actions {
+            padding: 1rem; /* Padding for the button container */
+            background-color: white; /* Match modal content background */
+            border-top: 1px solid #eee; /* Separator line */
+            width: 100%; /* Take full width of modal content */
+            box-sizing: border-box; /* Include padding in width */
+            border-radius: 0 0 0.5rem 0.5rem; /* Round bottom corners */
+        }
+
 
         /* Print styles */
         @media print {
