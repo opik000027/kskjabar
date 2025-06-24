@@ -4,30 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard KEI SHIN KAN</title>
-    <!-- Link ke Tailwind CSS CDN -->
+    <!-- Link to Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Konfigurasi Tailwind untuk menambahkan warna dan font kustom -->
+    <!-- Tailwind configuration for custom colors and fonts -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
-                        inter: ['Inter', 'sans-serif'], // Font Inter
+                        inter: ['Inter', 'sans-serif'], // Inter font
                     },
                     colors: {
-                        primary: '#B40000', // Warna merah khas klub
-                        secondary: '#333333', // Warna gelap untuk teks
-                        accent: '#F9A826', // Warna aksen
-                        darkred: '#8B0000', // Warna merah lebih gelap untuk aksen
-                        lightgray: '#F0F0F0', // Warna abu-abu terang untuk latar belakang
+                        primary: '#B40000', // Primary color for the club (red)
+                        secondary: '#333333', // Secondary color for text (dark)
+                        accent: '#F9A826', // Accent color (yellow)
+                        darkred: '#8B0000', // Darker red for accents
+                        lightgray: '#F0F0F0', // Light gray for backgrounds
                     }
                 }
             }
         }
     </script>
-    <!-- Link ke Font Awesome untuk ikon -->
+    <!-- Link to Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <!-- Favicon (Logo di tab browser) -->
+    <!-- Favicon (Logo in browser tab) -->
     <link rel="icon" href="img/logo-ksk.png" type="image/png">
     <!-- qrious.js CDN for QR Code -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
@@ -35,7 +35,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
-        .member-list-container {
+        .dashboard-container {
             max-width: 1200px;
             margin: 2rem auto;
             background-color: white;
@@ -43,12 +43,28 @@
             border-radius: 0.75rem;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
+        .section-card {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            height: 100%; /* Ensure cards fill grid cell height */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
         .member-card {
             background-color: #f9fafb;
             border: 1px solid #e5e7eb;
             border-radius: 0.5rem;
             padding: 1.5rem;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
         }
         .member-card img {
             width: 80px;
@@ -56,9 +72,10 @@
             border-radius: 50%;
             object-fit: cover;
             border: 2px solid #F9A826;
+            margin-bottom: 1rem;
         }
 
-        /* Modal Styles */
+        /* Modal Styles (Adapted from member_detail.html for A5 professional look) */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -85,38 +102,47 @@
             text-align: center;
             transform: translateY(-20px);
             transition: transform 0.3s ease-in-out;
-            max-width: 90%; /* Default modal width */
-            padding: 1.5rem; /* Default modal padding */
+            overflow-y: auto;
+            max-width: 90vw;
+            max-height: 90vh;
+            padding: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            box-sizing: border-box;
         }
         .modal-overlay.active .modal-content {
             transform: translateY(0);
         }
 
-        /* ID Card content wrapper - Simple version for dashboard */
+        /* ID Card content wrapper - This is the actual ID card size */
         .id-card-content-wrapper {
-            width: 3.5in; /* Typical ID card width */
-            height: 5in; /* Typical ID card height (potrait) */
-            padding: 0.25in;
+            width: 5.83in; /* A5 Portrait Width */
+            height: 8.27in; /* A5 Portrait Height */
+            padding: 0.2in;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             background-color: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 0.5rem;
+            border: 1px solid #d3d3d3;
+            border-radius: 0.25rem;
             position: relative;
             overflow: hidden;
             flex-shrink: 0;
+            margin-bottom: 0.8rem;
             font-family: 'Inter', sans-serif;
             color: #333333;
         }
 
         .id-card-header {
             background-color: #B40000;
-            border-radius: 0.4rem 0.4rem 0 0;
-            margin: -0.25in -0.25in 0.1in -0.25in;
+            border-radius: 0.2rem 0.2rem 0 0;
+            box-shadow: none;
+            margin: -0.2in -0.2in 0.05in -0.2in;
             padding: 0.15in;
-            width: calc(100% + 0.5in);
+            width: calc(100% + 0.4in);
             height: auto;
             flex-shrink: 0;
             display: flex;
@@ -125,20 +151,20 @@
             color: white;
         }
         .id-card-header img {
-            height: 40px;
-            width: 40px;
+            height: 55px;
+            width: 55px;
             border: 2px solid #F9A826;
             border-radius: 50%;
             object-fit: cover;
-            margin-right: 0.1in;
+            margin-right: 0.15in;
             box-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }
         .id-card-header h4 {
-            font-size: 1.2rem;
-            font-weight: 700;
+            font-size: 1.6rem;
+            font-weight: 800;
             margin-bottom: 0;
-            line-height: 1.2;
-            text-shadow: 1px 1px 1px rgba(0,0,0,0.2);
+            line-height: 1.1;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
         }
 
         .id-card-content {
@@ -147,38 +173,54 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 0.1in 0;
+            padding: 0.15in 0;
         }
 
         .id-card-content img.member-photo {
-            width: 100px;
-            height: 100px;
+            width: 1.5in;
+            height: 1.5in;
             border-radius: 50%;
             object-fit: cover;
-            margin: 0.1in auto 0.15in auto;
-            border: 3px solid #F9A826;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            margin: 0.15in auto 0.25in auto;
+            border: 5px solid #F9A826;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
             flex-shrink: 0;
         }
         .id-card-content p, .id-card-content strong {
-            font-size: 0.14in;
-            line-height: 1.3;
-            margin-bottom: 0.05in;
+            font-size: 0.18in;
+            line-height: 1.5;
+            margin-bottom: 0.08in;
             word-break: break-word;
             color: #333333;
         }
-        .id-card-content .name-text {
-            font-size: 0.18in;
+        .id-card-content strong {
             font-weight: 700;
-            color: #B40000;
-            margin-bottom: 0.08in;
         }
-        /* Reverting detail-table to simpler lines */
-        .id-card-content .detail-line {
-            display: flex;
-            flex-direction: column;
-            text-align: center;
-            margin-bottom: 0.05in;
+        .id-card-content .name-text {
+            font-size: 0.25in;
+            font-weight: 800;
+            color: #B40000;
+            margin-bottom: 0.1in;
+        }
+        .id-card-content .detail-table {
+            width: 90%;
+            margin-top: 0.1in;
+            border-collapse: collapse;
+            font-size: 0.16in;
+            color: #333333;
+        }
+        .id-card-content .detail-table td {
+            padding: 0.05in 0.1in;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        .id-card-content .detail-table tr:last-child td {
+            border-bottom: none;
+        }
+        .id-card-content .detail-table td:first-child {
+            font-weight: 700;
+            width: 30%;
+            color: #555555;
         }
 
         .id-card-content .barcode-area {
@@ -186,51 +228,52 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            margin-top: 0.15in;
-            margin-bottom: 0.08in;
+            margin-top: 0.15in; /* Adjusted from 0.25in */
+            margin-bottom: 0.08in; /* Adjusted from 0.15in */
             flex-shrink: 0;
         }
         #id-card-preview-qrcode {
-            width: 1.5in;
-            height: 1.5in;
-            padding: 2px;
+            width: 1.8in; /* Adjusted from 2.2in */
+            height: 1.8in; /* Adjusted from 2.2in */
+            padding: 4px; /* Adjusted from 5px */
             background-color: white;
             flex-shrink: 0;
-            border: 1px solid #d3d3d3;
-            border-radius: 0.1rem;
+            border: 2px solid #d3d3d3;
+            border-radius: 0.15rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .id-card-content .text-xs {
-            font-size: 0.12in;
+            font-size: 0.13in; /* Adjusted from 0.15in */
             color: #666666;
-            margin-top: 0.05in;
+            margin-top: 0.06in; /* Adjusted from 0.08in */
         }
         
         .id-card-footer {
             background-color: #333333;
             color: white;
-            font-size: 0.12in;
-            margin: 0.1in -0.25in -0.25in -0.25in;
-            padding: 0.15in;
-            border-radius: 0 0 0.4rem 0.4rem;
-            width: calc(100% + 0.5in);
+            font-size: 0.11in; /* Adjusted from 0.14in */
+            margin: 0.08in -0.2in -0.2in -0.2in; /* Adjusted from 0.15in */
+            padding: 0.12in; /* Adjusted from 0.18in */
+            border-radius: 0 0 0.2rem 0.2rem;
+            width: calc(100% + 0.4in);
             text-align: center;
             flex-shrink: 0;
-            line-height: 1.2;
-            box-shadow: 0 -1px 3px rgba(0,0,0,0.1);
+            line-height: 1.2; /* Adjusted from 1.4 */
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.15);
         }
         .id-card-footer p {
-            font-size: 0.12in;
+            font-size: 0.11in; /* Adjusted from 0.14in */
             margin: 0;
-            font-weight: 500;
+            font-weight: 400; /* Adjusted from 500 */
         }
         .id-card-footer i {
-            margin-right: 4px;
+            margin-right: 4px; /* Adjusted from 6px */
             color: #F9A826;
         }
 
         /* Modal Action Buttons styling */
         .modal-actions {
-            padding: 0.8rem;
+            padding: 1rem; /* Adjusted from 1.2rem */
             background-color: white;
             border-top: 1px solid #eee;
             width: 100%;
@@ -239,17 +282,34 @@
             flex-shrink: 0;
         }
         .modal-actions button {
-            font-size: 1rem;
-            padding: 0.6rem 1.2rem;
-            border-radius: 0.5rem;
+            font-size: 1rem; /* Adjusted from 1.1rem */
+            padding: 0.7rem 1.4rem; /* Adjusted from 0.8rem 1.6rem */
+            border-radius: 0.5rem; /* Adjusted from 0.6rem */
             font-weight: 600;
         }
 
-        /* Print styles - Reverted to simpler, non-A5 explicit print for dashboard */
+        /* Print styles */
         @media print {
+            @page {
+                size: A5 portrait;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            html, body {
+                width: 100vw;
+                height: 100vh;
+                margin: 0 !important;
+                padding: 0 !important;
+                display: block;
+                overflow: hidden;
+                background-color: white;
+            }
+
             body > *:not(#id-card-preview-modal-overlay) {
                 display: none !important;
             }
+
             #id-card-preview-modal-overlay {
                 display: flex !important;
                 position: absolute !important;
@@ -266,72 +326,87 @@
                 visibility: visible !important;
                 z-index: 9999 !important;
             }
+            
             #id-card-preview-modal-overlay .id-card-content-wrapper {
-                width: 3.5in !important; /* Revert to original ID card size for dashboard print */
-                height: 5in !important;
+                width: 5.83in !important;
+                height: 8.27in !important;
                 border: 1px solid #000 !important;
-                border-radius: 0.5rem !important;
+                border-radius: 0.25rem !important;
                 box-shadow: none !important;
                 margin: 0 !important;
                 overflow: hidden !important;
             }
+
             #id-card-preview-modal-overlay .modal-actions {
                 display: none !important;
             }
+
             #id-card-preview-modal-overlay .id-card-header,
             #id-card-preview-modal-overlay .id-card-footer {
-                margin-left: -0.25in !important;
-                margin-right: -0.25in !important;
-                width: calc(100% + 0.5in) !important;
+                margin-left: -0.2in !important;
+                margin-right: -0.2in !important;
+                width: calc(100% + 0.4in) !important;
                 border-radius: 0 !important;
             }
             #id-card-preview-modal-overlay .id-card-header {
-                border-top-left-radius: 0.4rem !important;
-                border-top-right-radius: 0.4rem !important;
-                margin-top: -0.25in !important;
+                border-top-left-radius: 0.25rem !important;
+                border-top-right-radius: 0.25rem !important;
+                margin-top: -0.2in !important;
                 padding-top: 0.15in !important;
                 padding-bottom: 0.15in !important;
             }
             #id-card-preview-modal-overlay .id-card-footer {
-                border-bottom-left-radius: 0.4rem !important;
-                border-bottom-right-radius: 0.4rem !important;
-                margin-bottom: -0.25in !important;
-                padding-top: 0.15in !important;
-                padding-bottom: 0.15in !important;
+                border-bottom-left-radius: 0.25rem !important;
+                border-bottom-right-radius: 0.25rem !important;
+                margin-bottom: -0.2in !important;
+                padding-top: 0.12in !important; /* Adjusted for print consistency */
+                padding-bottom: 0.12in !important; /* Adjusted for print consistency */
             }
+
             #id-card-preview-modal-overlay img.member-photo {
-                width: 100px !important;
-                height: 100px !important;
-                margin-top: 0.1in !important;
-                margin-bottom: 0.15in !important;
-            }
-            #id-card-preview-modal-overlay p, #id-card-preview-modal-overlay strong {
-                font-size: 0.14in !important;
-                line-height: 1.3 !important;
-                margin-bottom: 0.05in !important;
-            }
-            #id-card-preview-modal-overlay .barcode-area {
-                margin-top: 0.15in !important;
-                margin-bottom: 0.08in !important;
-            }
-            #id-card-preview-qrcode {
                 width: 1.5in !important;
                 height: 1.5in !important;
+                margin-top: 0.15in !important;
+                margin-bottom: 0.25in !important;
+            }
+            #id-card-preview-modal-overlay p, #id-card-preview-modal-overlay strong {
+                font-size: 0.18in !important;
+                line-height: 1.5 !important;
+                margin-bottom: 0.08in !important;
+            }
+            #id-card-preview-modal-overlay .barcode-area {
+                margin-top: 0.15in !important; /* Adjusted for print consistency */
+                margin-bottom: 0.08in !important; /* Adjusted for print consistency */
+            }
+            #id-card-preview-qrcode {
+                width: 1.8in !important; /* Adjusted for print consistency */
+                height: 1.8in !important; /* Adjusted for print consistency */
             }
             #id-card-preview-modal-overlay .text-xs {
-                font-size: 0.12in !important;
+                font-size: 0.13in !important; /* Adjusted for print consistency */
+            }
+            #id-card-preview-modal-overlay .name-text {
+                font-size: 0.25in !important;
+                font-weight: 800 !important;
+                margin-bottom: 0.1in !important;
+            }
+            #id-card-preview-modal-overlay .detail-table {
+                font-size: 0.16in !important;
+            }
+            #id-card-preview-modal-overlay .detail-table td {
+                padding: 0.05in 0.1in !important;
             }
         }
     </style>
 
     <!-- Firebase SDK -->
     <script type="module">
-        // Mengimpor fungsi Firebase dari CDN
+        // Import Firebase functions
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-        import { getFirestore, collection, getDocs, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, doc, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
-        // Konfigurasi Firebase Anda.
+        // Your Firebase Configuration.
         const firebaseConfig = {
              apiKey: "AIzaSyCAjAjkoQhx1eB7IxhpA5Yi8Z7wZC7nhzM",
              authDomain: "kskjabar-f01f1.firebaseapp.com",
@@ -343,12 +418,13 @@
         };
         
         let app;
-        let auth; // Instansi Auth
+        let auth; // Auth instance
         let db;
         let firebaseInitialized = false;
 
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const membersCollectionPath = `artifacts/${appId}/public/data/members`;
+        const dojosCollectionPath = `artifacts/${appId}/public/data/dojos`;
 
         async function initializeFirebaseAndAuth() {
             if (firebaseConfig) { 
@@ -363,12 +439,12 @@
                     onAuthStateChanged(auth, async (user) => {
                         if (user) {
                             console.log("User already signed in:", user.uid);
-                            loadMembers(); // Muat data anggota setelah Firebase terinisialisasi dan pengguna login
+                            loadDashboardData(); // Load all dashboard data
                         } else {
                             try {
                                 await signInAnonymously(auth);
                                 console.log("Signed in anonymously.");
-                                loadMembers(); // Muat data anggota setelah sign-in anonim berhasil
+                                loadDashboardData(); // Load all dashboard data after anonymous sign-in
                             } catch (error) {
                                 console.error("Anonymous sign-in failed:", error.message);
                                 document.getElementById('members-list').innerHTML = `<p class="text-center text-red-500 col-span-full">Gagal login untuk memuat data: ${error.message}<br>Harap pastikan "Anonymous" Sign-in Provider diaktifkan di Firebase Authentication Anda.</p>`;
@@ -386,7 +462,14 @@
             }
         }
 
-        // Fungsi untuk logout
+        // Load all dashboard data (members, statistics, etc.)
+        async function loadDashboardData() {
+            loadMembers();
+            updateStatistics();
+            // Add other data loading functions here if needed
+        }
+
+        // Function to handle logout
         async function handleLogout() {
             if (!auth) {
                 console.error("Auth is not initialized.");
@@ -394,14 +477,35 @@
             }
             try {
                 await signOut(auth);
-                window.location.href = window.location.origin + '/login.html'; // Redirect ke halaman login setelah logout
+                window.location.href = window.location.origin + '/login.html'; // Redirect to login page after logout
             } catch (error) {
                 console.error("Error signing out:", error);
+                // Using alert temporarily, can be replaced with custom modal
                 alert("Gagal logout. Silakan coba lagi.");
             }
         }
 
-        // Fungsi untuk memuat data anggota dari Firestore
+        // Function to update statistics
+        async function updateStatistics() {
+            if (!firebaseInitialized || !db) {
+                console.error("Firebase not initialized for statistics.");
+                document.getElementById('total-members').textContent = 'Error';
+                document.getElementById('total-dojos').textContent = 'Error';
+                return;
+            }
+            try {
+                const membersSnapshot = await getDocs(collection(db, membersCollectionPath));
+                const dojosSnapshot = await getDocs(collection(db, dojosCollectionPath));
+                document.getElementById('total-members').textContent = membersSnapshot.size;
+                document.getElementById('total-dojos').textContent = dojosSnapshot.size;
+            } catch (error) {
+                console.error("Error fetching statistics:", error);
+                document.getElementById('total-members').textContent = 'Error';
+                document.getElementById('total-dojos').textContent = 'Error';
+            }
+        }
+
+        // Function to load member data from Firestore
         async function loadMembers() {
             const membersListDiv = document.getElementById('members-list');
             membersListDiv.innerHTML = '<p class="text-center text-gray-500 col-span-full">Memuat data anggota...</p>';
@@ -419,7 +523,7 @@
                 } else {
                     querySnapshot.forEach((docItem) => {
                         const member = docItem.data();
-                        const memberId = docItem.id; // Dapatkan ID dokumen
+                        const memberId = docItem.id; // Get document ID
 
                         membersHtml += `
                             <div class="member-card flex flex-col items-center text-center">
@@ -487,71 +591,161 @@
             }
         }
 
-        // Fungsi untuk menampilkan modal konfirmasi hapus
+        // Function to show confirm delete modal
         function showConfirmDeleteModal(memberId) {
             const confirmModal = document.getElementById('confirm-delete-modal');
             const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
             const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
 
-            confirmModal.classList.add('active'); // Tampilkan modal
+            confirmModal.classList.add('active'); // Show modal
 
             confirmDeleteBtn.onclick = async () => {
                 try {
                     await deleteDoc(doc(db, membersCollectionPath, memberId));
-                    confirmModal.classList.remove('active'); // Sembunyikan modal
-                    loadMembers(); // Muat ulang daftar anggota
-                    alert("Anggota berhasil dihapus."); // Menggunakan alert sementara, bisa diganti dengan modal custom
+                    confirmModal.classList.remove('active'); // Hide modal
+                    loadMembers(); // Reload member list
+                    updateStatistics(); // Update statistics after deletion
+                    // Using alert temporarily, can be replaced with custom modal
+                    alert("Anggota berhasil dihapus."); 
                 } catch (error) {
                     console.error("Error deleting member:", error);
                     confirmModal.classList.remove('active');
-                    alert(`Gagal menghapus anggota: ${error.message}`); // Menggunakan alert sementara
+                    // Using alert temporarily
+                    alert(`Gagal menghapus anggota: ${error.message}`); 
                 }
             };
 
             cancelDeleteBtn.onclick = () => {
-                confirmModal.classList.remove('active'); // Sembunyikan modal
+                confirmModal.classList.remove('active'); // Hide modal
             };
         }
 
-        // Fungsi untuk menampilkan modal pratinjau ID Card - Reverted to a simpler version
+        // Function to show Add Dojo modal
+        function showAddDojoModal() {
+            const addDojoModal = document.getElementById('add-dojo-modal');
+            addDojoModal.classList.add('active');
+            // Clear form fields
+            document.getElementById('dojo-name').value = '';
+            document.getElementById('dojo-trainer').value = '';
+            document.getElementById('dojo-contact').value = '';
+            document.getElementById('dojo-address').value = '';
+            document.getElementById('dojo-schedule').value = '';
+            document.getElementById('dojo-city').value = '';
+            document.getElementById('dojo-image').value = '';
+            document.getElementById('add-dojo-message').textContent = '';
+        }
+
+        // Function to handle Add Dojo submission
+        async function handleAddDojo(event) {
+            event.preventDefault();
+            const dojoName = document.getElementById('dojo-name').value;
+            const dojoTrainer = document.getElementById('dojo-trainer').value;
+            const dojoContact = document.getElementById('dojo-contact').value;
+            const dojoAddress = document.getElementById('dojo-address').value;
+            const dojoSchedule = document.getElementById('dojo-schedule').value;
+            const dojoCity = document.getElementById('dojo-city').value;
+            const dojoImage = document.getElementById('dojo-image').value; // Assuming this is a URL
+
+            const addDojoMessageDiv = document.getElementById('add-dojo-message');
+            addDojoMessageDiv.textContent = '';
+            addDojoMessageDiv.classList.remove('text-green-500', 'text-red-500');
+
+            if (!firebaseInitialized || !db) {
+                addDojoMessageDiv.textContent = 'Firebase belum terinisialisasi. Coba lagi.';
+                addDojoMessageDiv.classList.add('text-red-500');
+                return;
+            }
+
+            try {
+                await addDoc(collection(db, dojosCollectionPath), {
+                    name: dojoName,
+                    trainer: dojoTrainer,
+                    contact: dojoContact,
+                    address: dojoAddress,
+                    schedule: dojoSchedule,
+                    city: dojoCity,
+                    image: dojoImage
+                });
+                addDojoMessageDiv.textContent = 'Dojo berhasil ditambahkan!';
+                addDojoMessageDiv.classList.add('text-green-500');
+                updateStatistics(); // Update statistics after adding dojo
+                setTimeout(() => {
+                    document.getElementById('add-dojo-modal').classList.remove('active');
+                }, 1500); // Close modal after 1.5 seconds
+            } catch (error) {
+                console.error("Error adding dojo:", error);
+                addDojoMessageDiv.textContent = `Gagal menambahkan dojo: ${error.message}`;
+                addDojoMessageDiv.classList.add('text-red-500');
+            }
+        }
+
+        // Function to show ID Card preview modal (with A5 professional styling)
         async function showIdCardPreviewModal(memberData) {
             const previewModalOverlay = document.getElementById('id-card-preview-modal-overlay');
             const previewIdCardArea = document.getElementById('id-card-preview-content'); 
 
-            // Reverted photo and name size/style
-            document.getElementById('preview-id-card-photo').src = memberData.photoUrl || 'https://placehold.co/100x100/CCCCCC/000000?text=Foto';
-            document.getElementById('preview-id-card-name').textContent = memberData.name; // Not necessarily uppercase now
+            // Populate the preview ID card area with A5 professional styles
+            document.getElementById('preview-id-card-photo').src = memberData.photoUrl || 'https://placehold.co/200x200/CCCCCC/000000?text=Foto+Anggota';
+            document.getElementById('preview-id-card-name').textContent = memberData.name.toUpperCase();
             
-            // Reverted to simpler detail display, not a table
-            previewIdCardArea.querySelector('.id-card-content').innerHTML = `
-                <img id="preview-id-card-photo" src="${memberData.photoUrl || 'https://placehold.co/100x100/CCCCCC/000000?text=Foto'}" alt="Foto Anggota" class="member-photo">
-                <p class="font-bold text-xl mb-2 name-text" id="preview-id-card-name">${memberData.name || 'Nama Tidak Tersedia'}</p>
-                <div class="text-sm text-gray-700 text-center space-y-1 px-4">
-                    <p class="detail-line">TTL: ${memberData.placeOfBirth || 'N/A'}, ${memberData.dateOfBirth || 'N/A'}</p>
-                    <p class="detail-line">Sabuk: ${memberData.beltLevel || 'N/A'}</p>
-                    <p class="detail-line">Dojo: ${memberData.dojoName || 'N/A'}</p>
-                    <p class="detail-line">Cabang: ${memberData.city || 'N/A'}</p>
-                </div>
-                <div class="barcode-area">
-                    <canvas id="id-card-preview-qrcode"></canvas>
-                    <p class="text-xs text-gray-600 mt-2">Scan untuk Kehadiran</p>
-                </div>
-            `;
+            // Populate the detail table
+            const detailTableBody = document.getElementById('preview-id-card-detail-table-body');
+            // Ensure the table exists before populating, create if necessary
+            if (!detailTableBody) {
+                // If this happens, it means the structure inside id-card-content was not ready.
+                // Re-render the full ID card content structure.
+                previewIdCardArea.innerHTML = `
+                    <div class="id-card-header flex items-center justify-center p-4">
+                        <img src="img/logo-ksk.png" alt="Logo KEI SHIN KAN" class="h-12 w-12 rounded-full object-cover mr-4">
+                        <h4 class="text-3xl font-bold text-white">KEI SHIN KAN</h4>
+                    </div>
+                    <div class="id-card-content">
+                        <img id="preview-id-card-photo" src="" alt="Foto Anggota" class="member-photo">
+                        <p class="font-bold text-xl mb-2 name-text" id="preview-id-card-name"></p>
+                        
+                        <table class="detail-table">
+                            <tbody id="preview-id-card-detail-table-body">
+                                <!-- Detail will be filled by JavaScript -->
+                            </tbody>
+                        </table>
 
-            // Re-get elements after innerHTML update
-            const newPhotoElement = previewIdCardArea.querySelector('#preview-id-card-photo');
-            const newNameElement = previewIdCardArea.querySelector('#preview-id-card-name');
-            const newQrcodeCanvas = previewIdCardArea.querySelector('#id-card-preview-qrcode');
+                        <div class="barcode-area">
+                            <canvas id="id-card-preview-qrcode"></canvas>
+                            <p class="text-xs text-gray-600 mt-2">Scan untuk Kehadiran</p>
+                        </div>
+                    </div>
+                    <div class="id-card-footer">
+                        <p>&copy; 2025 KEI SHIN KAN Jawa Barat</p>
+                        <p><i class="fas fa-map-marker-alt"></i> Sekretariat: Jl. Contoh Alamat No. 123, Bandung</p>
+                        <p><i class="fas fa-phone-alt"></i> (022) 1234-5678</p>
+                    </div>
+                `;
+                // Re-assign detailTableBody after innerHTML update
+                const newDetailTableBody = document.getElementById('preview-id-card-detail-table-body');
+                newDetailTableBody.innerHTML = `
+                    <tr><td>TTL</td><td>: ${memberData.placeOfBirth || 'N/A'}, ${memberData.dateOfBirth || 'N/A'}</td></tr>
+                    <tr><td>Sabuk</td><td>: ${memberData.beltLevel || 'N/A'}</td></tr>
+                    <tr><td>Dojo</td><td>: ${memberData.dojoName || 'N/A'}</td></tr>
+                    <tr><td>Cabang</td><td>: ${memberData.city || 'N/A'}</td></tr>
+                `;
+            } else {
+                // If detailTableBody exists, just update its content
+                detailTableBody.innerHTML = `
+                    <tr><td>TTL</td><td>: ${memberData.placeOfBirth || 'N/A'}, ${memberData.dateOfBirth || 'N/A'}</td></tr>
+                    <tr><td>Sabuk</td><td>: ${memberData.beltLevel || 'N/A'}</td></tr>
+                    <tr><td>Dojo</td><td>: ${memberData.dojoName || 'N/A'}</td></tr>
+                    <tr><td>Cabang</td><td>: ${memberData.city || 'N/A'}</td></tr>
+                `;
+            }
 
-            if (newPhotoElement) newPhotoElement.src = memberData.photoUrl || 'https://placehold.co/100x100/CCCCCC/000000?text=Foto';
-            if (newNameElement) newNameElement.textContent = memberData.name; // Keep as is
 
-            if (newQrcodeCanvas && typeof window.QRious !== 'undefined') {
-                newQrcodeCanvas.innerHTML = '';
+            const previewQrcodeCanvas = document.getElementById('id-card-preview-qrcode');
+            if (previewQrcodeCanvas && typeof window.QRious !== 'undefined') {
+                previewQrcodeCanvas.innerHTML = ''; // Clear previous QR
                 new window.QRious({
-                    element: newQrcodeCanvas,
-                    value: String(memberData.id),
-                    size: 128,
+                    element: previewQrcodeCanvas,
+                    value: String(memberData.id), // Use memberData.id here
+                    size: 128, // This size is for QRious internal rendering, not CSS size
                     foreground: '#000000',
                     background: '#ffffff',
                     level: 'H'
@@ -562,12 +756,13 @@
 
             previewModalOverlay.classList.add('active');
 
+            // Attach event listeners for print/download buttons inside the modal
             document.getElementById('modal-print-id-card-btn').onclick = () => printIdCardFromPreview(previewIdCardArea);
             document.getElementById('modal-download-id-card-btn').onclick = () => downloadIdCardFromPreview(previewIdCardArea, memberData.name);
             document.getElementById('close-id-card-preview-modal').onclick = () => previewModalOverlay.classList.remove('active');
         }
 
-        // Fungsi untuk mencetak ID Card dari modal pratinjau
+        // Function to print ID Card from preview modal
         async function printIdCardFromPreview(elementToPrint) {
             const modalActions = document.querySelector('#id-card-preview-modal-overlay .modal-actions');
             const overlay = document.getElementById('id-card-preview-modal-overlay');
@@ -589,7 +784,7 @@
             }, 500);
         }
 
-        // Fungsi untuk mengunduh ID Card sebagai gambar dari modal pratinjau
+        // Function to download ID Card as an image from preview modal
         async function downloadIdCardFromPreview(elementToCapture, memberName) {
             try {
                 const imgElements = elementToCapture.querySelectorAll('img');
@@ -617,26 +812,35 @@
                 link.click();
                 document.body.removeChild(link);
 
-                console.log("ID Card pratinjau berhasil diunduh.");
+                console.log("ID Card preview downloaded successfully.");
             } catch (error) {
                 console.error("Error downloading ID Card preview:", error);
-                // Menggunakan alert sementara, bisa diganti dengan modal custom
-                alert("Gagal mengunduh ID Card pratinjau. Pastikan semua gambar memiliki CORS yang diizinkan atau coba lagi.");
+                // Using alert temporarily, can be replaced with custom modal
+                alert("Failed to download ID Card preview. Ensure all images have allowed CORS or try again.");
             }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             initializeFirebaseAndAuth();
             document.getElementById('logout-button').addEventListener('click', handleLogout);
+
+            // Add event listener for Add Dojo button
+            document.getElementById('add-dojo-button').addEventListener('click', showAddDojoModal);
+            // Add event listener for Add Dojo form submission
+            document.getElementById('add-dojo-form').addEventListener('submit', handleAddDojo);
+            // Add event listener for Close Add Dojo modal button
+            document.getElementById('close-add-dojo-modal').addEventListener('click', () => {
+                document.getElementById('add-dojo-modal').classList.remove('active');
+            });
         });
     </script>
 </head>
 <body class="bg-gray-100 text-secondary font-inter min-h-screen flex flex-col">
 
-    <!-- Navigasi Bar -->
+    <!-- Navigation Bar -->
     <nav class="w-full bg-white shadow-lg py-4 z-50 rounded-b-lg">
         <div class="container mx-auto flex justify-between items-center px-4">
-            <!-- Logo Klub -->
+            <!-- Club Logo -->
             <a href="index.html" class="flex items-center space-x-2">
                 <img src="img/logo-ksk.png" alt="Logo KEI SHIN KAN" class="h-12 w-12 rounded-full object-cover mr-4">
                 <span class="text-xl font-bold text-primary">KEI SHIN KAN</span>
@@ -648,18 +852,60 @@
         </div>
     </nav>
 
-    <!-- Konten Dashboard -->
+    <!-- Dashboard Content -->
     <main class="flex-grow p-4">
-        <section class="member-list-container">
-            <h2 class="text-4xl font-bold text-center text-primary mb-8">Daftar Anggota</h2>
+        <section class="dashboard-container">
+            <h2 class="text-4xl font-bold text-center text-primary mb-8">Dashboard Admin KEI SHIN KAN</h2>
+
+            <!-- Statistik Section -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="section-card">
+                    <h3 class="text-2xl font-bold text-secondary mb-4">Statistik Anggota</h3>
+                    <p class="text-5xl font-extrabold text-accent" id="total-members">0</p>
+                    <p class="text-lg text-gray-600 mt-2">Total Anggota Terdaftar</p>
+                </div>
+                <div class="section-card">
+                    <h3 class="text-2xl font-bold text-secondary mb-4">Statistik Dojo</h3>
+                    <p class="text-5xl font-extrabold text-accent" id="total-dojos">0</p>
+                    <p class="text-lg text-gray-600 mt-2">Total Dojo Aktif</p>
+                </div>
+            </div>
+
+            <!-- Management Actions Section -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="section-card">
+                    <h3 class="text-2xl font-bold text-secondary mb-4">Manajemen Anggota</h3>
+                    <p class="text-gray-700 mb-6 text-center">Kelola data anggota, tambahkan, edit, atau hapus.</p>
+                    <a href="pendaftaran.html" class="bg-blue-500 text-white px-6 py-3 rounded-full font-bold hover:bg-blue-600 transition duration-300 shadow-md">
+                        <i class="fas fa-user-plus mr-2"></i>Tambah Anggota Baru
+                    </a>
+                </div>
+                <div class="section-card">
+                    <h3 class="text-2xl font-bold text-secondary mb-4">Manajemen Dojo</h3>
+                    <p class="text-gray-700 mb-6 text-center">Kelola informasi dojo dan tempat latihan.</p>
+                    <button id="add-dojo-button" class="bg-purple-500 text-white px-6 py-3 rounded-full font-bold hover:bg-purple-600 transition duration-300 shadow-md">
+                        <i class="fas fa-building mr-2"></i>Tambah Dojo Baru
+                    </button>
+                </div>
+                <div class="section-card">
+                    <h3 class="text-2xl font-bold text-secondary mb-4">Portal Ujian</h3>
+                    <p class="text-gray-700 mb-6 text-center">Akses sistem ujian dan kelola nilai anggota.</p>
+                    <a href="#" class="bg-orange-500 text-white px-6 py-3 rounded-full font-bold hover:bg-orange-600 transition duration-300 shadow-md">
+                        <i class="fas fa-scroll mr-2"></i>Akses Portal Ujian
+                    </a>
+                </div>
+            </div>
+
+            <!-- Member List Section -->
+            <h2 class="text-3xl font-bold text-center text-primary mb-6 mt-12">Daftar Anggota</h2>
             <div id="members-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Data anggota akan dimuat di sini oleh JavaScript -->
+                <!-- Member data will be loaded here by JavaScript -->
                 <p class="text-center text-gray-500 col-span-full">Memuat data anggota...</p>
             </div>
         </section>
     </main>
 
-    <!-- ID Card Preview Modal (Copied from member_detail.html) -->
+    <!-- ID Card Preview Modal (A5 Professional Design) -->
     <div id="id-card-preview-modal-overlay" class="modal-overlay">
         <div class="modal-content">
             <div id="id-card-preview-content" class="id-card-content-wrapper">
@@ -668,7 +914,19 @@
                     <h4 class="text-3xl font-bold text-white">KEI SHIN KAN</h4>
                 </div>
                 <div class="id-card-content">
-                    <!-- Content populated by JS -->
+                    <img id="preview-id-card-photo" src="" alt="Foto Anggota" class="member-photo">
+                    <p class="font-bold text-xl mb-2 name-text" id="preview-id-card-name"></p>
+                    
+                    <table class="detail-table">
+                        <tbody id="preview-id-card-detail-table-body">
+                            <!-- Detail will be filled by JavaScript -->
+                        </tbody>
+                    </table>
+
+                    <div class="barcode-area">
+                        <canvas id="id-card-preview-qrcode"></canvas>
+                        <p class="text-xs text-gray-600 mt-2">Scan untuk Kehadiran</p>
+                    </div>
                 </div>
                 <div class="id-card-footer">
                     <p>&copy; 2025 KEI SHIN KAN Jawa Barat</p>
@@ -691,6 +949,43 @@
         </div>
     </div>
 
+    <!-- Add Dojo Modal -->
+    <div id="add-dojo-modal" class="modal-overlay">
+        <div class="modal-content !max-w-md !py-8 !px-6">
+            <h3 class="text-2xl font-bold text-primary mb-6">Tambah Dojo Baru</h3>
+            <form id="add-dojo-form" class="space-y-4">
+                <div>
+                    <input type="text" id="dojo-name" placeholder="Nama Dojo" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                </div>
+                <div>
+                    <input type="text" id="dojo-trainer" placeholder="Nama Pelatih" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                </div>
+                <div>
+                    <input type="text" id="dojo-contact" placeholder="Kontak Pelatih (Opsional)" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                <div>
+                    <input type="text" id="dojo-address" placeholder="Alamat Dojo" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                </div>
+                <div>
+                    <input type="text" id="dojo-schedule" placeholder="Jadwal Latihan (misal: Selasa & Kamis, 16:00-18:00)" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                </div>
+                <div>
+                    <input type="text" id="dojo-city" placeholder="Kota/Kabupaten" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                </div>
+                 <div>
+                    <input type="url" id="dojo-image" placeholder="URL Gambar Dojo (Opsional)" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                <button type="submit" class="w-full bg-primary text-white px-6 py-3 rounded-full font-bold hover:bg-red-700 transition duration-300 shadow-md">
+                    Tambah Dojo
+                </button>
+            </form>
+            <div id="add-dojo-message" class="mt-4 text-center text-lg font-semibold"></div>
+            <button id="close-add-dojo-modal" class="mt-4 bg-gray-400 text-white px-6 py-3 rounded-full font-bold hover:bg-gray-500 transition duration-300">
+                Tutup
+            </button>
+        </div>
+    </div>
+
     <!-- Confirm Delete Modal -->
     <div id="confirm-delete-modal" class="modal-overlay">
         <div class="modal-content !max-w-sm !py-8 !px-6">
@@ -708,7 +1003,7 @@
     </div>
 
 
-    <!-- Footer Utama -->
+    <!-- Main Footer -->
     <footer class="bg-gray-900 text-white py-8 rounded-t-lg mt-auto">
         <div class="container mx-auto text-center px-4">
             <p class="mb-2">&copy; 2025 KEI SHIN KAN Jawa Barat. Hak Cipta Dilindungi.</p>
