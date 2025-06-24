@@ -57,11 +57,20 @@
             border-radius: 0.5rem;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             text-align: center;
-            max-width: 400px;
+            /* Max width for smaller modals (confirmation, ID card) */
+            max-width: 400px; 
             width: 90%;
             transform: translateY(-20px);
             transition: transform 0.3s ease-in-out;
+            overflow-y: auto; /* Enable scrolling for content if it overflows */
+            max-height: 90vh; /* Limit height to viewport height */
         }
+        /* Specific styles for larger modals like edit forms */
+        #edit-dojo-modal-overlay .modal-content,
+        #edit-member-modal-overlay .modal-content {
+            max-width: 700px; /* Increased max-width for edit forms */
+        }
+
         .modal-overlay.active .modal-content {
             transform: translateY(0);
         }
@@ -737,8 +746,8 @@
             console.log("Memuat anggota..."); // Debugging
             const membersListDiv = document.getElementById('current-members-list');
             membersListDiv.innerHTML = '<p class="text-center text-gray-500">Memuat anggota...</p>';
-            const dojoSelect = document.getElementById('member-dojo-select');
-            dojoSelect.innerHTML = '<option value="">Pilih Dojo</option>'; // Reset options
+            const addMemberDojoSelect = document.getElementById('member-dojo-select'); // Moved here
+            addMemberDojoSelect.innerHTML = '<option value="">Pilih Dojo</option>'; // Reset options for add form
 
             if (!firebaseInitialized || !db) {
                 membersListDiv.innerHTML = '<p class="text-center text-red-500">Gagal memuat anggota: Firebase belum terinisialisasi.</p>';
@@ -756,11 +765,10 @@
                 }
                 
                 // Populate dojo dropdowns for add and edit forms
-                const addMemberDojoSelect = document.getElementById('member-dojo-select');
                 const editMemberDojoSelect = document.getElementById('edit-member-dojo-select');
                 
-                addMemberDojoSelect.innerHTML = '<option value="">Pilih Dojo</option>';
-                editMemberDojoSelect.innerHTML = '<option value="">Pilih Dojo</option>';
+                addMemberDojoSelect.innerHTML = '<option value="">Pilih Dojo</option>'; // Ensure it's reset
+                editMemberDojoSelect.innerHTML = '<option value="">Pilih Dojo</option>'; // Ensure it's reset
 
                 allDojosData.forEach(d => {
                     const optionAdd = document.createElement('option');
@@ -776,7 +784,7 @@
 
 
                 // Then, load members
-                const membersSnapshot = await getDocs(collection(db, membersCollectionPath));
+                const membersSnapshot = await getDocs(collection(db, membersCollectionPath)); // Correct variable name
                 allMembersData = [];
                 membersListDiv.innerHTML = '';
 
@@ -785,7 +793,7 @@
                     return;
                 }
 
-                querySnapshot.forEach(m => {
+                membersSnapshot.forEach(m => { // Changed querySnapshot to membersSnapshot
                     allMembersData.push({ id: m.id, ...m.data() });
                     const member = m.data();
                     const memberCard = `
