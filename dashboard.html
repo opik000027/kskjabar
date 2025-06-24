@@ -737,7 +737,8 @@
                     return;
                 }
 
-                await addDoc(collection(db, membersCollectionPath), {
+                // Firestore will automatically generate a unique ID for the new document
+                const newMemberDocRef = await addDoc(collection(db, membersCollectionPath), {
                     name: memberName,
                     placeOfBirth: memberPlaceOfBirth,
                     dateOfBirth: memberDateOfBirth,
@@ -751,7 +752,10 @@
                     createdAt: new Date(),
                     createdBy: currentUserId
                 });
-                memberMessageDiv.textContent = 'Anggota berhasil ditambahkan!';
+                
+                const newMemberId = newMemberDocRef.id; // Get the auto-generated ID
+
+                memberMessageDiv.textContent = `Anggota berhasil ditambahkan! Nomor Anggota: ${newMemberId}`;
                 memberMessageDiv.classList.add('text-green-500');
                 document.getElementById('add-member-form').reset();
                 loadMembers();
@@ -854,6 +858,7 @@
                             <p class="text-sm text-gray-700"><strong>Sabuk:</strong> ${member.beltLevel || 'N/A'}</p>
                             <p class="text-sm text-gray-700"><strong>Dojo:</strong> ${member.dojoName || 'N/A'}</p>
                             <p class="text-sm text-gray-700"><strong>Cabang:</strong> ${member.city || 'N/A'}</p>
+                            <p class="text-sm text-gray-700"><strong>No. Anggota:</strong> ${m.id || 'N/A'}</p> <!-- Display Member ID -->
                             <div class="mt-2 text-sm">
                                 <a href="${member.birthCertUrl}" target="_blank" class="text-blue-500 hover:underline"><i class="fas fa-file-alt mr-1"></i>Akta Kelahiran</a><br>
                                 <a href="${member.beltCertUrl}" target="_blank" class="text-blue-500 hover:underline"><i class="fas fa-certificate mr-1"></i>Ijazah Sabuk</a><br>
@@ -927,8 +932,9 @@
             if (qrcodeContainer) {
                 qrcodeContainer.innerHTML = ''; // Clear previous QR code
                 try {
+                    // Pastikan memberId adalah string
                     new QRCode(qrcodeContainer, {
-                        text: memberId, // Data to encode in QR code
+                        text: String(memberId), // Data to encode in QR code
                         width: 128,      // Width of the QR code
                         height: 128,     // Height of the QR code
                         colorDark : "#000000",
@@ -1418,7 +1424,7 @@
                         </div>
                         <div>
                             <label for="dojo-contact" class="block text-gray-700 text-sm font-bold mb-2">Kontak Pelatih:</label>
-                            <input type="tel" id="dojo-contact" placeholder="Contoh: 0812-3456-7890" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                            <input type="tel" id="dojo-contact" placeholder="Contoh: 0812-3456-7890" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-2 focus:ring-primary" required>
                         </div>
                         <div>
                             <label for="dojo-city-select" class="block text-gray-700 text-sm font-bold mb-2">Kota/Kabupaten (Cabang):</label>
@@ -1430,7 +1436,6 @@
                             <label for="dojo-image-url" class="block text-gray-700 text-sm font-bold mb-2">URL Gambar/Logo Dojo:</label>
                             <input type="url" id="dojo-image-url" placeholder="Contoh: https://example.com/dojo-logo.png" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
                             <p class="text-sm text-gray-500 mt-1">Tempelkan URL gambar publik untuk logo dojo.</p>
-                            <!-- image-upload-status dihapus -->
                         </div>
                         <button type="submit" id="add-dojo-button" class="w-full bg-primary text-white px-6 py-3 rounded-full font-bold hover:bg-red-700 transition duration-300 shadow-md">
                             Tambahkan Dojo
