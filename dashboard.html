@@ -85,7 +85,7 @@
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
         // Import Firestore functions
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
-        // Firebase Storage imports removed
+        // Firebase Storage imports removed (sesuai permintaan untuk menghindari upgrade billing)
 
         // Konfigurasi Firebase Anda.
         const firebaseConfig = {
@@ -101,7 +101,6 @@
         let app;
         let auth;
         let db; // Instansi Firestore
-        // let storage; // Firebase Storage instansi dihapus
         let firebaseInitialized = false;
         let currentUserId = null; // Untuk menyimpan UID pengguna yang diautentikasi
 
@@ -143,6 +142,13 @@
             "Kota Tasikmalaya"
         ].sort(); // Diurutkan secara alfabetis
 
+        // Opsi Tingkat Sabuk untuk dropdown anggota
+        const beltLevels = [
+            "Sabuk Putih", "Sabuk Kuning", "Sabuk Hijau", "Sabuk Biru", 
+            "Sabuk Coklat KYU3", "Sabuk Coklat KYU2", "Sabuk Coklat KYU1", 
+            "DAN 1", "DAN 2", "DAN 3", "DAN 4", "DAN 5", "DAN 6"
+        ];
+
 
         // Fungsi untuk menginisialisasi Firebase dan memverifikasi status login
         async function initializeFirebaseAndAuth() {
@@ -151,7 +157,6 @@
                     app = initializeApp(firebaseConfig);
                     auth = getAuth(app);
                     db = getFirestore(app);
-                    // storage = getStorage(app); // Inisialisasi Firebase Storage dihapus
                     
                     firebaseInitialized = true;
                     console.log("Firebase Auth initialized successfully.");
@@ -166,7 +171,8 @@
                             console.log("User is logged in:", user.email);
                             
                             // Muat semua data yang diperlukan
-                            populateCityDropdown(); // Isi dropdown kota
+                            populateCityDropdown(); // Isi dropdown kota (untuk Dojo)
+                            populateBeltLevelDropdown(); // Isi dropdown sabuk (untuk Anggota)
                             loadDojos();
                             loadMembers();
                             loadExamPortalStatus();
@@ -245,6 +251,19 @@
                 dojoCitySelect.appendChild(option);
             });
         }
+
+        // --- Fungsi untuk mengisi dropdown tingkat sabuk ---
+        function populateBeltLevelDropdown() {
+            const memberBeltLevelSelect = document.getElementById('member-belt-level');
+            memberBeltLevelSelect.innerHTML = '<option value="">Pilih Tingkat Sabuk</option>'; // Default option
+            beltLevels.forEach(level => {
+                const option = document.createElement('option');
+                option.value = level;
+                option.textContent = level;
+                memberBeltLevelSelect.appendChild(option);
+            });
+        }
+
 
         // Fungsi uploadImage dihapus karena tidak lagi menggunakan Firebase Storage
         // --- Fungsi Manajemen Dojo ---
@@ -420,8 +439,14 @@
         async function addMember(event) {
             event.preventDefault();
             const memberName = document.getElementById('member-name').value;
-            const memberEmail = document.getElementById('member-email').value;
+            const memberPlaceOfBirth = document.getElementById('member-place-of-birth').value;
+            const memberDateOfBirth = document.getElementById('member-date-of-birth').value;
+            const memberBeltLevel = document.getElementById('member-belt-level').value;
+            const memberBirthCertUrl = document.getElementById('member-birth-cert-url').value;
+            const memberBeltCertUrl = document.getElementById('member-belt-cert-url').value;
+            const memberPhotoUrl = document.getElementById('member-photo-url').value;
             const memberDojoId = document.getElementById('member-dojo-select').value;
+            
             const memberMessageDiv = document.getElementById('member-message');
 
             memberMessageDiv.textContent = '';
@@ -432,8 +457,8 @@
                 memberMessageDiv.classList.add('text-red-500');
                 return;
             }
-            if (!memberName || !memberEmail || !memberDojoId) {
-                memberMessageDiv.textContent = 'Nama, Email, dan Dojo harus diisi.';
+            if (!memberName || !memberPlaceOfBirth || !memberDateOfBirth || !memberBeltLevel || !memberBirthCertUrl || !memberBeltCertUrl || !memberPhotoUrl || !memberDojoId) {
+                memberMessageDiv.textContent = 'Semua kolom harus diisi.';
                 memberMessageDiv.classList.add('text-red-500');
                 return;
             }
@@ -449,7 +474,12 @@
 
                 await addDoc(collection(db, membersCollectionPath), {
                     name: memberName,
-                    email: memberEmail,
+                    placeOfBirth: memberPlaceOfBirth,
+                    dateOfBirth: memberDateOfBirth,
+                    beltLevel: memberBeltLevel,
+                    birthCertUrl: memberBirthCertUrl,
+                    beltCertUrl: memberBeltCertUrl,
+                    photoUrl: memberPhotoUrl,
                     dojoId: memberDojoId,
                     dojoName: selectedDojo.name,
                     city: selectedDojo.city, // Store city for easier statistics
@@ -537,8 +567,15 @@
                         <div class="bg-gray-50 p-4 rounded-lg shadow-md border border-gray-200">
                             <h4 class="text-xl font-bold text-primary mb-2">${member.name}</h4>
                             <p class="text-sm text-gray-700"><strong>Email:</strong> ${member.email}</p>
+                            <p class="text-sm text-gray-700"><strong>TTL:</strong> ${member.placeOfBirth}, ${member.dateOfBirth}</p>
+                            <p class="text-sm text-gray-700"><strong>Sabuk:</strong> ${member.beltLevel}</p>
                             <p class="text-sm text-gray-700"><strong>Dojo:</strong> ${member.dojoName || 'N/A'}</p>
                             <p class="text-sm text-gray-700"><strong>Cabang:</strong> ${member.city || 'N/A'}</p>
+                            <div class="mt-2 text-sm">
+                                <a href="${member.birthCertUrl}" target="_blank" class="text-blue-500 hover:underline"><i class="fas fa-file-alt mr-1"></i>Akta Kelahiran</a><br>
+                                <a href="${member.beltCertUrl}" target="_blank" class="text-blue-500 hover:underline"><i class="fas fa-certificate mr-1"></i>Ijazah Sabuk</a><br>
+                                <a href="${member.photoUrl}" target="_blank" class="text-blue-500 hover:underline"><i class="fas fa-image mr-1"></i>Foto Anggota</a>
+                            </div>
                             <div class="mt-4 flex justify-end space-x-2">
                                 <button class="bg-red-500 text-white px-3 py-1 rounded-md text-sm hover:bg-red-600" onclick="deleteMember('${m.id}', '${member.name}')">Hapus</button>
                             </div>
@@ -870,12 +907,37 @@
                     <h4 class="text-xl font-bold text-primary mb-4 text-center">Tambah Anggota Baru</h4>
                     <form id="add-member-form" class="space-y-4">
                         <div>
-                            <label for="member-name" class="block text-gray-700 text-sm font-bold mb-2">Nama Lengkap:</label>
+                            <label for="member-name" class="block text-gray-700 text-sm font-bold mb-2">Nama Lengkap Anggota:</label>
                             <input type="text" id="member-name" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
                         </div>
                         <div>
-                            <label for="member-email" class="block text-gray-700 text-sm font-bold mb-2">Email Anggota:</label>
-                            <input type="email" id="member-email" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                            <label for="member-place-of-birth" class="block text-gray-700 text-sm font-bold mb-2">Tempat Lahir Anggota:</label>
+                            <input type="text" id="member-place-of-birth" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        </div>
+                        <div>
+                            <label for="member-date-of-birth" class="block text-gray-700 text-sm font-bold mb-2">Tanggal Lahir Anggota:</label>
+                            <input type="date" id="member-date-of-birth" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        </div>
+                        <div>
+                            <label for="member-belt-level" class="block text-gray-700 text-sm font-bold mb-2">Tingkat Sabuk Anggota:</label>
+                            <select id="member-belt-level" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                <option value="">Pilih Tingkat Sabuk</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="member-birth-cert-url" class="block text-gray-700 text-sm font-bold mb-2">URL Akta Kelahiran:</label>
+                            <input type="url" id="member-birth-cert-url" placeholder="Contoh: https://example.com/akta.pdf" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                            <p class="text-sm text-gray-500 mt-1">Tempelkan URL publik akta kelahiran.</p>
+                        </div>
+                        <div>
+                            <label for="member-belt-cert-url" class="block text-gray-700 text-sm font-bold mb-2">URL Ijazah Sabuk:</label>
+                            <input type="url" id="member-belt-cert-url" placeholder="Contoh: https://example.com/ijazah.pdf" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                            <p class="text-sm text-gray-500 mt-1">Tempelkan URL publik ijazah sabuk.</p>
+                        </div>
+                        <div>
+                            <label for="member-photo-url" class="block text-gray-700 text-sm font-bold mb-2">URL Foto Anggota:</label>
+                            <input type="url" id="member-photo-url" placeholder="Contoh: https://example.com/foto.jpg" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                            <p class="text-sm text-gray-500 mt-1">Tempelkan URL publik foto anggota.</p>
                         </div>
                         <div>
                             <label for="member-dojo-select" class="block text-gray-700 text-sm font-bold mb-2">Pilih Dojo:</label>
