@@ -205,15 +205,15 @@
                     const qrcodeContainer = document.getElementById('member-detail-qrcode');
                     if (qrcodeContainer) {
                         // Memeriksa apakah QRCode didefinisikan sebelum mencoba menggunakannya
-                        if (typeof QRCode !== 'undefined') {
+                        if (typeof window.QRCode !== 'undefined') { // Perbaikan di sini: menggunakan window.QRCode
                             qrcodeContainer.innerHTML = ''; // Hapus QR code sebelumnya
-                            new QRCode(qrcodeContainer, {
+                            new window.QRCode(qrcodeContainer, { // Perbaikan di sini: menggunakan window.QRCode
                                 text: String(memberId), // Data yang akan di-encode di QR code
                                 width: 150,      // Lebar QR code
                                 height: 150,     // Tinggi QR code
                                 colorDark : "#000000",
                                 colorLight : "#ffffff",
-                                correctLevel : QRCode.CorrectLevel.H
+                                correctLevel : window.QRCode.CorrectLevel.H // Menggunakan window.QRCode di sini juga
                             });
                             console.log("QR Code berhasil dibuat di member_detail.html.");
                         } else {
