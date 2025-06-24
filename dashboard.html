@@ -335,6 +335,16 @@
                 option.textContent = level;
                 memberBeltLevelSelect.appendChild(option);
             });
+
+            // Populate edit member belt level dropdown too
+            const editMemberBeltLevelSelect = document.getElementById('edit-member-belt-level');
+            editMemberBeltLevelSelect.innerHTML = '<option value="">Pilih Tingkat Sabuk</option>';
+            beltLevels.forEach(level => {
+                const option = document.createElement('option');
+                option.value = level;
+                option.textContent = level;
+                editMemberBeltLevelSelect.appendChild(option);
+            });
         }
 
 
@@ -461,6 +471,8 @@
             });
         }
 
+        let allDojos = []; // Global array to store dojo data with IDs
+
         // Fungsi untuk memuat dan menampilkan semua Dojo
         async function loadDojos() {
             const dojosListDiv = document.getElementById('current-dojos-list');
@@ -474,6 +486,7 @@
             try {
                 const querySnapshot = await getDocs(collection(db, dojosCollectionPath));
                 dojosListDiv.innerHTML = ''; // Bersihkan pesan pemuatan
+                allDojos = []; // Clear previous data
 
                 if (querySnapshot.empty) {
                     dojosListDiv.innerHTML = '<p class="text-center text-gray-600">Belum ada dojo yang ditambahkan.</p>';
@@ -482,7 +495,8 @@
 
                 querySnapshot.forEach((docItem) => {
                     const dojo = docItem.data();
-                    const dojoId = docItem.id; // Dapatkan ID dokumen untuk potensi edit/hapus
+                    const dojoId = docItem.id; 
+                    allDojos.push({ id: dojoId, ...dojo }); // Store dojo data with ID
                     const dojoCard = `
                         <div class="bg-gray-50 p-4 rounded-lg shadow-md border border-gray-200">
                             <img src="${dojo.image}" onerror="this.onerror=null;this.src='https://placehold.co/100x100/CCCCCC/000000?text=No+Image';" alt="Logo Dojo ${dojo.name}" class="h-16 w-16 rounded-full object-cover mx-auto mb-3">
@@ -493,8 +507,7 @@
                             <p class="text-sm text-gray-700"><strong>Jadwal:</strong> ${dojo.schedule}</p>
                             <p class="text-sm text-gray-700"><strong>Kontak:</strong> ${dojo.contact}</p>
                             <div class="mt-4 flex justify-end space-x-2">
-                                <!-- Tombol Edit (fungsionalitas nanti) -->
-                                <button class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-600">Edit</button>
+                                <button class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-600" onclick="editDojo('${dojoId}')"><i class="fas fa-edit mr-1"></i>Edit</button>
                                 <button class="bg-red-500 text-white px-3 py-1 rounded-md text-sm hover:bg-red-600" onclick="deleteDojo('${dojoId}', '${dojo.name}')">Hapus</button>
                             </div>
                         </div>
@@ -507,6 +520,114 @@
                 dojosListDiv.innerHTML = `<p class="text-center text-red-500">Gagal memuat dojo: ${error.message}</p>`;
             }
         }
+
+        // --- Fungsi untuk mengedit data Dojo ---
+        let currentEditingDojoId = null;
+
+        function closeEditDojoModal() {
+            document.getElementById('edit-dojo-modal-overlay').classList.remove('active');
+            document.getElementById('edit-dojo-form').reset();
+            currentEditingDojoId = null;
+        }
+
+        async function editDojo(dojoId) {
+            console.log("Mengedit Dojo dengan ID:", dojoId); // Debugging
+            const dojo = allDojos.find(d => d.id === dojoId);
+
+            if (!dojo) {
+                document.getElementById('admin-message').textContent = 'Dojo tidak ditemukan untuk diedit.';
+                document.getElementById('admin-message').classList.add('text-red-500');
+                return;
+            }
+
+            currentEditingDojoId = dojoId;
+
+            // Populate the edit form
+            document.getElementById('edit-dojo-name').value = dojo.name || '';
+            document.getElementById('edit-dojo-trainer').value = dojo.trainer || '';
+            document.getElementById('edit-dojo-address').value = dojo.address || '';
+            document.getElementById('edit-dojo-schedule').value = dojo.schedule || '';
+            document.getElementById('edit-dojo-contact').value = dojo.contact || '';
+            document.getElementById('edit-dojo-city-select').value = dojo.city || '';
+            document.getElementById('edit-dojo-image-url').value = dojo.image || '';
+
+            // Ensure city dropdown is populated for edit form
+            const editDojoCitySelect = document.getElementById('edit-dojo-city-select');
+            editDojoCitySelect.innerHTML = '<option value="">Pilih Kota/Kabupaten</option>';
+            cities.forEach(city => {
+                const option = document.createElement('option');
+                option.value = city;
+                option.textContent = city;
+                editDojoCitySelect.appendChild(option);
+            });
+            editDojoCitySelect.value = dojo.city || ''; // Set selected value
+
+            document.getElementById('edit-dojo-modal-overlay').classList.add('active');
+        }
+
+        async function handleEditDojo(event) {
+            event.preventDefault();
+
+            if (!currentEditingDojoId) {
+                document.getElementById('admin-message').textContent = 'Tidak ada dojo yang dipilih untuk diedit.';
+                document.getElementById('admin-message').classList.add('text-red-500');
+                return;
+            }
+
+            const dojoRef = doc(db, dojosCollectionPath, currentEditingDojoId);
+
+            const updatedName = document.getElementById('edit-dojo-name').value;
+            const updatedTrainer = document.getElementById('edit-dojo-trainer').value;
+            const updatedAddress = document.getElementById('edit-dojo-address').value;
+            const updatedSchedule = document.getElementById('edit-dojo-schedule').value;
+            const updatedContact = document.getElementById('edit-dojo-contact').value;
+            const updatedCity = document.getElementById('edit-dojo-city-select').value;
+            const updatedImageURL = document.getElementById('edit-dojo-image-url').value;
+            
+            const messageDiv = document.getElementById('admin-message');
+            const saveButton = document.getElementById('save-dojo-button');
+
+            messageDiv.textContent = '';
+            messageDiv.classList.remove('text-green-500', 'text-red-500');
+            saveButton.disabled = true;
+            saveButton.textContent = 'Menyimpan...';
+
+            if (!updatedName || !updatedTrainer || !updatedAddress || !updatedSchedule || !updatedContact || !updatedCity || !updatedImageURL) {
+                messageDiv.textContent = 'Semua kolom harus diisi.';
+                messageDiv.classList.add('text-red-500');
+                saveButton.disabled = false;
+                saveButton.textContent = 'Simpan Perubahan';
+                return;
+            }
+
+            try {
+                await updateDoc(dojoRef, {
+                    name: updatedName,
+                    trainer: updatedTrainer,
+                    address: updatedAddress,
+                    schedule: updatedSchedule,
+                    contact: updatedContact,
+                    city: updatedCity,
+                    image: updatedImageURL,
+                    updatedAt: new Date(),
+                    updatedBy: currentUserId
+                });
+
+                messageDiv.textContent = 'Data dojo berhasil diperbarui!';
+                messageDiv.classList.add('text-green-500');
+                closeEditDojoModal();
+                loadDojos(); // Muat ulang daftar dojo
+                generateStatistics();
+            } catch (error) {
+                console.error("Error updating dojo:", error);
+                messageDiv.textContent = `Gagal memperbarui dojo: ${error.message}`;
+                messageDiv.classList.add('text-red-500');
+            } finally {
+                saveButton.disabled = false;
+                saveButton.textContent = 'Simpan Perubahan';
+            }
+        }
+
 
         // --- Fungsi Manajemen Anggota ---
         async function addMember(event) {
@@ -601,6 +722,7 @@
         let allMembersData = []; // To store members data
 
         async function loadMembers() {
+            console.log("Memuat anggota..."); // Debugging
             const membersListDiv = document.getElementById('current-members-list');
             membersListDiv.innerHTML = '<p class="text-center text-gray-500">Memuat anggota...</p>';
             const dojoSelect = document.getElementById('member-dojo-select');
@@ -612,16 +734,34 @@
             }
 
             try {
-                // First, load dojos to populate the select dropdown
-                const dojosSnapshot = await getDocs(collection(db, dojosCollectionPath));
-                allDojosData = [];
-                dojosSnapshot.forEach(d => {
-                    allDojosData.push({ id: d.id, ...d.data() });
-                    const option = document.createElement('option');
-                    option.value = d.id;
-                    option.textContent = d.data().name;
-                    dojoSelect.appendChild(option);
+                // First, load dojos to populate the select dropdown (if not already loaded)
+                if (allDojosData.length === 0) { // Only load if empty
+                    const dojosSnapshot = await getDocs(collection(db, dojosCollectionPath));
+                    allDojosData = [];
+                    dojosSnapshot.forEach(d => {
+                        allDojosData.push({ id: d.id, ...d.data() });
+                    });
+                }
+                
+                // Populate dojo dropdowns for add and edit forms
+                const addMemberDojoSelect = document.getElementById('member-dojo-select');
+                const editMemberDojoSelect = document.getElementById('edit-member-dojo-select');
+                
+                addMemberDojoSelect.innerHTML = '<option value="">Pilih Dojo</option>';
+                editMemberDojoSelect.innerHTML = '<option value="">Pilih Dojo</option>';
+
+                allDojosData.forEach(d => {
+                    const optionAdd = document.createElement('option');
+                    optionAdd.value = d.id;
+                    optionAdd.textContent = d.name;
+                    addMemberDojoSelect.appendChild(optionAdd);
+
+                    const optionEdit = document.createElement('option');
+                    optionEdit.value = d.id;
+                    optionEdit.textContent = d.name;
+                    editMemberDojoSelect.appendChild(optionEdit);
                 });
+
 
                 // Then, load members
                 const membersSnapshot = await getDocs(collection(db, membersCollectionPath));
@@ -667,17 +807,17 @@
 
         // --- Fungsi untuk menghasilkan ID Card dan Barcode ---
         function generateIdCard(memberId) {
-            console.log("Generating ID Card for memberId:", memberId); // Debugging
+            console.log("Memulai generate ID Card untuk memberId:", memberId); // Debugging
             const member = allMembersData.find(m => m.id === memberId);
 
             if (!member) {
-                console.error("Member not found in allMembersData for ID:", memberId); // More specific error
+                console.error("Anggota tidak ditemukan di allMembersData untuk ID:", memberId); // Debugging
                 document.getElementById('admin-message').textContent = 'Anggota tidak ditemukan untuk membuat ID Card.';
                 document.getElementById('admin-message').classList.add('text-red-500');
                 return;
             }
 
-            console.log("Member data found:", member); // Debugging
+            console.log("Data anggota ditemukan:", member); // Debugging
 
             // Populate ID Card Modal
             document.getElementById('id-card-member-photo').src = member.photoUrl || 'https://placehold.co/100x100/CCCCCC/000000?text=Foto';
@@ -693,22 +833,22 @@
             if (barcodeSvg) { // Ensure element exists
                 barcodeSvg.innerHTML = ''; // Clear previous barcode
                 try {
-                    JsBarcode(barcodeSvg, member.id, {
+                    JsBarcode(barcodeSvg, memberId, {
                         format: "CODE128", // Atau EAN13, CODE39, dll.
                         lineColor: "#333",
                         width: 2,
                         height: 60,
                         displayValue: false // Tidak menampilkan teks ID di bawah barcode jika terlalu panjang
                     });
-                    console.log("Barcode generated successfully."); // Debugging
+                    console.log("Barcode berhasil dibuat."); // Debugging
                 } catch (barcodeError) {
-                    console.error("Error generating barcode:", barcodeError);
+                    console.error("Error saat membuat barcode:", barcodeError);
                     document.getElementById('admin-message').textContent = 'Gagal membuat barcode. Periksa konsol browser.';
                     document.getElementById('admin-message').classList.add('text-red-500');
                 }
             } else {
-                console.error("Barcode SVG element not found!");
-                document.getElementById('admin-message').textContent = 'Element barcode tidak ditemukan. Hubungi administrator.';
+                console.error("Elemen SVG barcode tidak ditemukan!");
+                document.getElementById('admin-message').textContent = 'Elemen barcode tidak ditemukan. Hubungi administrator.';
                 document.getElementById('admin-message').classList.add('text-red-500');
             }
 
@@ -716,9 +856,9 @@
             const idCardModalOverlay = document.getElementById('id-card-modal-overlay');
             if (idCardModalOverlay) {
                 idCardModalOverlay.classList.add('active');
-                console.log("ID Card modal activated."); // Debugging
+                console.log("Modal ID Card diaktifkan."); // Debugging
             } else {
-                console.error("ID Card modal overlay element not found!");
+                console.error("Elemen overlay modal ID Card tidak ditemukan!");
             }
         }
 
@@ -727,29 +867,30 @@
         }
 
         function printIdCard() {
-            const printContent = document.getElementById('id-card-modal-content');
-            // Menyimpan state asli dari body
-            const originalBodyContent = document.body.innerHTML;
-            
-            // Membuat konten khusus untuk pencetakan
-            const printWindow = window.open('', '_blank');
-            printWindow.document.write('<html><head><title>Cetak ID Card</title>');
-            // Salin gaya dari dokumen utama untuk memastikan tampilan yang sama
-            document.querySelectorAll('link[rel="stylesheet"], style').forEach(node => {
-                printWindow.document.write(node.outerHTML);
+            // Sembunyikan elemen selain modal ID Card untuk pencetakan
+            const elementsToHide = document.querySelectorAll('body > *:not(#id-card-modal-overlay)');
+            elementsToHide.forEach(el => {
+                el.style.visibility = 'hidden';
             });
-            printWindow.document.write('</head><body>');
-            printWindow.document.write('<div style="display:flex; justify-content:center; align-items:center; min-height:100vh;">'); // Untuk centering
-            printWindow.document.write(printContent.outerHTML); // Konten ID Card
-            printWindow.document.write('</div></body></html>');
-            printWindow.document.close();
-            
-            printWindow.onload = () => {
-                printWindow.focus();
-                printWindow.print();
-                printWindow.close();
-            };
+
+            // Pastikan overlay modal ID Card terlihat dan dalam posisi statis untuk pencetakan
+            const idCardOverlay = document.getElementById('id-card-modal-overlay');
+            idCardOverlay.style.position = 'static'; 
+            idCardOverlay.style.background = 'none'; // Hapus latar belakang gelap
+            idCardOverlay.style.visibility = 'visible'; // Pastikan terlihat
+
+            window.print();
+
+            // Kembalikan visibilitas dan gaya asli setelah pencetakan
+            elementsToHide.forEach(el => {
+                el.style.visibility = 'visible';
+            });
+            idCardOverlay.style.position = 'fixed'; // Kembalikan ke fixed
+            idCardOverlay.style.background = 'rgba(0, 0, 0, 0.8)'; // Kembalikan latar belakang gelap
+            idCardOverlay.style.visibility = 'hidden'; // Sembunyikan kembali modal setelah print selesai
+            closeIdCardModal(); // Tutup modal secara bersih
         }
+
 
         // --- Fungsi untuk mengedit data anggota ---
         let currentEditingMemberId = null; // Untuk menyimpan ID anggota yang sedang diedit
@@ -761,6 +902,7 @@
         }
 
         async function editMember(memberId) {
+            console.log("Mengedit Anggota dengan ID:", memberId); // Debugging
             const member = allMembersData.find(m => m.id === memberId);
 
             if (!member) {
@@ -782,41 +924,12 @@
             document.getElementById('edit-member-dojo-select').value = member.dojoId || '';
 
             // Pastikan dropdown dojo sudah terisi sebelum diisi nilainya
-            if (allDojosData.length === 0) {
-                await loadDojosToEditDropdown(); // Load dojos if not already loaded for dropdown
-            }
-            document.getElementById('edit-member-dojo-select').value = member.dojoId || '';
-
+            // loadMembers() already populates allDojosData, so we just set the value
+            const editDojoSelect = document.getElementById('edit-member-dojo-select');
+            editDojoSelect.value = member.dojoId || ''; // Set selected value
 
             document.getElementById('edit-member-modal-overlay').classList.add('active');
         }
-
-        async function loadDojosToEditDropdown() {
-             const editDojoSelect = document.getElementById('edit-member-dojo-select');
-             editDojoSelect.innerHTML = '<option value="">Memuat Dojo...</option>'; // Reset options
-
-             if (!firebaseInitialized || !db) {
-                 editDojoSelect.innerHTML = '<option value="">Error memuat dojo</option>';
-                 return;
-             }
-
-             try {
-                 const dojosSnapshot = await getDocs(collection(db, dojosCollectionPath));
-                 allDojosData = []; // Clear and re-populate
-                 editDojoSelect.innerHTML = '<option value="">Pilih Dojo</option>'; // Default option
-                 dojosSnapshot.forEach(d => {
-                     allDojosData.push({ id: d.id, ...d.data() });
-                     const option = document.createElement('option');
-                     option.value = d.id;
-                     option.textContent = d.data().name;
-                     editDojoSelect.appendChild(option);
-                 });
-             } catch (error) {
-                 console.error("Error loading dojos for edit dropdown:", error);
-                 editDojoSelect.innerHTML = '<option value="">Gagal memuat dojo</option>';
-             }
-         }
-
 
         async function handleEditMember(event) {
             event.preventDefault();
@@ -904,6 +1017,7 @@
 
         // --- Fungsi untuk melihat detail anggota di halaman terpisah ---
         function viewMemberDetail(memberId) {
+            console.log("Melihat detail anggota dengan ID:", memberId); // Debugging
             // Arahkan ke halaman member_detail.html dengan ID anggota sebagai parameter URL
             window.location.href = `member_detail.html?id=${memberId}`;
         }
@@ -1106,6 +1220,16 @@
             const editMemberForm = document.getElementById('edit-member-form');
             if (editMemberForm) {
                 editMemberForm.addEventListener('submit', handleEditMember);
+            }
+            // Hubungkan tombol tutup edit dojo modal
+            const closeEditDojoBtn = document.getElementById('close-edit-dojo-modal-btn');
+            if (closeEditDojoBtn) {
+                closeEditDojoBtn.addEventListener('click', closeEditDojoModal);
+            }
+            // Hubungkan form edit dojo
+            const editDojoForm = document.getElementById('edit-dojo-form');
+            if (editDojoForm) {
+                editDojoForm.addEventListener('submit', handleEditDojo);
             }
         });
     </script>
@@ -1332,6 +1456,53 @@
                 <button id="print-id-card-btn" class="bg-green-500 text-white px-4 py-2 rounded-full font-bold hover:bg-green-600 transition duration-300"><i class="fas fa-print mr-2"></i>Cetak Kartu</button>
                 <button id="close-id-card-modal-btn" class="bg-gray-400 text-white px-4 py-2 rounded-full font-bold hover:bg-gray-500 transition duration-300">Tutup</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Edit Dojo Modal -->
+    <div id="edit-dojo-modal-overlay" class="modal-overlay">
+        <div class="modal-content w-full max-w-lg">
+            <h4 class="text-2xl font-bold text-primary mb-6 text-center">Edit Data Dojo</h4>
+            <form id="edit-dojo-form" class="space-y-4 text-left">
+                <div>
+                    <label for="edit-dojo-name" class="block text-gray-700 text-sm font-bold mb-2">Nama Dojo:</label>
+                    <input type="text" id="edit-dojo-name" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                </div>
+                <div>
+                    <label for="edit-dojo-trainer" class="block text-gray-700 text-sm font-bold mb-2">Nama Pelatih:</label>
+                    <input type="text" id="edit-dojo-trainer" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                </div>
+                <div>
+                    <label for="edit-dojo-address" class="block text-gray-700 text-sm font-bold mb-2">Alamat Tempat Latihan:</label>
+                    <textarea id="edit-dojo-address" rows="2" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary resize-y" required></textarea>
+                </div>
+                <div>
+                    <label for="edit-dojo-schedule" class="block text-gray-700 text-sm font-bold mb-2">Jadwal Latihan:</label>
+                    <input type="text" id="edit-dojo-schedule" placeholder="Contoh: Senin & Rabu (19.00 - 21.00 WIB)" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                </div>
+                <div>
+                    <label for="edit-dojo-contact" class="block text-gray-700 text-sm font-bold mb-2">Kontak Pelatih:</label>
+                    <input type="tel" id="edit-dojo-contact" placeholder="Contoh: 0812-3456-7890" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                </div>
+                <div>
+                    <label for="edit-dojo-city-select" class="block text-gray-700 text-sm font-bold mb-2">Kota/Kabupaten (Cabang):</label>
+                    <select id="edit-dojo-city-select" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        <option value="">Memuat Kota/Kabupaten...</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="edit-dojo-image-url" class="block text-gray-700 text-sm font-bold mb-2">URL Gambar/Logo Dojo:</label>
+                    <input type="url" id="edit-dojo-image-url" placeholder="Contoh: https://example.com/dojo-logo.png" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                </div>
+                <div class="flex justify-center space-x-4 mt-6">
+                    <button type="submit" id="save-dojo-button" class="bg-primary text-white px-6 py-3 rounded-full font-bold hover:bg-red-700 transition duration-300 shadow-md">
+                        Simpan Perubahan
+                    </button>
+                    <button type="button" onclick="closeEditDojoModal()" class="bg-gray-400 text-white px-6 py-3 rounded-full font-bold hover:bg-gray-500 transition duration-300" id="close-edit-dojo-modal-btn">
+                        Batal
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
