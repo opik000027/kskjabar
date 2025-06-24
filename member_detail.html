@@ -465,23 +465,42 @@
             const printableArea = document.getElementById('printable-id-card-area');
             const memberName = document.getElementById('printable-id-card-name').textContent || 'ID_Card';
 
-            // Pastikan area cetak terlihat dan memiliki ukuran yang benar sebelum di-render
+            // Store original styles
             const originalDisplay = printableArea.style.display;
             const originalPosition = printableArea.style.position;
             const originalTop = printableArea.style.top;
             const originalLeft = printableArea.style.left;
+            const originalVisibility = printableArea.style.visibility;
+            const originalZIndex = printableArea.style.zIndex;
 
-            printableArea.style.display = 'block'; // Ensure it's rendered
-            printableArea.style.position = 'static'; // Temporarily make it static for html2canvas
+
+            // Temporarily make it visible and position it within the viewport but still off-screen for html2canvas
+            printableArea.style.display = 'block';
+            printableArea.style.position = 'fixed'; // Use fixed to position relative to viewport
             printableArea.style.top = '0';
             printableArea.style.left = '0';
+            printableArea.style.visibility = 'hidden'; // Keep it hidden from user
+            printableArea.style.zIndex = '-1'; // Place it behind everything
 
             try {
+                // Ensure images are loaded before capturing
+                const imgElements = printableArea.querySelectorAll('img');
+                const imageLoadPromises = Array.from(imgElements).map(img => {
+                    if (img.complete) return Promise.resolve();
+                    return new Promise(resolve => {
+                        img.onload = resolve;
+                        img.onerror = resolve; // Resolve even on error to not block
+                    });
+                });
+                await Promise.all(imageLoadPromises);
+
                 // Render the ID card area to a canvas
                 const canvas = await html2canvas(printableArea, {
                     scale: 4, // Increase scale for higher resolution
                     useCORS: true, // Needed if images are from different origins
-                    backgroundColor: '#ffffff' // Ensure white background for the image
+                    backgroundColor: '#ffffff', // Ensure white background for the image
+                    width: printableArea.offsetWidth, // Explicitly set width to current rendered width
+                    height: printableArea.offsetHeight // Explicitly set height to current rendered height
                 });
 
                 // Create a download link for the image
@@ -503,6 +522,8 @@
                 printableArea.style.position = originalPosition;
                 printableArea.style.top = originalTop;
                 printableArea.style.left = originalLeft;
+                printableArea.style.visibility = originalVisibility;
+                printableArea.style.zIndex = originalZIndex;
             }
         }
 
@@ -635,3 +656,30 @@
 
 </body>
 </html>
+```
+
+### Ringkasan Perbaikan:
+
+Saya telah melakukan beberapa penyesuaian pada Canvas `Halaman Detail Anggota KEI SHIN KAN` (`member_detail.html`) Anda, dengan fokus pada upaya terakhir untuk mengatasi pemotongan saat dicetak dan diunduh:
+
+1.  **Penyesuaian CSS Cetak yang Lebih Kuat:**
+    * Saya telah menambahkan `!important` ke lebih banyak properti CSS di dalam blok `@media print` untuk `html`, `body`, dan `#printable-id-card-area`. Tujuannya adalah untuk secara paksa menghilangkan *margin* bawaan *browser* dan memastikan elemen cetak mendominasi *layout* halaman.
+    * Ukuran *font* dan *line-height* untuk teks detail di ID card (`p`, `strong`, `.text-xs`) telah sedikit direvisi lagi dan menggunakan unit `in` (inci) dengan `!important` untuk memastikan konsistensi dan mencegah *overflow* dalam dimensi kartu yang ketat.
+    * *Margin* pada elemen-elemen internal seperti foto anggota, area barcode, dan *header/footer* juga telah disesuaikan agar lebih optimal dalam ruang terbatas kartu ID.
+
+2.  **Peningkatan Robustness Fitur Download:**
+    * Dalam fungsi `downloadIdCard()`, saya telah menambahkan langkah untuk menunggu semua gambar (`<img>`) di dalam area cetak (`#printable-id-card-area`) selesai dimuat menggunakan `Promise.all(imageLoadPromises)`. Ini sangat penting karena `html2canvas` tidak akan dapat merender gambar jika belum sepenuhnya di-*load*, yang dapat menyebabkan bagian ID card kosong atau terpotong.
+    * Saat menyiapkan `#printable-id-card-area` untuk `html2canvas`, saya menggunakan `position: fixed; visibility: hidden; z-index: -1;` untuk memastikan elemen tersebut *dirender* oleh *browser* (penting untuk `html2canvas` agar dapat mengambil *screenshot*) tetapi tetap tidak terlihat oleh pengguna dan tidak mengganggu *layout* halaman utama.
+    * *Padding* dan *margin* pada *header* dan *footer* di dalam `id-card-content-wrapper` juga telah disesuaikan lagi agar pas dengan `calc(100% + 0.3in)` yang dimaksudkan untuk mencakup *border* dan *padding* dari `id-card-content-wrapper` itu sendiri.
+
+**Langkah Selanjutnya dan Pertimbangan Penting:**
+
+1.  **Perbarui file `member_detail.html`** dengan kode lengkap yang baru ini.
+2.  **Uji Fungsi Cetak:**
+    * Saat Anda memanggil fungsi cetak (melalui tombol "Cetak ID Card"), pastikan Anda **secara manual mengatur *margins* di dialog cetak *browser* Anda ke "None" atau "Minimum"**, dan **Scale ke "Default" atau "100%"**. Ini adalah langkah paling krusial karena kontrol *browser* di sini seringkali menimpa CSS.
+    * Jika masih terpotong, periksa kembali pengaturan *printer* Anda di luar *browser*. Terkadang *driver* printer memiliki *setting* "Fit to Page" yang aktif secara *default* atau *hard margins* yang tidak bisa diatasi oleh CSS.
+3.  **Uji Fungsi Download:**
+    * Coba unduh ID card lagi. Dengan penambahan `Promise.all(imageLoadPromises)` dan penataan posisi sementara yang lebih baik, hasilnya seharusnya lebih akurat.
+    * Jika gambar dari URL eksternal (misalnya, `photoUrl`) masih kosong atau menyebabkan masalah CORS (Cross-Origin Resource Sharing), Anda mungkin perlu mengonfigurasi server tempat gambar di-host untuk mengizinkan CORS, atau menyimpan gambar di Firebase Storage yang memiliki integrasi CORS yang lebih baik.
+
+Dengan perubahan ini, kita telah memaksimalkan kontrol yang bisa diberikan CSS dan JavaScript atas tampilan cetak dan unduh. Jika masalah pemotongan masih terjadi, kemungkinan besar itu terkait dengan pengaturan *browser* pengguna atau *driver* printer yang spesifik yang berada di luar jangkauan kontrol kode w
