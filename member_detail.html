@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detail Anggota KEI SHIN KAN</title>
+    <!-- Link ke Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Konfigurasi Tailwind untuk menambahkan warna dan font kustom jika diperlukan -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'], // Font Inter
+                    },
+                    colors: {
+                        primary: '#B40000', // Contoh warna merah khas klub
+                        secondary: '#333333', // Contoh warna gelap untuk teks
+                        accent: '#F9A826', // Contoh warna aksen
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Link ke Font Awesome untuk ikon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Favicon (Logo di tab browser) -->
+    <link rel="icon" href="img/logo-ksk.png" type="image/png">
+    <!-- JsBarcode CDN untuk membuat barcode -->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@latest/dist/JsBarcode.all.min.js"></script>
+
+    <style>
+        .member-detail-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .detail-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        .detail-item i {
+            color: #B40000;
+            margin-right: 0.75rem;
+            width: 1.5rem; /* Consistent icon width */
+            text-align: center;
+        }
+        .barcode-container {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+        }
+        .barcode-container svg {
+            margin: 0 auto;
+            display: block;
+            max-width: 90%;
+            height: 100px; /* Adjust height as needed */
+        }
+        @media print {
+            body > *:not(.print-area) {
+                display: none;
+            }
+            .print-area {
+                display: block;
+                width: 100%;
+                margin: 0;
+                box-shadow: none;
+                border: none;
+                padding: 0;
+            }
+            .no-print {
+                display: none;
+            }
+            nav {
+                display: none; /* Hide navigation bar for print */
+            }
+        }
+    </style>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Mengimpor fungsi Firebase dari CDN
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+
+        // Konfigurasi Firebase Anda.
+        const firebaseConfig = {
+             apiKey: "AIzaSyCAjAjkoQhx1eB7IxhpA5Yi8Z7wZC7nhzM",
+             authDomain: "kskjabar-f01f1.firebaseapp.com",
+             projectId: "kskjabar-f01f1",
+             storageBucket: "kskjabar-f01f1.firebasestorage.app",
+             messagingSenderId: "383836530077",
+             appId: "1:383836530077:web:6ab44455755626d5fa3b74",
+             measurementId: "G-N251SVP9VN" 
+        };
+        
+        let app;
+        let db;
+        let firebaseInitialized = false;
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const membersCollectionPath = `artifacts/${appId}/public/data/members`;
+
+        async function initializeFirebase() {
+            if (firebaseConfig) { 
+                try {
+                    app = initializeApp(firebaseConfig);
+                    db = getFirestore(app);
+                    firebaseInitialized = true;
+                    console.log("Firebase initialized for member_detail.html.");
+                    loadMemberDetails(); // Muat detail anggota setelah Firebase terinisialisasi
+                } catch (error) {
+                    console.error("Firebase initialization error for member_detail.html:", error.message);
+                    document.getElementById('member-details-card').innerHTML = `<p class="text-center text-red-500">Gagal memuat detail: ${error.message}</p>`;
+                }
+            } else {
+                console.error("Firebase config is not available. Cannot initialize Firebase for member_detail.html.");
+                document.getElementById('member-details-card').innerHTML = '<p class="text-center text-red-500">Konfigurasi Firebase tidak ditemukan. Mohon perbarui kode.</p>';
+            }
+        }
+
+        async function loadMemberDetails() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const memberId = urlParams.get('id');
+            const detailsCard = document.getElementById('member-details-card');
+
+            if (!memberId) {
+                detailsCard.innerHTML = '<p class="text-center text-red-500">ID Anggota tidak ditemukan di URL.</p>';
+                return;
+            }
+
+            if (!firebaseInitialized || !db) {
+                detailsCard.innerHTML = '<p class="text-center text-red-500">Firebase belum terinisialisasi.</p>';
+                return;
+            }
+
+            try {
+                const memberDocRef = doc(db, membersCollectionPath, memberId);
+                const docSnap = await getDoc(memberDocRef);
+
+                if (docSnap.exists()) {
+                    const member = docSnap.data();
+                    detailsCard.innerHTML = `
+                        <div class="text-center mb-6">
+                            <img src="${member.photoUrl || 'https://placehold.co/150x150/CCCCCC/000000?text=Foto'}" alt="Foto Anggota" class="w-36 h-36 rounded-full object-cover mx-auto mb-4 border-4 border-primary shadow-lg">
+                            <h2 class="text-3xl font-bold text-primary mb-2">${member.name || 'Nama Tidak Tersedia'}</h2>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-lg text-gray-700">
+                            <div class="detail-item"><i class="fas fa-calendar-alt"></i><strong>Tanggal Lahir:</strong> ${member.dateOfBirth || 'N/A'}</div>
+                            <div class="detail-item"><i class="fas fa-map-marker-alt"></i><strong>Tempat Lahir:</strong> ${member.placeOfBirth || 'N/A'}</div>
+                            <div class="detail-item"><i class="fas fa-tshirt"></i><strong>Tingkat Sabuk:</strong> ${member.beltLevel || 'N/A'}</div>
+                            <div class="detail-item"><i class="fas fa-building"></i><strong>Dojo:</strong> ${member.dojoName || 'N/A'}</div>
+                            <div class="detail-item"><i class="fas fa-city"></i><strong>Cabang:</strong> ${member.city || 'N/A'}</div>
+                            <div class="detail-item col-span-full">
+                                <i class="fas fa-link"></i>
+                                <div>
+                                    <strong>Dokumen:</strong><br>
+                                    <a href="${member.birthCertUrl}" target="_blank" class="text-blue-500 hover:underline">Akta Kelahiran</a><br>
+                                    <a href="${member.beltCertUrl}" target="_blank" class="text-blue-500 hover:underline">Ijazah Sabuk</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="barcode-container">
+                            <h3 class="text-xl font-bold text-secondary mb-2">Barcode Kehadiran</h3>
+                            <svg id="member-detail-barcode"></svg>
+                            <p class="text-sm text-gray-600 mt-2">ID Anggota: ${memberId}</p>
+                        </div>
+                    `;
+                    // Generate Barcode
+                    const barcodeSvg = document.getElementById('member-detail-barcode');
+                    if (barcodeSvg) {
+                        JsBarcode(barcodeSvg, memberId, {
+                            format: "CODE128",
+                            lineColor: "#333",
+                            width: 2,
+                            height: 80,
+                            displayValue: false
+                        });
+                    }
+                } else {
+                    detailsCard.innerHTML = '<p class="text-center text-red-500">Detail anggota tidak ditemukan.</p>';
+                }
+            } catch (error) {
+                console.error("Error loading member details:", error);
+                detailsCard.innerHTML = `<p class="text-center text-red-500">Gagal memuat detail anggota: ${error.message}</p>`;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initializeFirebase);
+    </script>
+</head>
+<body class="bg-gray-100 text-secondary font-inter min-h-screen flex flex-col">
+
+    <!-- Navigasi Bar -->
+    <nav class="w-full bg-white shadow-lg py-4 z-50 rounded-b-lg no-print">
+        <div class="container mx-auto flex justify-between items-center px-4">
+            <!-- Logo Klub -->
+            <a href="index.html" class="flex items-center space-x-2">
+                <img src="img/logo-ksk.png" alt="Logo KEI SHIN KAN" class="h-12 w-12 rounded-full shadow-md">
+                <span class="text-xl font-bold text-primary">KEI SHIN KAN</span>
+            </a>
+            <!-- Back to Dashboard Link -->
+            <a href="dashboard.html" class="bg-gray-200 text-secondary px-5 py-2 rounded-full font-bold hover:bg-gray-300 transition duration-300 shadow-md">
+                <i class="fas fa-arrow-left mr-2"></i>Kembali ke Dashboard
+            </a>
+        </div>
+    </nav>
+
+    <!-- Konten Halaman Detail Anggota -->
+    <main class="flex-grow flex items-center justify-center p-4">
+        <section id="member-details-card" class="member-detail-container print-area">
+            <p class="text-center text-gray-500">Memuat detail anggota...</p>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-8 rounded-t-lg mt-auto no-print">
+        <div class="container mx-auto text-center px-4">
+            <p class="mb-2">&copy; 2025 KEI SHIN KAN Jawa Barat. Hak Cipta Dilindungi.</p>
+            <p class="mb-2"><i class="fas fa-map-marker-alt mr-2"></i>Sekretariat: Jl. Contoh Alamat No. 123, Bandung, Jawa Barat</p>
+            <p><i class="fas fa-phone-alt mr-2"></i>Telepon: (022) 1234-5678</p>
+        </div>
+    </footer>
+
+</body>
+</html>
