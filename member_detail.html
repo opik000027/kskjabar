@@ -94,17 +94,17 @@
             text-align: center;
             transform: translateY(-20px);
             transition: transform 0.3s ease-in-out;
-            overflow: hidden; /* Ensure content inside modal is clipped if it overflows */
+            overflow: visible; /* Changed to visible to allow content to influence size */
             max-height: 90vh; /* Prevents modal from being too tall on small screens */
-            /* Adjusted padding and dimensions for modal content to hold the ID card */
-            padding: 0; /* Remove padding from modal-content itself */
+            padding: 1rem; /* Add padding around the ID card inside the modal */
             display: flex; /* Use flex to center ID card within this modal content */
             flex-direction: column; /* Stack ID card and buttons */
             justify-content: center;
             align-items: center;
             /* Explicitly set min-width/min-height to prevent shrinking too much */
-            min-width: 3.375in;
-            min-height: 2.125in;
+            min-width: calc(3.375in + 2rem); /* ID card width + padding */
+            min-height: calc(2.125in + 2rem); /* ID card height + padding + button height */
+            box-sizing: border-box; /* Include padding in min-width/min-height */
         }
         .modal-overlay.active .modal-content {
             transform: translateY(0);
@@ -114,7 +114,7 @@
         .id-card-content-wrapper {
             width: 3.375in; /* Standard ID card width (CR80) */
             height: 2.125in; /* Standard ID card height (CR80) */
-            padding: 0.1in; /* Reduced padding for more content space */
+            padding: 0.08in; /* Reduced padding for more content space */
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
@@ -132,21 +132,21 @@
             border-radius: 0.1rem 0.1rem 0 0; /* Match wrapper rounding for top */
             box-shadow: none;
             /* Margin adjusted to match padding of id-card-content-wrapper */
-            margin: -0.1in -0.1in 0.05in -0.1in; 
-            padding: 0.08in; /* Adjusted padding */
-            width: calc(100% + 0.2in); /* Fill width, accounting for margins */
+            margin: -0.08in -0.08in 0.03in -0.08in; 
+            padding: 0.07in; /* Adjusted padding */
+            width: calc(100% + 0.16in); /* Fill width, accounting for margins */
             border-bottom: 1px solid #B40000;
             height: auto;
             flex-shrink: 0;
         }
         .id-card-header img {
-            height: 28px; /* Slightly smaller logo */
-            width: 28px;
+            height: 26px; /* Slightly smaller logo */
+            width: 26px;
             border: 1px solid #F9A826;
-            margin-right: 0.08in;
+            margin-right: 0.07in;
         }
         .id-card-header h4 {
-            font-size: 0.85rem; /* Slightly smaller font */
+            font-size: 0.8rem; /* Slightly smaller font */
             margin-bottom: 0;
             line-height: 1.1;
         }
@@ -157,58 +157,58 @@
             flex-direction: column;
             align-items: center;
             justify-content: center; /* Center content vertically */
-            padding: 0.02in 0; /* Small vertical padding for content */
+            padding: 0.01in 0; /* Small vertical padding for content */
         }
 
         .id-card-content img.member-photo {
-            width: 48px; /* Slightly smaller photo */
-            height: 48px;
+            width: 45px; /* Slightly smaller photo */
+            height: 45px;
             border-radius: 50%;
             object-fit: cover;
-            margin: 0.02in auto 0.02in auto; /* Adjusted margins */
+            margin: 0.01in auto 0.01in auto; /* Adjusted margins */
             border: 2px solid #F9A826;
             box-shadow: none;
             flex-shrink: 0;
         }
         .id-card-content p, .id-card-content strong {
-            font-size: 0.075in; /* Adjusted to be slightly smaller */
+            font-size: 0.07in; /* Adjusted to be slightly smaller */
             line-height: 1.05;
-            margin-bottom: 0.01in;
+            margin-bottom: 0.005in; /* Reduced margin */
             word-break: break-word;
         }
         .id-card-content .barcode-area {
             display: flex;
             justify-content: center;
-            margin-top: 0.03in; /* Adjusted margin */
-            margin-bottom: 0.03in; /* Adjusted margin */
+            margin-top: 0.02in; /* Adjusted margin */
+            margin-bottom: 0.02in; /* Adjusted margin */
             flex-shrink: 0;
         }
         #id-card-preview-qrcode {
-            width: 0.5in; /* Slightly smaller QR code */
-            height: 0.5in;
+            width: 0.45in; /* Slightly smaller QR code */
+            height: 0.45in;
             padding: 1px;
             background-color: white;
             flex-shrink: 0;
         }
         .id-card-content .text-xs {
-            font-size: 0.055in; /* Adjusted to be smaller */
+            font-size: 0.05in; /* Adjusted to be smaller */
         }
         
         .id-card-footer {
             background-color: #333333;
             color: white;
-            font-size: 0.065in; /* Slightly smaller font for footer */
+            font-size: 0.06in; /* Slightly smaller font for footer */
             /* Margin adjusted to match padding of id-card-content-wrapper */
-            margin: 0.05in -0.1in -0.1in -0.1in;
-            padding: 0.07in 0.1in; /* Adjusted padding */
+            margin: 0.03in -0.08in -0.08in -0.08in;
+            padding: 0.06in 0.08in; /* Adjusted padding */
             border-radius: 0 0 0.1rem 0.1rem; /* Match wrapper rounding for bottom */
-            width: calc(100% + 0.2in);
+            width: calc(100% + 0.16in);
             text-align: center;
             flex-shrink: 0;
             line-height: 1.1;
         }
         .id-card-footer p {
-            font-size: 0.065in; /* Ensure p inside footer has smaller font */
+            font-size: 0.06in; /* Ensure p inside footer has smaller font */
             margin: 0;
         }
         .id-card-footer i {
@@ -217,12 +217,16 @@
 
         /* Modal Action Buttons styling */
         .modal-actions {
-            padding: 1rem; /* Padding for the button container */
+            padding: 0.8rem; /* Reduced padding for the button container */
             background-color: white; /* Match modal content background */
             border-top: 1px solid #eee; /* Separator line */
             width: 100%; /* Take full width of modal content */
             box-sizing: border-box; /* Include padding in width */
             border-radius: 0 0 0.5rem 0.5rem; /* Round bottom corners */
+        }
+        .modal-actions button {
+            font-size: 0.85rem; /* Slightly smaller button text */
+            padding: 0.5rem 0.8rem; /* Adjusted padding for buttons */
         }
 
 
@@ -271,46 +275,48 @@
             /* Ensure header/footer margins match the wrapper's padding for edge-to-edge look */
             #id-card-preview-modal-overlay .id-card-header,
             #id-card-preview-modal-overlay .id-card-footer {
-                margin-left: -0.1in !important; /* Matches new wrapper padding */
-                margin-right: -0.1in !important; /* Matches new wrapper padding */
-                width: calc(100% + 0.2in) !important; /* Span full width of content wrapper */
+                margin-left: -0.08in !important; /* Matches new wrapper padding */
+                margin-right: -0.08in !important; /* Matches new wrapper padding */
+                width: calc(100% + 0.16in) !important; /* Span full width of content wrapper */
                 border-radius: 0 !important; /* Remove rounding for full edge-to-edge in print */
             }
             #id-card-preview-modal-overlay .id-card-header {
                 border-top-left-radius: 0.15rem !important;
                 border-top-right-radius: 0.15rem !important;
-                margin-top: -0.1in !important; /* Pull to top edge */
-                padding-top: 0.08in !important; /* Keep internal header padding */
-                padding-bottom: 0.08in !important;
+                margin-top: -0.08in !important; /* Pull to top edge */
+                padding-top: 0.07in !important; /* Keep internal header padding */
+                padding-bottom: 0.07in !important;
             }
             #id-card-preview-modal-overlay .id-card-footer {
                 border-bottom-left-radius: 0.15rem !important;
                 border-bottom-right-radius: 0.15rem !important;
-                margin-bottom: -0.1in !important; /* Pull to bottom edge */
-                padding-top: 0.07in !important; /* Smaller padding for footer */
-                padding-bottom: 0.07in !important;
+                margin-bottom: -0.08in !important; /* Pull to bottom edge */
+                padding-top: 0.06in !important; /* Smaller padding for footer */
+                padding-bottom: 0.06in !important;
             }
 
             /* Adjust internal element margins/sizes to fit better in the tight space */
             #id-card-preview-modal-overlay img.member-photo {
+                width: 45px !important;
+                height: 45px !important;
+                margin-top: 0.01in !important;
+                margin-bottom: 0.01in !important;
+            }
+            #id-card-preview-modal-overlay p, #id-card-preview-modal-overlay strong {
+                font-size: 0.07in !important; /* Consistent with non-print modal */
+                line-height: 1.05 !important;
+                margin-bottom: 0.005in !important;
+            }
+            #id-card-preview-modal-overlay .barcode-area {
                 margin-top: 0.02in !important;
                 margin-bottom: 0.02in !important;
             }
-            #id-card-preview-modal-overlay p, #id-card-preview-modal-overlay strong {
-                font-size: 0.075in !important; /* Consistent with non-print modal */
-                line-height: 1.05 !important;
-                margin-bottom: 0.01in !important;
-            }
-            #id-card-preview-modal-overlay .barcode-area {
-                margin-top: 0.03in !important;
-                margin-bottom: 0.03in !important;
-            }
             #id-card-preview-qrcode {
-                width: 0.5in !important; /* Consistent with non-print modal */
-                height: 0.5in !important;
+                width: 0.45in !important; /* Consistent with non-print modal */
+                height: 0.45in !important;
             }
             #id-card-preview-modal-overlay .text-xs {
-                font-size: 0.055in !important; /* Consistent with non-print modal */
+                font-size: 0.05in !important; /* Consistent with non-print modal */
             }
 
             @page {
