@@ -24,7 +24,7 @@
         }
     </script>
     <!-- Link ke Font Awesome untuk ikon -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" xintegrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0V4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <!-- Favicon (Logo di tab browser) -->
     <link rel="icon" href="img/logo-ksk.png" type="image/png">
     <!-- JsBarcode CDN untuk membuat barcode -->
@@ -650,7 +650,9 @@
                                 <a href="${member.photoUrl}" target="_blank" class="text-blue-500 hover:underline"><i class="fas fa-image mr-1"></i>Foto Anggota</a>
                             </div>
                             <div class="mt-4 flex justify-end space-x-2">
+                                <button class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-600" onclick="editMember('${m.id}')"><i class="fas fa-edit mr-1"></i>Edit</button>
                                 <button class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-600" onclick="generateIdCard('${m.id}')"><i class="fas fa-id-card mr-1"></i>ID Card</button>
+                                <button class="bg-green-500 text-white px-3 py-1 rounded-md text-sm hover:bg-green-600" onclick="viewMemberDetail('${m.id}')"><i class="fas fa-info-circle mr-1"></i>Detail</button>
                                 <button class="bg-red-500 text-white px-3 py-1 rounded-md text-sm hover:bg-red-600" onclick="deleteMember('${m.id}', '${member.name}')">Hapus</button>
                             </div>
                         </div>
@@ -665,38 +667,59 @@
 
         // --- Fungsi untuk menghasilkan ID Card dan Barcode ---
         function generateIdCard(memberId) {
+            console.log("Generating ID Card for memberId:", memberId); // Debugging
             const member = allMembersData.find(m => m.id === memberId);
 
             if (!member) {
-                console.error("Member not found for ID:", memberId);
+                console.error("Member not found in allMembersData for ID:", memberId); // More specific error
                 document.getElementById('admin-message').textContent = 'Anggota tidak ditemukan untuk membuat ID Card.';
                 document.getElementById('admin-message').classList.add('text-red-500');
                 return;
             }
 
+            console.log("Member data found:", member); // Debugging
+
             // Populate ID Card Modal
             document.getElementById('id-card-member-photo').src = member.photoUrl || 'https://placehold.co/100x100/CCCCCC/000000?text=Foto';
             document.getElementById('id-card-member-photo').alt = `Foto ${member.name}`;
             document.getElementById('id-card-member-name').textContent = member.name;
-            document.getElementById('id-card-member-dob').textContent = `TTL: ${member.placeOfBirth}, ${member.dateOfBirth}`;
-            document.getElementById('id-card-member-belt').textContent = `Sabuk: ${member.beltLevel}`;
-            document.getElementById('id-card-member-dojo').textContent = `Dojo: ${member.dojoName}`;
-            document.getElementById('id-card-member-city').textContent = `Cabang: ${member.city}`;
+            document.getElementById('id-card-member-dob').textContent = `TTL: ${member.placeOfBirth || 'N/A'}, ${member.dateOfBirth || 'N/A'}`; // Handle potential undefined
+            document.getElementById('id-card-member-belt').textContent = `Sabuk: ${member.beltLevel || 'N/A'}`;
+            document.getElementById('id-card-member-dojo').textContent = `Dojo: ${member.dojoName || 'N/A'}`;
+            document.getElementById('id-card-member-city').textContent = `Cabang: ${member.city || 'N/A'}`;
             
             // Generate Barcode
-            // Pastikan SVG element ada dan bersih sebelum generate
             const barcodeSvg = document.getElementById('id-card-barcode');
-            barcodeSvg.innerHTML = ''; // Clear previous barcode
-            JsBarcode(barcodeSvg, member.id, {
-                format: "CODE128", // Atau EAN13, CODE39, dll.
-                lineColor: "#333",
-                width: 2,
-                height: 60,
-                displayValue: false // Tidak menampilkan teks ID di bawah barcode jika terlalu panjang
-            });
+            if (barcodeSvg) { // Ensure element exists
+                barcodeSvg.innerHTML = ''; // Clear previous barcode
+                try {
+                    JsBarcode(barcodeSvg, member.id, {
+                        format: "CODE128", // Atau EAN13, CODE39, dll.
+                        lineColor: "#333",
+                        width: 2,
+                        height: 60,
+                        displayValue: false // Tidak menampilkan teks ID di bawah barcode jika terlalu panjang
+                    });
+                    console.log("Barcode generated successfully."); // Debugging
+                } catch (barcodeError) {
+                    console.error("Error generating barcode:", barcodeError);
+                    document.getElementById('admin-message').textContent = 'Gagal membuat barcode. Periksa konsol browser.';
+                    document.getElementById('admin-message').classList.add('text-red-500');
+                }
+            } else {
+                console.error("Barcode SVG element not found!");
+                document.getElementById('admin-message').textContent = 'Element barcode tidak ditemukan. Hubungi administrator.';
+                document.getElementById('admin-message').classList.add('text-red-500');
+            }
 
             // Show the modal
-            document.getElementById('id-card-modal-overlay').classList.add('active');
+            const idCardModalOverlay = document.getElementById('id-card-modal-overlay');
+            if (idCardModalOverlay) {
+                idCardModalOverlay.classList.add('active');
+                console.log("ID Card modal activated."); // Debugging
+            } else {
+                console.error("ID Card modal overlay element not found!");
+            }
         }
 
         function closeIdCardModal() {
@@ -705,32 +728,184 @@
 
         function printIdCard() {
             const printContent = document.getElementById('id-card-modal-content');
-            const originalContents = document.body.innerHTML;
-            const header = document.querySelector('nav'); // Get the navigation bar
-            const footer = document.querySelector('footer'); // Get the footer
+            // Menyimpan state asli dari body
+            const originalBodyContent = document.body.innerHTML;
+            
+            // Membuat konten khusus untuk pencetakan
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write('<html><head><title>Cetak ID Card</title>');
+            // Salin gaya dari dokumen utama untuk memastikan tampilan yang sama
+            document.querySelectorAll('link[rel="stylesheet"], style').forEach(node => {
+                printWindow.document.write(node.outerHTML);
+            });
+            printWindow.document.write('</head><body>');
+            printWindow.document.write('<div style="display:flex; justify-content:center; align-items:center; min-height:100vh;">'); // Untuk centering
+            printWindow.document.write(printContent.outerHTML); // Konten ID Card
+            printWindow.document.write('</div></body></html>');
+            printWindow.document.close();
+            
+            printWindow.onload = () => {
+                printWindow.focus();
+                printWindow.print();
+                printWindow.close();
+            };
+        }
 
-            // Temporarily hide elements not part of the ID card
-            const elementsToHide = document.querySelectorAll('body > *:not(#id-card-modal-overlay)');
-            elementsToHide.forEach(el => {
-                if (el !== header && el !== footer) { // Don't hide header/footer if they are intended to be printed, though typically they are not for ID cards.
-                    el.style.visibility = 'hidden';
+        // --- Fungsi untuk mengedit data anggota ---
+        let currentEditingMemberId = null; // Untuk menyimpan ID anggota yang sedang diedit
+
+        function closeEditMemberModal() {
+            document.getElementById('edit-member-modal-overlay').classList.remove('active');
+            document.getElementById('edit-member-form').reset(); // Bersihkan form
+            currentEditingMemberId = null; // Reset ID anggota yang diedit
+        }
+
+        async function editMember(memberId) {
+            const member = allMembersData.find(m => m.id === memberId);
+
+            if (!member) {
+                document.getElementById('admin-message').textContent = 'Anggota tidak ditemukan untuk diedit.';
+                document.getElementById('admin-message').classList.add('text-red-500');
+                return;
+            }
+
+            currentEditingMemberId = memberId;
+
+            // Isi form edit dengan data anggota saat ini
+            document.getElementById('edit-member-name').value = member.name || '';
+            document.getElementById('edit-member-place-of-birth').value = member.placeOfBirth || '';
+            document.getElementById('edit-member-date-of-birth').value = member.dateOfBirth || '';
+            document.getElementById('edit-member-belt-level').value = member.beltLevel || '';
+            document.getElementById('edit-member-birth-cert-url').value = member.birthCertUrl || '';
+            document.getElementById('edit-member-belt-cert-url').value = member.beltCertUrl || '';
+            document.getElementById('edit-member-photo-url').value = member.photoUrl || '';
+            document.getElementById('edit-member-dojo-select').value = member.dojoId || '';
+
+            // Pastikan dropdown dojo sudah terisi sebelum diisi nilainya
+            if (allDojosData.length === 0) {
+                await loadDojosToEditDropdown(); // Load dojos if not already loaded for dropdown
+            }
+            document.getElementById('edit-member-dojo-select').value = member.dojoId || '';
+
+
+            document.getElementById('edit-member-modal-overlay').classList.add('active');
+        }
+
+        async function loadDojosToEditDropdown() {
+             const editDojoSelect = document.getElementById('edit-member-dojo-select');
+             editDojoSelect.innerHTML = '<option value="">Memuat Dojo...</option>'; // Reset options
+
+             if (!firebaseInitialized || !db) {
+                 editDojoSelect.innerHTML = '<option value="">Error memuat dojo</option>';
+                 return;
+             }
+
+             try {
+                 const dojosSnapshot = await getDocs(collection(db, dojosCollectionPath));
+                 allDojosData = []; // Clear and re-populate
+                 editDojoSelect.innerHTML = '<option value="">Pilih Dojo</option>'; // Default option
+                 dojosSnapshot.forEach(d => {
+                     allDojosData.push({ id: d.id, ...d.data() });
+                     const option = document.createElement('option');
+                     option.value = d.id;
+                     option.textContent = d.data().name;
+                     editDojoSelect.appendChild(option);
+                 });
+             } catch (error) {
+                 console.error("Error loading dojos for edit dropdown:", error);
+                 editDojoSelect.innerHTML = '<option value="">Gagal memuat dojo</option>';
+             }
+         }
+
+
+        async function handleEditMember(event) {
+            event.preventDefault();
+
+            if (!currentEditingMemberId) {
+                document.getElementById('admin-message').textContent = 'Tidak ada anggota yang dipilih untuk diedit.';
+                document.getElementById('admin-message').classList.add('text-red-500');
+                return;
+            }
+
+            const memberRef = doc(db, membersCollectionPath, currentEditingMemberId);
+
+            const updatedName = document.getElementById('edit-member-name').value;
+            const updatedPlaceOfBirth = document.getElementById('edit-member-place-of-birth').value;
+            const updatedDateOfBirth = document.getElementById('edit-member-date-of-birth').value;
+            const updatedBeltLevel = document.getElementById('edit-member-belt-level').value;
+            const updatedBirthCertUrl = document.getElementById('edit-member-birth-cert-url').value;
+            const updatedBeltCertUrl = document.getElementById('edit-member-belt-cert-url').value;
+            const updatedPhotoUrl = document.getElementById('edit-member-photo-url').value;
+            const updatedDojoId = document.getElementById('edit-member-dojo-select').value;
+            
+            const messageDiv = document.getElementById('admin-message');
+            const saveButton = document.getElementById('save-member-button');
+
+            messageDiv.textContent = '';
+            messageDiv.classList.remove('text-green-500', 'text-red-500');
+            saveButton.disabled = true;
+            saveButton.textContent = 'Menyimpan...';
+
+            if (!firebaseInitialized || !db) {
+                messageDiv.textContent = 'Firebase belum terinisialisasi.';
+                messageDiv.classList.add('text-red-500');
+                saveButton.disabled = false;
+                saveButton.textContent = 'Simpan Perubahan';
+                return;
+            }
+
+            if (!updatedName || !updatedPlaceOfBirth || !updatedDateOfBirth || !updatedBeltLevel || !updatedBirthCertUrl || !updatedBeltCertUrl || !updatedPhotoUrl || !updatedDojoId) {
+                messageDiv.textContent = 'Semua kolom harus diisi.';
+                messageDiv.classList.add('text-red-500');
+                saveButton.disabled = false;
+                saveButton.textContent = 'Simpan Perubahan';
+                return;
+            }
+
+            try {
+                const selectedDojo = allDojosData.find(d => d.id === updatedDojoId);
+                if (!selectedDojo) {
+                    messageDiv.textContent = 'Dojo tidak valid dipilih.';
+                    messageDiv.classList.add('text-red-500');
+                    saveButton.disabled = false;
+                    saveButton.textContent = 'Simpan Perubahan';
+                    return;
                 }
-            });
 
-            // Ensure only the ID card is visible for printing
-            const idCardOverlay = document.getElementById('id-card-modal-overlay');
-            idCardOverlay.style.position = 'static'; // Change to static for printing layout
-            idCardOverlay.style.background = 'none'; // Remove background for printing
+                await updateDoc(memberRef, {
+                    name: updatedName,
+                    placeOfBirth: updatedPlaceOfBirth,
+                    dateOfBirth: updatedDateOfBirth,
+                    beltLevel: updatedBeltLevel,
+                    birthCertUrl: updatedBirthCertUrl,
+                    beltCertUrl: updatedBeltCertUrl,
+                    photoUrl: updatedPhotoUrl,
+                    dojoId: updatedDojoId,
+                    dojoName: selectedDojo.name,
+                    city: selectedDojo.city,
+                    updatedAt: new Date(),
+                    updatedBy: currentUserId
+                });
 
-            window.print();
+                messageDiv.textContent = 'Data anggota berhasil diperbarui!';
+                messageDiv.classList.add('text-green-500');
+                closeEditMemberModal(); // Tutup modal setelah berhasil
+                loadMembers(); // Muat ulang daftar anggota
+                generateStatistics(); // Perbarui statistik
+            } catch (error) {
+                console.error("Error updating member:", error);
+                messageDiv.textContent = `Gagal memperbarui anggota: ${error.message}`;
+                messageDiv.classList.add('text-red-500');
+            } finally {
+                saveButton.disabled = false;
+                saveButton.textContent = 'Simpan Perubahan';
+            }
+        }
 
-            // Restore original visibility and styles after printing
-            elementsToHide.forEach(el => {
-                el.style.visibility = 'visible';
-            });
-            idCardOverlay.style.position = 'fixed';
-            idCardOverlay.style.background = 'rgba(0, 0, 0, 0.8)';
-            closeIdCardModal(); // Close the modal after print dialog is closed
+        // --- Fungsi untuk melihat detail anggota di halaman terpisah ---
+        function viewMemberDetail(memberId) {
+            // Arahkan ke halaman member_detail.html dengan ID anggota sebagai parameter URL
+            window.location.href = `member_detail.html?id=${memberId}`;
         }
 
 
@@ -926,6 +1101,12 @@
             // Hubungkan tombol cetak dan tutup ID card modal
             document.getElementById('print-id-card-btn').addEventListener('click', printIdCard);
             document.getElementById('close-id-card-modal-btn').addEventListener('click', closeIdCardModal);
+
+            // Hubungkan form edit anggota
+            const editMemberForm = document.getElementById('edit-member-form');
+            if (editMemberForm) {
+                editMemberForm.addEventListener('submit', handleEditMember);
+            }
         });
     </script>
 </head>
@@ -1151,6 +1332,60 @@
                 <button id="print-id-card-btn" class="bg-green-500 text-white px-4 py-2 rounded-full font-bold hover:bg-green-600 transition duration-300"><i class="fas fa-print mr-2"></i>Cetak Kartu</button>
                 <button id="close-id-card-modal-btn" class="bg-gray-400 text-white px-4 py-2 rounded-full font-bold hover:bg-gray-500 transition duration-300">Tutup</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Edit Member Modal -->
+    <div id="edit-member-modal-overlay" class="modal-overlay">
+        <div class="modal-content w-full max-w-lg">
+            <h4 class="text-2xl font-bold text-primary mb-6 text-center">Edit Data Anggota</h4>
+            <form id="edit-member-form" class="space-y-4 text-left">
+                <div>
+                    <label for="edit-member-name" class="block text-gray-700 text-sm font-bold mb-2">Nama Lengkap Anggota:</label>
+                    <input type="text" id="edit-member-name" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                </div>
+                <div>
+                    <label for="edit-member-place-of-birth" class="block text-gray-700 text-sm font-bold mb-2">Tempat Lahir Anggota:</label>
+                    <input type="text" id="edit-member-place-of-birth" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                </div>
+                <div>
+                    <label for="edit-member-date-of-birth" class="block text-gray-700 text-sm font-bold mb-2">Tanggal Lahir Anggota:</label>
+                    <input type="date" id="edit-member-date-of-birth" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                </div>
+                <div>
+                    <label for="edit-member-belt-level" class="block text-gray-700 text-sm font-bold mb-2">Tingkat Sabuk Anggota:</label>
+                    <select id="edit-member-belt-level" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        <option value="">Pilih Tingkat Sabuk</option>
+                        <!-- Options populated by JS -->
+                    </select>
+                </div>
+                <div>
+                    <label for="edit-member-birth-cert-url" class="block text-gray-700 text-sm font-bold mb-2">URL Akta Kelahiran:</label>
+                    <input type="url" id="edit-member-birth-cert-url" placeholder="Contoh: https://example.com/akta.pdf" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                </div>
+                <div>
+                    <label for="edit-member-belt-cert-url" class="block text-gray-700 text-sm font-bold mb-2">URL Ijazah Sabuk:</label>
+                    <input type="url" id="edit-member-belt-cert-url" placeholder="Contoh: https://example.com/ijazah.pdf" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                </div>
+                <div>
+                    <label for="edit-member-photo-url" class="block text-gray-700 text-sm font-bold mb-2">URL Foto Anggota:</label>
+                    <input type="url" id="edit-member-photo-url" placeholder="Contoh: https://example.com/foto.jpg" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                </div>
+                <div>
+                    <label for="edit-member-dojo-select" class="block text-gray-700 text-sm font-bold mb-2">Pilih Dojo:</label>
+                    <select id="edit-member-dojo-select" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        <option value="">Memuat Dojo...</option>
+                    </select>
+                </div>
+                <div class="flex justify-center space-x-4 mt-6">
+                    <button type="submit" id="save-member-button" class="bg-primary text-white px-6 py-3 rounded-full font-bold hover:bg-red-700 transition duration-300 shadow-md">
+                        Simpan Perubahan
+                    </button>
+                    <button type="button" onclick="closeEditMemberModal()" class="bg-gray-400 text-white px-6 py-3 rounded-full font-bold hover:bg-gray-500 transition duration-300">
+                        Batal
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
