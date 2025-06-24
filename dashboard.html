@@ -507,12 +507,24 @@
                             <p class="text-sm text-gray-700"><strong>Jadwal:</strong> ${dojo.schedule}</p>
                             <p class="text-sm text-gray-700"><strong>Kontak:</strong> ${dojo.contact}</p>
                             <div class="mt-4 flex justify-end space-x-2">
-                                <button class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-600" onclick="editDojo('${dojoId}')"><i class="fas fa-edit mr-1"></i>Edit</button>
-                                <button class="bg-red-500 text-white px-3 py-1 rounded-md text-sm hover:bg-red-600" onclick="deleteDojo('${dojoId}', '${dojo.name}')">Hapus</button>
+                                <button class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-600 edit-dojo-btn" data-id="${dojoId}"><i class="fas fa-edit mr-1"></i>Edit</button>
+                                <button class="bg-red-500 text-white px-3 py-1 rounded-md text-sm hover:bg-red-600 delete-dojo-btn" data-id="${dojoId}" data-name="${dojo.name}">Hapus</button>
                             </div>
                         </div>
                     `;
                     dojosListDiv.innerHTML += dojoCard;
+                });
+
+                // Attach event listeners after all cards are added to the DOM
+                document.querySelectorAll('.edit-dojo-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        editDojo(e.currentTarget.dataset.id);
+                    });
+                });
+                document.querySelectorAll('.delete-dojo-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        deleteDojo(e.currentTarget.dataset.id, e.currentTarget.dataset.name);
+                    });
                 });
 
             } catch (error) {
@@ -548,9 +560,7 @@
             document.getElementById('edit-dojo-address').value = dojo.address || '';
             document.getElementById('edit-dojo-schedule').value = dojo.schedule || '';
             document.getElementById('edit-dojo-contact').value = dojo.contact || '';
-            document.getElementById('edit-dojo-city-select').value = dojo.city || '';
-            document.getElementById('edit-dojo-image-url').value = dojo.image || '';
-
+            
             // Ensure city dropdown is populated for edit form
             const editDojoCitySelect = document.getElementById('edit-dojo-city-select');
             editDojoCitySelect.innerHTML = '<option value="">Pilih Kota/Kabupaten</option>';
@@ -561,6 +571,8 @@
                 editDojoCitySelect.appendChild(option);
             });
             editDojoCitySelect.value = dojo.city || ''; // Set selected value
+            
+            document.getElementById('edit-dojo-image-url').value = dojo.image || '';
 
             document.getElementById('edit-dojo-modal-overlay').classList.add('active');
         }
@@ -773,7 +785,7 @@
                     return;
                 }
 
-                membersSnapshot.forEach(m => {
+                querySnapshot.forEach(m => {
                     allMembersData.push({ id: m.id, ...m.data() });
                     const member = m.data();
                     const memberCard = `
@@ -790,15 +802,39 @@
                                 <a href="${member.photoUrl}" target="_blank" class="text-blue-500 hover:underline"><i class="fas fa-image mr-1"></i>Foto Anggota</a>
                             </div>
                             <div class="mt-4 flex justify-end space-x-2">
-                                <button class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-600" onclick="editMember('${m.id}')"><i class="fas fa-edit mr-1"></i>Edit</button>
-                                <button class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-600" onclick="generateIdCard('${m.id}')"><i class="fas fa-id-card mr-1"></i>ID Card</button>
-                                <button class="bg-green-500 text-white px-3 py-1 rounded-md text-sm hover:bg-green-600" onclick="viewMemberDetail('${m.id}')"><i class="fas fa-info-circle mr-1"></i>Detail</button>
-                                <button class="bg-red-500 text-white px-3 py-1 rounded-md text-sm hover:bg-red-600" onclick="deleteMember('${m.id}', '${member.name}')">Hapus</button>
+                                <button class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-600 edit-member-btn" data-id="${m.id}"><i class="fas fa-edit mr-1"></i>Edit</button>
+                                <button class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-600 id-card-btn" data-id="${m.id}"><i class="fas fa-id-card mr-1"></i>ID Card</button>
+                                <button class="bg-green-500 text-white px-3 py-1 rounded-md text-sm hover:bg-green-600 view-detail-btn" data-id="${m.id}"><i class="fas fa-info-circle mr-1"></i>Detail</button>
+                                <button class="bg-red-500 text-white px-3 py-1 rounded-md text-sm hover:bg-red-600 delete-member-btn" data-id="${m.id}" data-name="${member.name}">Hapus</button>
                             </div>
                         </div>
                     `;
                     membersListDiv.innerHTML += memberCard;
                 });
+
+                // Attach event listeners after all cards are added to the DOM
+                document.querySelectorAll('.edit-member-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        editMember(e.currentTarget.dataset.id);
+                    });
+                });
+                document.querySelectorAll('.id-card-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        generateIdCard(e.currentTarget.dataset.id);
+                    });
+                });
+                document.querySelectorAll('.view-detail-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        viewMemberDetail(e.currentTarget.dataset.id);
+                    });
+                });
+                document.querySelectorAll('.delete-member-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        deleteMember(e.currentTarget.dataset.id, e.currentTarget.dataset.name);
+                    });
+                });
+
+
             } catch (error) {
                 console.error("Error loading members:", error);
                 membersListDiv.innerHTML = `<p class="text-center text-red-500">Gagal memuat anggota: ${error.message}</p>`;
