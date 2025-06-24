@@ -145,16 +145,16 @@
             color: white; /* White text for header */
         }
         .id-card-header img {
-            height: 48px; /* Slightly larger logo */
-            width: 48px;
+            height: 55px; /* Lebih besar */
+            width: 55px; /* Lebih besar */
             border: 2px solid #F9A826; /* Accent yellow border */
             border-radius: 50%; /* Rounded logo */
             object-fit: cover;
-            margin-right: 0.12in; /* Slightly reduced margin */
+            margin-right: 0.15in; /* Sedikit lebih besar */
             box-shadow: 0 1px 3px rgba(0,0,0,0.2); /* Subtle shadow for logo */
         }
         .id-card-header h4 {
-            font-size: 1.4rem; /* Larger font */
+            font-size: 1.6rem; /* Lebih besar */
             font-weight: 800; /* Extra bold */
             margin-bottom: 0;
             line-height: 1.1; /* Tighter line height */
@@ -167,103 +167,119 @@
             flex-direction: column;
             align-items: center;
             justify-content: center; /* Center content vertically */
-            padding: 0.1in 0; /* Small vertical padding for content */
+            padding: 0.15in 0; /* Padding vertikal sedikit lebih besar */
         }
 
         .id-card-content img.member-photo {
-            width: 1.2in; /* Make photo larger */
-            height: 1.2in; /* Make photo larger */
+            width: 1.5in; /* Ukuran foto lebih besar */
+            height: 1.5in; /* Ukuran foto lebih besar */
             border-radius: 50%;
             object-fit: cover;
-            margin: 0.15in auto 0.2in auto; /* Adjusted margins to give more space */
-            border: 4px solid #F9A826; /* Thicker accent border */
-            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25); /* More prominent shadow */
+            margin: 0.15in auto 0.25in auto; /* Margin atas dan bawah lebih besar */
+            border: 5px solid #F9A826; /* Border lebih tebal */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Bayangan lebih menonjol */
             flex-shrink: 0;
         }
         .id-card-content p, .id-card-content strong {
-            font-size: 0.16in; /* Make text larger */
-            line-height: 1.4; /* More relaxed line height */
-            margin-bottom: 0.05in; /* Adjusted margin */
+            font-size: 0.18in; /* Ukuran teks lebih besar */
+            line-height: 1.5; /* Line height lebih santai */
+            margin-bottom: 0.08in; /* Margin bawah lebih besar */
             word-break: break-word;
-            color: #333333; /* Ensure dark text */
+            color: #333333; /* Warna teks gelap */
         }
         .id-card-content strong {
-            font-weight: 700; /* Bold for labels */
+            font-weight: 700; /* Tebal untuk label */
         }
         .id-card-content .name-text {
-            font-size: 0.22in; /* Make name larger */
-            font-weight: 800; /* Extra bold for name */
-            color: #B40000; /* Primary red for name */
-            margin-bottom: 0.08in; /* Adjusted margin */
+            font-size: 0.25in; /* Ukuran nama lebih besar */
+            font-weight: 800; /* Extra bold untuk nama */
+            color: #B40000; /* Merah primary untuk nama */
+            margin-bottom: 0.1in; /* Margin bawah lebih besar */
         }
-        .id-card-content .detail-line {
-            display: flex;
-            flex-direction: column; /* Stack label and value if needed */
-            text-align: center;
-            margin-bottom: 0.06in; /* Adjusted margin */
+        .id-card-content .detail-table {
+            width: 90%; /* Lebar tabel */
+            margin-top: 0.1in; /* Margin atas tabel */
+            border-collapse: collapse; /* Hilangkan spasi antar border sel */
+            font-size: 0.16in; /* Ukuran font tabel */
+            color: #333333;
         }
+        .id-card-content .detail-table td {
+            padding: 0.05in 0.1in; /* Padding dalam sel */
+            text-align: left; /* Teks rata kiri */
+            border-bottom: 1px solid #eee; /* Border bawah halus */
+        }
+        .id-card-content .detail-table tr:last-child td {
+            border-bottom: none; /* Hilangkan border bawah pada baris terakhir */
+        }
+        .id-card-content .detail-table td:first-child {
+            font-weight: 700; /* Label lebih tebal */
+            width: 30%; /* Lebar kolom label */
+            color: #555555; /* Warna label sedikit lebih terang */
+        }
+
 
         .id-card-content .barcode-area {
             display: flex;
             flex-direction: column; /* Stack QR and text */
             justify-content: center;
             align-items: center;
-            margin-top: 0.2in; /* More space above QR code */
-            margin-bottom: 0.1in; /* More space below QR code */
+            margin-top: 0.25in; /* Lebih banyak spasi di atas QR code */
+            margin-bottom: 0.15in; /* Lebih banyak spasi di bawah QR code */
             flex-shrink: 0;
         }
         #id-card-preview-qrcode {
-            width: 1.8in; /* Make QR code larger */
-            height: 1.8in; /* Make QR code larger */
-            padding: 4px; /* More padding for QR background */
+            width: 2.2in; /* Ukuran QR code lebih besar */
+            height: 2.2in; /* Ukuran QR code lebih besar */
+            padding: 5px; /* Lebih banyak padding untuk background QR */
             background-color: white;
             flex-shrink: 0;
-            border: 1px solid #d3d3d3; /* Subtle border for QR */
-            border-radius: 0.1rem; /* Slight rounding */
+            border: 2px solid #d3d3d3; /* Border QR code lebih jelas */
+            border-radius: 0.15rem; /* Sedikit lebih melengkung */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Bayangan halus untuk QR */
         }
         .id-card-content .text-xs {
-            font-size: 0.13in; /* Make text larger */
-            color: #666666; /* Softer gray text */
-            margin-top: 0.06in; /* Adjusted margin */
+            font-size: 0.15in; /* Ukuran teks lebih besar */
+            color: #666666; /* Warna abu-abu lebih lembut */
+            margin-top: 0.08in; /* Margin atas lebih besar */
         }
         
         .id-card-footer {
-            background-color: #333333; /* Dark background */
+            background-color: #333333; /* Background gelap */
             color: white;
-            font-size: 0.13in; /* Make font larger for footer */
-            margin: 0.1in -0.2in -0.2in -0.2in; /* Adjusted for new wrapper padding */
-            padding: 0.15in; /* Adjusted padding */
-            border-radius: 0 0 0.2rem 0.2rem; /* Match wrapper rounding for bottom */
+            font-size: 0.14in; /* Ukuran font lebih besar untuk footer */
+            margin: 0.15in -0.2in -0.2in -0.2in; /* Disesuaikan untuk padding wrapper baru */
+            padding: 0.18in; /* Padding lebih besar */
+            border-radius: 0 0 0.2rem 0.2rem; /* Sesuai dengan pembulatan wrapper bawah */
             width: calc(100% + 0.4in);
             text-align: center;
             flex-shrink: 0;
-            line-height: 1.3; /* More relaxed line height */
-            box-shadow: 0 -1px 3px rgba(0,0,0,0.1); /* Subtle shadow for footer */
+            line-height: 1.4; /* Line height lebih santai */
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.15); /* Bayangan lebih menonjol untuk footer */
         }
         .id-card-footer p {
-            font-size: 0.13in; /* Ensure p inside footer has consistent font */
+            font-size: 0.14in; /* Pastikan p di dalam footer memiliki font konsisten */
             margin: 0;
-            font-weight: 500; /* Medium font weight */
+            font-weight: 500; /* Font weight medium */
         }
         .id-card-footer i {
-            margin-right: 5px; /* Larger icon margin */
-            color: #F9A826; /* Accent color for icons */
+            margin-right: 6px; /* Margin ikon lebih besar */
+            color: #F9A826; /* Warna aksen untuk ikon */
         }
 
         /* Modal Action Buttons styling */
         .modal-actions {
-            padding: 1rem; /* Padding for the button container */
-            background-color: white; /* Match modal content background */
-            border-top: 1px solid #eee; /* Separator line */
-            width: 100%; /* Take full width of modal content */
-            box-sizing: border-box; /* Include padding in width */
-            border-radius: 0 0 0.5rem 0.5rem; /* Round bottom corners */
-            flex-shrink: 0; /* Prevent from shrinking */
+            padding: 1.2rem; /* Padding lebih besar untuk container tombol */
+            background-color: white; /* Sesuai dengan background konten modal */
+            border-top: 1px solid #eee; /* Garis pemisah */
+            width: 100%; /* Ambil lebar penuh konten modal */
+            box-sizing: border-box; /* Sertakan padding dalam lebar */
+            border-radius: 0 0 0.5rem 0.5rem; /* Sudut bawah melengkung */
+            flex-shrink: 0; /* Cegah penyusutan */
         }
         .modal-actions button {
-            font-size: 1rem; /* Larger button text */
-            padding: 0.7rem 1.4rem; /* Adjusted padding for buttons */
-            border-radius: 0.5rem; /* Rounded buttons */
+            font-size: 1.1rem; /* Ukuran teks tombol lebih besar */
+            padding: 0.8rem 1.6rem; /* Padding tombol disesuaikan */
+            border-radius: 0.6rem; /* Tombol lebih melengkung */
             font-weight: 600; /* Semi-bold */
         }
         /* Specific button colors (Tailwind classes) are in the HTML */
@@ -534,12 +550,29 @@
             const previewIdCardArea = document.getElementById('id-card-preview-content'); 
 
             // Populate the preview ID card area
-            document.getElementById('preview-id-card-photo').src = memberData.photoUrl || 'https://placehold.co/100x100/CCCCCC/000000?text=Foto';
-            document.getElementById('preview-id-card-name').textContent = memberData.name;
-            document.getElementById('preview-id-card-dob').textContent = `TTL: ${memberData.placeOfBirth || 'N/A'}, ${memberData.dateOfBirth || 'N/A'}`;
-            document.getElementById('preview-id-card-belt').textContent = `Sabuk: ${memberData.beltLevel || 'N/A'}`;
-            document.getElementById('preview-id-card-dojo').textContent = `Dojo: ${memberData.dojoName || 'N/A'}`;
-            document.getElementById('preview-id-card-city').textContent = `Cabang: ${memberData.city || 'N/A'}`;
+            document.getElementById('preview-id-card-photo').src = memberData.photoUrl || 'https://placehold.co/200x200/CCCCCC/000000?text=Foto+Anggota'; // Placeholder yang lebih besar
+            document.getElementById('preview-id-card-name').textContent = memberData.name.toUpperCase(); // Huruf kapital
+            
+            // Mengisi tabel detail
+            const detailTableBody = document.getElementById('preview-id-card-detail-table-body');
+            detailTableBody.innerHTML = `
+                <tr>
+                    <td>TTL</td>
+                    <td>: ${memberData.placeOfBirth || 'N/A'}, ${memberData.dateOfBirth || 'N/A'}</td>
+                </tr>
+                <tr>
+                    <td>Sabuk</td>
+                    <td>: ${memberData.beltLevel || 'N/A'}</td>
+                </tr>
+                <tr>
+                    <td>Dojo</td>
+                    <td>: ${memberData.dojoName || 'N/A'}</td>
+                </tr>
+                <tr>
+                    <td>Cabang</td>
+                    <td>: ${memberData.city || 'N/A'}</td>
+                </tr>
+            `;
 
             // Generate QR Code for the preview ID card
             const previewQrcodeCanvas = document.getElementById('id-card-preview-qrcode');
@@ -643,11 +676,9 @@
                 <span class="text-xl font-bold text-primary">KEI SHIN KAN</span>
             </a>
             <!-- Back to Dashboard Link -->
-            <div class="flex items-center space-x-4">
-                <a href="dashboard.html" class="bg-gray-200 text-secondary px-5 py-2 rounded-full font-bold hover:bg-gray-300 transition duration-300 shadow-md">
-                    <i class="fas fa-arrow-left mr-2"></i>Kembali ke Dashboard
-                </a>
-            </div>
+            <a href="dashboard.html" class="bg-gray-200 text-secondary px-5 py-2 rounded-full font-bold hover:bg-gray-300 transition duration-300 shadow-md">
+                <i class="fas fa-arrow-left mr-2"></i>Kembali ke Dashboard
+            </a>
         </div>
     </nav>
 
@@ -664,17 +695,18 @@
             <div id="id-card-preview-content" class="id-card-content-wrapper">
                 <div class="id-card-header flex items-center justify-center p-4">
                     <img src="img/logo-ksk.png" alt="Logo KEI SHIN KAN" class="h-12 w-12 rounded-full object-cover mr-4">
-                    <h4 class="text-3xl font-bold text-primary">KEI SHIN KAN</h4>
+                    <h4 class="text-3xl font-bold text-white">KEI SHIN KAN</h4>
                 </div>
                 <div class="id-card-content">
                     <img id="preview-id-card-photo" src="" alt="Foto Anggota" class="member-photo">
                     <p class="font-bold text-xl mb-2 name-text" id="preview-id-card-name"></p>
-                    <div class="text-sm text-gray-700 text-center space-y-1 px-4">
-                        <p class="detail-line" id="preview-id-card-dob"></p>
-                        <p class="detail-line" id="preview-id-card-belt"></p>
-                        <p class="detail-line" id="preview-id-card-dojo"></p>
-                        <p class="detail-line" id="preview-id-card-city"></p>
-                    </div>
+                    
+                    <table class="detail-table">
+                        <tbody id="preview-id-card-detail-table-body">
+                            <!-- Detail akan diisi oleh JavaScript -->
+                        </tbody>
+                    </table>
+
                     <div class="barcode-area">
                         <canvas id="id-card-preview-qrcode"></canvas>
                         <p class="text-xs text-gray-600 mt-2">Scan untuk Kehadiran</p>
