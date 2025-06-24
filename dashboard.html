@@ -131,9 +131,17 @@
             transition: transform 0.3s ease-in-out;
             max-width: 90vw; /* Default modal width */
             padding: 1.5rem; /* Default modal padding */
+            overflow-y: auto; /* Enable vertical scrolling */
+            max-height: 90vh; /* Limit height to prevent overflow on smaller screens */
         }
         .modal-overlay.active .modal-content {
             transform: translateY(0);
+        }
+
+        /* Specific adjustments for Add/Edit Member Modal */
+        #add-edit-member-modal .modal-content {
+            max-width: 500px; /* Adjust maximum width for the registration form */
+            padding: 2rem; /* Increase padding for better spacing */
         }
     </style>
 
@@ -142,7 +150,7 @@
         // Mengimpor fungsi Firebase dari CDN
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-        import { getFirestore, collection, getDocs, doc, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, doc, deleteDoc, addDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
         // Konfigurasi Firebase Anda.
         const firebaseConfig = {
@@ -159,6 +167,7 @@
         let auth; // Instansi Auth
         let db;
         let firebaseInitialized = false;
+        let allDojos = []; // Global variable to store all dojos, used for member city derivation
 
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const membersCollectionPath = `artifacts/${appId}/public/data/members`;
@@ -190,18 +199,27 @@
                                 loadDashboardData(); // Muat semua data dashboard setelah sign-in anonim berhasil
                             } catch (error) {
                                 console.error("Anonymous sign-in failed:", error.message);
-                                document.getElementById('dashboard-content-area').innerHTML = `<p class="text-center text-red-500 col-span-full">Gagal login untuk memuat data: ${error.message}<br>Harap pastikan "Anonymous" Sign-in Provider diaktifkan di Firebase Authentication Anda.</p>`;
+                                const dashboardContentArea = document.getElementById('dashboard-content-area');
+                                if (dashboardContentArea) {
+                                    dashboardContentArea.innerHTML = `<p class="text-center text-red-500 col-span-full">Gagal login untuk memuat data: ${error.message}<br>Harap pastikan "Anonymous" Sign-in Provider diaktifkan di Firebase Authentication Anda.</p>`;
+                                }
                             }
                         }
                     });
 
                 } catch (error) {
                     console.error("Firebase initialization error for dashboard.html:", error.message);
-                    document.getElementById('dashboard-content-area').innerHTML = `<p class="text-center text-red-500 col-span-full">Gagal menginisialisasi Firebase: ${error.message}</p>`;
+                    const dashboardContentArea = document.getElementById('dashboard-content-area');
+                    if (dashboardContentArea) {
+                        dashboardContentArea.innerHTML = `<p class="text-center text-red-500 col-span-full">Gagal menginisialisasi Firebase: ${error.message}</p>`;
+                    }
                 }
             } else {
                 console.error("Konfigurasi Firebase tidak tersedia. Tidak dapat menginisialisasi Firebase untuk dashboard.html.");
-                document.getElementById('dashboard-content-area').innerHTML = '<p class="text-center text-red-500 col-span-full">Konfigurasi Firebase tidak ditemukan. Mohon perbarui kode.</p>';
+                const dashboardContentArea = document.getElementById('dashboard-content-area');
+                if (dashboardContentArea) {
+                    dashboardContentArea.innerHTML = '<p class="text-center text-red-500 col-span-full">Konfigurasi Firebase tidak ditemukan. Mohon perbarui kode.</p>';
+                }
             }
         }
 
@@ -233,19 +251,27 @@
         async function updateStatistics() {
             if (!firebaseInitialized || !db) {
                 console.error("Firebase belum diinisialisasi untuk statistik.");
-                document.getElementById('total-members-stat').textContent = 'Error';
-                document.getElementById('total-dojos-stat').textContent = 'Error';
-                document.getElementById('dojo-members-list').innerHTML = '<li>Error memuat data</li>';
-                document.getElementById('members-per-city-list').innerHTML = '<li>Error memuat data</li>';
-                document.getElementById('members-per-dojo-list').innerHTML = '<li>Error memuat data</li>';
+                // Update elements with error text only if they exist
+                const totalMembersStat = document.getElementById('total-members-stat');
+                if (totalMembersStat) totalMembersStat.textContent = 'Error';
+                const totalDojosStat = document.getElementById('total-dojos-stat');
+                if (totalDojosStat) totalDojosStat.textContent = 'Error';
+                const dojoMembersList = document.getElementById('dojo-members-list');
+                if (dojoMembersList) dojoMembersList.innerHTML = '<li>Error memuat data</li>';
+                const membersPerCityList = document.getElementById('members-per-city-list');
+                if (membersPerCityList) membersPerCityList.innerHTML = '<li>Error memuat data</li>';
+                const membersPerDojoList = document.getElementById('members-per-dojo-list');
+                if (membersPerDojoList) membersPerDojoList.innerHTML = '<li>Error memuat data</li>';
                 return;
             }
             try {
                 const membersSnapshot = await getDocs(collection(db, membersCollectionPath));
                 const dojosSnapshot = await getDocs(collection(db, dojosCollectionPath));
                 
-                document.getElementById('total-members-stat').textContent = membersSnapshot.size;
-                document.getElementById('total-dojos-stat').textContent = dojosSnapshot.size;
+                const totalMembersStat = document.getElementById('total-members-stat');
+                if (totalMembersStat) totalMembersStat.textContent = membersSnapshot.size;
+                const totalDojosStat = document.getElementById('total-dojos-stat');
+                if (totalDojosStat) totalDojosStat.textContent = dojosSnapshot.size;
 
                 // Statistik Dojo per Cabang
                 const dojoPerCity = {};
@@ -259,7 +285,8 @@
                     dojoPerCityHtml += `<li>- Kota ${city}: ${dojoPerCity[city]} dojo</li>`;
                 }
                 );
-                document.getElementById('dojo-members-list').innerHTML = dojoPerCityHtml || '<li>Tidak ada data dojo.</li>';
+                const dojoMembersList = document.getElementById('dojo-members-list');
+                if (dojoMembersList) dojoMembersList.innerHTML = dojoPerCityHtml || '<li>Tidak ada data dojo.</li>';
 
                 // Statistik Anggota per Cabang dan per Dojo
                 const membersPerCity = {};
@@ -275,28 +302,40 @@
                 Object.keys(membersPerCity).sort().forEach(city => {
                     membersPerCityHtml += `<li>- Kota ${city}: ${membersPerCity[city]} anggota</li>`;
                 });
-                document.getElementById('members-per-city-list').innerHTML = membersPerCityHtml || '<li>Tidak ada data anggota per cabang.</li>';
+                const membersPerCityList = document.getElementById('members-per-city-list');
+                if (membersPerCityList) membersPerCityList.innerHTML = membersPerCityHtml || '<li>Tidak ada data anggota per cabang.</li>';
 
                 let membersPerDojoHtml = '';
                 // Mengurutkan dojo secara alfabetis
                 Object.keys(membersPerDojo).sort().forEach(dojoName => {
                     membersPerDojoHtml += `<li>- ${dojoName}: ${membersPerDojo[dojoName]} anggota</li>`;
                 });
-                document.getElementById('members-per-dojo-list').innerHTML = membersPerDojoHtml || '<li>Tidak ada data anggota per dojo.</li>';
+                const membersPerDojoList = document.getElementById('members-per-dojo-list');
+                if (membersPerDojoList) membersPerDojoList.innerHTML = membersPerDojoHtml || '<li>Tidak ada data anggota per dojo.</li>';
 
             } catch (error) {
                 console.error("Error mengambil statistik:", error);
-                document.getElementById('total-members-stat').textContent = 'Error';
-                document.getElementById('total-dojos-stat').textContent = 'Error';
-                document.getElementById('dojo-members-list').innerHTML = '<li>Error memuat data</li>';
-                document.getElementById('members-per-city-list').innerHTML = '<li>Error memuat data</li>';
-                document.getElementById('members-per-dojo-list').innerHTML = '<li>Error memuat data</li>';
+                // Update elements with error text only if they exist
+                const totalMembersStat = document.getElementById('total-members-stat');
+                if (totalMembersStat) totalMembersStat.textContent = 'Error';
+                const totalDojosStat = document.getElementById('total-dojos-stat');
+                if (totalDojosStat) totalDojosStat.textContent = 'Error';
+                const dojoMembersList = document.getElementById('dojo-members-list');
+                if (dojoMembersList) dojoMembersList.innerHTML = '<li>Error memuat data</li>';
+                const membersPerCityList = document.getElementById('members-per-city-list');
+                if (membersPerCityList) membersPerCityList.innerHTML = '<li>Error memuat data</li>';
+                const membersPerDojoList = document.getElementById('members-per-dojo-list');
+                if (membersPerDojoList) membersPerDojoList.innerHTML = '<li>Error memuat data</li>';
             }
         }
 
         // Fungsi untuk memuat data anggota dari Firestore
         async function loadMembers() {
             const membersListDiv = document.getElementById('members-list');
+            if (!membersListDiv) {
+                console.warn("members-list element not found. Skipping loadMembers.");
+                return;
+            }
             membersListDiv.innerHTML = '<p class="text-center text-gray-500 col-span-full">Memuat data anggota...</p>';
 
             if (!firebaseInitialized || !db) {
@@ -318,16 +357,26 @@
                             <div class="member-card flex flex-col items-center text-center">
                                 <img src="${member.photoUrl || 'https://placehold.co/80x80/CCCCCC/000000?text=Foto'}" alt="Foto Anggota" class="mb-4">
                                 <h3 class="text-xl font-bold text-primary mb-2">${member.name || 'N/A'}</h3>
-                                <p class="text-gray-600 text-sm">Email: ${member.email || 'N/A'}</p>
                                 <p class="text-gray-600 text-sm">TTL: ${member.placeOfBirth || 'N/A'}, ${member.dateOfBirth || 'N/A'}</p>
                                 <p class="text-gray-600 text-sm">Sabuk: ${member.beltLevel || 'N/A'}</p>
                                 <p class="text-gray-600 text-sm">Dojo: ${member.dojoName || 'N/A'}</p>
                                 <p class="text-gray-600 text-sm">Cabang: ${member.city || 'N/A'}</p>
                                 <p class="text-gray-600 text-sm">No. Anggota: ${memberId}</p>
                                 <div class="mt-4 flex flex-wrap justify-center gap-2">
-                                    <a href="member_detail.html?id=${memberId}" class="bg-blue-500 text-white px-3 py-1 rounded-full text-sm hover:bg-blue-600 transition duration-300">
-                                        <i class="fas fa-info-circle mr-1"></i>Detail
-                                    </a>
+                                    <button class="bg-blue-500 text-white px-3 py-1 rounded-full text-sm hover:bg-blue-600 transition duration-300 edit-member-btn"
+                                            data-member-id="${memberId}"
+                                            data-member-name="${member.name || ''}"
+                                            data-member-email="${member.email || ''}"
+                                            data-member-photourl="${member.photoUrl || ''}"
+                                            data-member-dob="${member.dateOfBirth || ''}"
+                                            data-member-pob="${member.placeOfBirth || ''}"
+                                            data-member-belt="${member.beltLevel || ''}"
+                                            data-member-dojo="${member.dojoName || ''}"
+                                            data-member-city="${member.city || ''}"
+                                            data-member-birthcertificateurl="${member.birthCertificateUrl || ''}"
+                                            data-member-beltcertificateurl="${member.beltCertificateUrl || ''}">
+                                        <i class="fas fa-edit mr-1"></i>Edit
+                                    </button>
                                     <button class="bg-green-500 text-white px-3 py-1 rounded-full text-sm hover:bg-green-600 transition duration-300 show-id-card-btn"
                                             data-member-id="${memberId}">
                                         <i class="fas fa-id-card mr-1"></i>ID Card
@@ -350,6 +399,26 @@
                     });
                 });
 
+                // Attach event listeners for Edit Member buttons
+                document.querySelectorAll('.edit-member-btn').forEach(button => {
+                    button.addEventListener('click', (event) => {
+                        const memberData = {
+                            id: event.target.dataset.memberId,
+                            name: event.target.dataset.memberName,
+                            // email: event.target.dataset.memberEmail, // Removed as per user request
+                            photoUrl: event.target.dataset.memberPhotourl,
+                            dateOfBirth: event.target.dataset.memberDob,
+                            placeOfBirth: event.target.dataset.memberPob,
+                            beltLevel: event.target.dataset.memberBelt,
+                            dojoName: event.target.dataset.memberDojo,
+                            city: event.target.dataset.memberCity,
+                            birthCertificateUrl: event.target.dataset.memberBirthcertificateurl,
+                            beltCertificateUrl: event.target.dataset.memberBeltcertificateurl
+                        };
+                        showAddEditMemberModal(memberData); // Use the combined modal
+                    });
+                });
+
                 // Attach event listeners for Delete buttons
                 document.querySelectorAll('.delete-member-btn').forEach(button => {
                     button.addEventListener('click', (event) => {
@@ -369,6 +438,11 @@
             const confirmModal = document.getElementById('confirm-delete-modal');
             const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
             const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+
+            if (!confirmModal || !confirmDeleteBtn || !cancelDeleteBtn) {
+                console.error("Confirm delete modal elements not found.");
+                return;
+            }
 
             confirmModal.classList.add('active'); // Tampilkan modal
 
@@ -393,33 +467,205 @@
             };
         }
 
+        // Fungsi untuk menampilkan modal tambah/edit anggota
+        async function showAddEditMemberModal(memberData = null) {
+            const modal = document.getElementById('add-edit-member-modal');
+            const form = document.getElementById('add-edit-member-form');
+            const title = document.getElementById('add-edit-member-title');
+            const messageDiv = document.getElementById('add-edit-member-message');
+            const memberCityDisplay = document.getElementById('member-city-display'); // For displaying city
+
+            messageDiv.textContent = '';
+            messageDiv.classList.remove('text-green-500', 'text-red-500');
+
+            if (!modal || !form || !title || !messageDiv || !memberCityDisplay) {
+                console.error("Add/Edit member modal elements not found.");
+                return;
+            }
+
+            // Populate dojo dropdown
+            const dojoSelect = document.getElementById('member-dojo-name');
+            if (dojoSelect) {
+                dojoSelect.innerHTML = '<option value="">Pilih Dojo</option>'; // Clear existing options
+                try {
+                    const dojosSnapshot = await getDocs(collection(db, dojosCollectionPath));
+                    allDojos = dojosSnapshot.docs.map(docItem => ({ id: docItem.id, ...docItem.data() })); // Populate allDojos with ID
+                    
+                    allDojos.forEach(dojo => {
+                        const option = document.createElement('option');
+                        option.value = dojo.name;
+                        option.textContent = dojo.name;
+                        dojoSelect.appendChild(option);
+                    });
+                } catch (error) {
+                    console.error("Error loading dojos for member form:", error);
+                    messageDiv.textContent = 'Gagal memuat daftar dojo.';
+                    messageDiv.classList.add('text-red-500');
+                }
+            }
+
+
+            if (memberData) { // Edit mode
+                title.textContent = 'Edit Data Anggota';
+                form.dataset.memberId = memberData.id;
+                document.getElementById('member-name').value = memberData.name || '';
+                // Email input removed
+                document.getElementById('member-photo-url').value = memberData.photoUrl || '';
+                document.getElementById('member-place-of-birth').value = memberData.placeOfBirth || '';
+                document.getElementById('member-date-of-birth').value = memberData.dateOfBirth || '';
+                document.getElementById('member-belt-level').value = memberData.beltLevel || '';
+                if (dojoSelect) dojoSelect.value = memberData.dojoName || ''; // Set selected dojo
+                document.getElementById('member-birth-certificate-url').value = memberData.birthCertificateUrl || '';
+                document.getElementById('member-belt-certificate-url').value = memberData.beltCertificateUrl || '';
+
+                // City input removed, display derived city
+                const selectedDojo = allDojos.find(dojo => dojo.name === memberData.dojoName);
+                if (selectedDojo) {
+                    memberCityDisplay.textContent = `Cabang: ${selectedDojo.city}`;
+                } else {
+                    memberCityDisplay.textContent = 'Cabang: N/A (Dojo tidak ditemukan)';
+                }
+
+            } else { // Add mode
+                title.textContent = 'Tambahkan Anggota Baru';
+                form.removeAttribute('data-member-id');
+                form.reset(); // Clear form fields
+                // Clear the city display for new members
+                memberCityDisplay.textContent = 'Cabang: Akan otomatis terisi berdasarkan Dojo';
+            }
+
+            modal.classList.add('active');
+
+            // Event listener for dojo selection change to update city display
+            if (dojoSelect) {
+                dojoSelect.onchange = () => {
+                    const selectedDojoName = dojoSelect.value;
+                    const selectedDojo = allDojos.find(dojo => dojo.name === selectedDojoName);
+                    if (selectedDojo) {
+                        memberCityDisplay.textContent = `Cabang: ${selectedDojo.city}`;
+                    } else {
+                        memberCityDisplay.textContent = 'Cabang: Akan otomatis terisi berdasarkan Dojo';
+                    }
+                };
+            }
+        }
+
+        // Fungsi untuk menangani pengiriman formulir tambah/edit anggota
+        async function handleAddEditMember(event) {
+            event.preventDefault();
+            const form = event.target;
+            const memberId = form.dataset.memberId; // Will be undefined in add mode
+            
+            const dojoName = document.getElementById('member-dojo-name').value;
+            let memberCity = 'Unknown'; // Default city if dojo not found
+            const selectedDojo = allDojos.find(dojo => dojo.name === dojoName);
+            if (selectedDojo) {
+                memberCity = selectedDojo.city;
+            } else {
+                console.warn(`Dojo with name '${dojoName}' not found for member. Setting city to 'Unknown'.`);
+            }
+
+            const memberData = {
+                name: document.getElementById('member-name').value,
+                // Email input removed, so not collected here
+                photoUrl: document.getElementById('member-photo-url').value,
+                placeOfBirth: document.getElementById('member-place-of-birth').value,
+                dateOfBirth: document.getElementById('member-date-of-birth').value,
+                beltLevel: document.getElementById('member-belt-level').value,
+                dojoName: dojoName,
+                city: memberCity, // Derived from selected dojo
+                birthCertificateUrl: document.getElementById('member-birth-certificate-url').value,
+                beltCertificateUrl: document.getElementById('member-belt-certificate-url').value
+            };
+
+            const messageDiv = document.getElementById('add-edit-member-message');
+            if (!messageDiv) {
+                console.error("Add/Edit member message div not found.");
+                return;
+            }
+            messageDiv.textContent = '';
+            messageDiv.classList.remove('text-green-500', 'text-red-500');
+
+            if (!firebaseInitialized || !db) {
+                messageDiv.textContent = 'Firebase belum diinisialisasi. Coba lagi.';
+                messageDiv.classList.add('text-red-500');
+                return;
+            }
+
+            try {
+                if (memberId) {
+                    // Update existing member
+                    await setDoc(doc(db, membersCollectionPath, memberId), memberData, { merge: true });
+                    messageDiv.textContent = 'Data anggota berhasil diperbarui!';
+                } else {
+                    // Add new member
+                    await addDoc(collection(db, membersCollectionPath), memberData);
+                    messageDiv.textContent = 'Anggota berhasil ditambahkan!';
+                }
+                messageDiv.classList.add('text-green-500');
+                loadMembers(); // Reload member list
+                updateStatistics(); // Update statistics
+                setTimeout(() => {
+                    const modal = document.getElementById('add-edit-member-modal');
+                    if (modal) modal.classList.remove('active');
+                }, 1500);
+            } catch (error) {
+                console.error("Error saving member data:", error);
+                messageDiv.textContent = `Gagal menyimpan data anggota: ${error.message}`;
+                messageDiv.classList.add('text-red-500');
+            }
+        }
+
+
         // Fungsi untuk menampilkan modal tambah dojo
         function showAddDojoModal() {
             const addDojoModal = document.getElementById('add-dojo-modal');
+            const addDojoMessage = document.getElementById('add-dojo-message');
+            const addDojoForm = document.getElementById('add-dojo-form');
+            const addDojoModalTitle = document.getElementById('add-dojo-modal-title');
+
+            if (!addDojoModal || !addDojoMessage || !addDojoForm || !addDojoModalTitle) {
+                console.error("Add dojo modal elements not found.");
+                return;
+            }
+
             addDojoModal.classList.add('active');
+            addDojoModalTitle.textContent = 'Tambah Dojo Baru'; // Reset title
+            addDojoForm.removeAttribute('data-dojo-id'); // Clear dojo ID for add mode
             // Bersihkan bidang formulir
             document.getElementById('dojo-name').value = '';
             document.getElementById('dojo-trainer').value = '';
             document.getElementById('dojo-contact').value = '';
             document.getElementById('dojo-address').value = '';
             document.getElementById('dojo-schedule').value = '';
-            document.getElementById('dojo-city').value = '';
             document.getElementById('dojo-image').value = '';
-            document.getElementById('add-dojo-message').textContent = '';
+            // Reset dojo-city dropdown to default
+            document.getElementById('dojo-city').value = ''; 
+            addDojoMessage.textContent = '';
+            addDojoMessage.classList.remove('text-green-500', 'text-red-500');
         }
 
         // Fungsi untuk menangani pengiriman formulir tambah dojo
         async function handleAddDojo(event) {
             event.preventDefault();
-            const dojoName = document.getElementById('dojo-name').value;
-            const dojoTrainer = document.getElementById('dojo-trainer').value;
-            const dojoContact = document.getElementById('dojo-contact').value;
-            const dojoAddress = document.getElementById('dojo-address').value;
-            const dojoSchedule = document.getElementById('dojo-schedule').value;
-            const dojoCity = document.getElementById('dojo-city').value;
-            const dojoImage = document.getElementById('dojo-image').value; // Menganggap ini adalah URL
+            const form = event.target;
+            const dojoId = form.dataset.dojoId; // Will be undefined in add mode
+
+            const dojoData = {
+                name: document.getElementById('dojo-name').value,
+                trainer: document.getElementById('dojo-trainer').value,
+                contact: document.getElementById('dojo-contact').value,
+                address: document.getElementById('dojo-address').value,
+                schedule: document.getElementById('dojo-schedule').value,
+                city: document.getElementById('dojo-city').value,
+                image: document.getElementById('dojo-image').value, // Menganggap ini adalah URL
+            };
 
             const addDojoMessageDiv = document.getElementById('add-dojo-message');
+            if (!addDojoMessageDiv) {
+                console.error("Add dojo message div not found.");
+                return;
+            }
             addDojoMessageDiv.textContent = '';
             addDojoMessageDiv.classList.remove('text-green-500', 'text-red-500');
 
@@ -430,25 +676,23 @@
             }
 
             try {
-                await addDoc(collection(db, dojosCollectionPath), {
-                    name: dojoName,
-                    trainer: dojoTrainer,
-                    contact: dojoContact,
-                    address: dojoAddress,
-                    schedule: dojoSchedule,
-                    city: dojoCity,
-                    image: dojoImage
-                });
-                addDojoMessageDiv.textContent = 'Dojo berhasil ditambahkan!';
+                if (dojoId) {
+                    await setDoc(doc(db, dojosCollectionPath, dojoId), dojoData, { merge: true });
+                    addDojoMessageDiv.textContent = 'Dojo berhasil diperbarui!';
+                } else {
+                    await addDoc(collection(db, dojosCollectionPath), dojoData);
+                    addDojoMessageDiv.textContent = 'Dojo berhasil ditambahkan!';
+                }
                 addDojoMessageDiv.classList.add('text-green-500');
                 updateStatistics(); // Perbarui statistik setelah menambahkan dojo
                 loadDojosList(); // Muat ulang daftar dojo
                 setTimeout(() => {
-                    document.getElementById('add-dojo-modal').classList.remove('active');
+                    const modal = document.getElementById('add-dojo-modal');
+                    if (modal) modal.classList.remove('active');
                 }, 1500); // Tutup modal setelah 1.5 detik
             } catch (error) {
-                console.error("Error menambahkan dojo:", error);
-                addDojoMessageDiv.textContent = `Gagal menambahkan dojo: ${error.message}`;
+                console.error("Error menambahkan/memperbarui dojo:", error);
+                addDojoMessageDiv.textContent = `Gagal menyimpan data dojo: ${error.message}`;
                 addDojoMessageDiv.classList.add('text-red-500');
             }
         }
@@ -456,6 +700,10 @@
         // Fungsi untuk memuat daftar dojo saat ini
         async function loadDojosList() {
             const dojoListDiv = document.getElementById('dojo-current-list');
+            if (!dojoListDiv) {
+                console.warn("dojo-current-list element not found. Skipping loadDojosList.");
+                return;
+            }
             dojoListDiv.innerHTML = '<p class="text-center text-gray-500 col-span-full">Memuat daftar dojo...</p>';
 
             if (!firebaseInitialized || !db) {
@@ -465,6 +713,10 @@
 
             try {
                 const querySnapshot = await getDocs(collection(db, dojosCollectionPath));
+                allDojos = []; // Ensure allDojos is updated globally
+                querySnapshot.forEach((docItem) => {
+                    allDojos.push({ id: docItem.id, ...docItem.data() }); // Include ID for potential future use
+                });
                 let dojosHtml = '';
                 if (querySnapshot.empty) {
                     dojosHtml = '<p class="text-center text-gray-600 col-span-full">Belum ada dojo terdaftar.</p>';
@@ -480,10 +732,17 @@
                                 <p class="text-gray-600 text-sm">Pelatih: ${dojo.trainer || 'N/A'}</p>
                                 <p class="text-gray-600 text-sm">Alamat: ${dojo.address || 'N/A'}</p>
                                 <p class="text-gray-600 text-sm">Jadwal: ${dojo.schedule || 'N/A'}</p>
-                                <p class="text-gray-600 text-sm">Kontak: ${dojo.contact || 'N/A'}</p>
                                 <p class="text-gray-600 text-sm">Kota: ${dojo.city || 'N/A'}</p>
                                 <div class="mt-4 flex flex-wrap justify-center gap-2">
-                                    <button class="bg-blue-500 text-white px-3 py-1 rounded-full text-sm hover:bg-blue-600 transition duration-300 edit-dojo-btn" data-dojo-id="${dojoId}">
+                                    <button class="bg-blue-500 text-white px-3 py-1 rounded-full text-sm hover:bg-blue-600 transition duration-300 edit-dojo-btn"
+                                            data-dojo-id="${dojoId}"
+                                            data-dojo-name="${dojo.name || ''}"
+                                            data-dojo-trainer="${dojo.trainer || ''}"
+                                            data-dojo-contact="${dojo.contact || ''}"
+                                            data-dojo-address="${dojo.address || ''}"
+                                            data-dojo-schedule="${dojo.schedule || ''}"
+                                            data-dojo-city="${dojo.city || ''}"
+                                            data-dojo-image="${dojo.image || ''}">
                                         <i class="fas fa-edit mr-1"></i>Edit
                                     </button>
                                     <button class="bg-red-500 text-white px-3 py-1 rounded-full text-sm hover:bg-red-600 transition duration-300 delete-dojo-btn" data-dojo-id="${dojoId}">
@@ -503,10 +762,20 @@
                         showConfirmDeleteDojoModal(dojoIdToDelete);
                     });
                 });
-                // Attach event listeners for Dojo Edit buttons (placeholder for now)
+                // Attach event listeners for Dojo Edit buttons
                 document.querySelectorAll('.edit-dojo-btn').forEach(button => {
                     button.addEventListener('click', (event) => {
-                        alert('Fitur edit dojo akan datang!'); // Placeholder
+                        const dojoData = {
+                            id: event.target.dataset.dojoId,
+                            name: event.target.dataset.dojoName,
+                            trainer: event.target.dataset.dojoTrainer,
+                            contact: event.target.dataset.dojoContact,
+                            address: event.target.dataset.dojoAddress,
+                            schedule: event.target.dataset.dojoSchedule,
+                            city: event.target.dataset.dojoCity,
+                            image: event.target.dataset.dojoImage
+                        };
+                        showEditDojoModal(dojoData);
                     });
                 });
 
@@ -521,6 +790,11 @@
             const confirmModal = document.getElementById('confirm-delete-dojo-modal');
             const confirmDeleteBtn = document.getElementById('confirm-delete-dojo-btn');
             const cancelDeleteBtn = document.getElementById('cancel-delete-dojo-btn');
+
+            if (!confirmModal || !confirmDeleteBtn || !cancelDeleteBtn) {
+                console.error("Confirm delete dojo modal elements not found.");
+                return;
+            }
 
             confirmModal.classList.add('active'); // Tampilkan modal
 
@@ -543,11 +817,45 @@
             };
         }
 
+        // Fungsi untuk menampilkan modal edit dojo
+        function showEditDojoModal(dojoData) {
+            const modal = document.getElementById('add-dojo-modal'); // Reusing the add dojo modal
+            const messageDiv = document.getElementById('add-dojo-message');
+            const form = document.getElementById('add-dojo-form');
+            const title = document.getElementById('add-dojo-modal-title');
+
+            if (!modal || !messageDiv || !form || !title) {
+                console.error("Edit dojo modal elements not found.");
+                return;
+            }
+
+            messageDiv.textContent = '';
+            messageDiv.classList.remove('text-green-500', 'text-red-500');
+
+            form.dataset.dojoId = dojoData.id; // Set dojo ID for editing
+            title.textContent = 'Edit Data Dojo'; // Change modal title
+
+            document.getElementById('dojo-name').value = dojoData.name || '';
+            document.getElementById('dojo-trainer').value = dojoData.trainer || '';
+            document.getElementById('dojo-contact').value = dojoData.contact || '';
+            document.getElementById('dojo-address').value = dojoData.address || '';
+            document.getElementById('dojo-schedule').value = dojoData.schedule || '';
+            document.getElementById('dojo-city').value = dojoData.city || ''; // Set selected city for edit
+            document.getElementById('dojo-image').value = dojoData.image || '';
+
+            modal.classList.add('active');
+        }
+
 
         // Fungsi untuk mengaktifkan/menonaktifkan akses portal ujian
         async function togglePortalAccess() {
             const portalStatusDiv = document.getElementById('portal-status');
             const togglePortalButton = document.getElementById('toggle-portal-button');
+
+            if (!portalStatusDiv || !togglePortalButton) {
+                console.error("Portal control elements not found.");
+                return;
+            }
 
             // Ini adalah placeholder untuk logika kontrol akses portal yang sebenarnya
             // Dalam aplikasi nyata, ini akan berinteraksi dengan backend atau dokumen Firestore tertentu
@@ -583,9 +891,15 @@
             });
 
             // Tampilkan konten tab yang dipilih
-            document.getElementById(`${tabName}-content`).classList.remove('hidden');
+            const selectedTabContent = document.getElementById(`${tabName}-content`);
+            if (selectedTabContent) {
+                selectedTabContent.classList.remove('hidden');
+            }
             // Aktifkan tombol tab yang sesuai
-            document.getElementById(`${tabName}-tab-button`).classList.add('active');
+            const selectedTabButton = document.getElementById(`${tabName}-tab-button`);
+            if (selectedTabButton) {
+                selectedTabButton.classList.add('active');
+            }
 
             // Penanganan khusus untuk konten yang perlu dimuat saat tab aktif
             if (tabName === 'manajemen-anggota') {
@@ -598,9 +912,34 @@
             // Tambahkan penanganan serupa untuk tab lain jika mereka memiliki konten dinamis
         }
 
+        const westJavaCities = [
+            "Kabupaten Bogor", "Kabupaten Sukabumi", "Kabupaten Cianjur", "Kabupaten Bandung",
+            "Kabupaten Garut", "Kabupaten Tasikmalaya", "Kabupaten Ciamis", "Kabupaten Kuningan",
+            "Kabupaten Cirebon", "Kabupaten Majalengka", "Kabupaten Sumedang", "Kabupaten Indramayu",
+            "Kabupaten Subang", "Kabupaten Purwakarta", "Kabupaten Karawang", "Kabupaten Bekasi",
+            "Kabupaten Bandung Barat", "Kabupaten Pangandaran", "Kota Bogor", "Kota Sukabumi",
+            "Kota Bandung", "Kota Cirebon", "Kota Bekasi", "Kota Depok", "Kota Cimahi",
+            "Kota Tasikmalaya", "Kota Banjar"
+        ];
+
+        // Function to populate the city dropdown for Dojo form
+        function populateDojoCityDropdown() {
+            const dojoCitySelect = document.getElementById('dojo-city');
+            if (dojoCitySelect) {
+                dojoCitySelect.innerHTML = '<option value="">Pilih Kota/Kabupaten</option>';
+                westJavaCities.sort().forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city;
+                    option.textContent = city;
+                    dojoCitySelect.appendChild(option);
+                });
+            }
+        }
+
 
         document.addEventListener('DOMContentLoaded', () => {
             initializeFirebaseAndAuth();
+            populateDojoCityDropdown(); // Populate dojo city dropdown on load
             document.getElementById('logout-button').addEventListener('click', handleLogout);
 
             // Tambahkan event listener untuk tombol tab
@@ -610,15 +949,52 @@
             document.getElementById('kontrol-ujian-tab-button').addEventListener('click', () => showTab('kontrol-ujian'));
 
             // Tambahkan event listener untuk tombol Tambah Dojo (di dalam tab Manajemen Dojo)
-            document.getElementById('add-dojo-button-form').addEventListener('click', showAddDojoModal); // Gunakan ID tombol di dalam form
+            const addDojoButtonForm = document.getElementById('add-dojo-button-form');
+            if (addDojoButtonForm) {
+                addDojoButtonForm.addEventListener('click', showAddDojoModal);
+            }
             // Tambahkan event listener untuk pengiriman formulir Tambah Dojo
-            document.getElementById('add-dojo-form').addEventListener('submit', handleAddDojo);
+            const addDojoForm = document.getElementById('add-dojo-form');
+            if (addDojoForm) {
+                addDojoForm.addEventListener('submit', handleAddDojo);
+            }
             // Tambahkan event listener untuk tombol Tutup modal Tambah Dojo
-            document.getElementById('close-add-dojo-modal').addEventListener('click', () => {
-                document.getElementById('add-dojo-modal').classList.remove('active');
-            });
+            const closeAddDojoModal = document.getElementById('close-add-dojo-modal');
+            if (closeAddDojoModal) {
+                closeAddDojoModal.addEventListener('click', () => {
+                    const modal = document.getElementById('add-dojo-modal');
+                    if (modal) modal.classList.remove('active');
+                    const addDojoModalTitle = document.getElementById('add-dojo-modal-title');
+                    if (addDojoModalTitle) addDojoModalTitle.textContent = 'Tambah Dojo Baru'; // Reset title when closing
+                    if (addDojoForm) addDojoForm.removeAttribute('data-dojo-id'); // Clear dojo ID
+                });
+            }
+
+
+            // Tambahkan event listener untuk tombol Add New Member
+            const addMemberButtonForm = document.getElementById('add-member-button-form');
+            if (addMemberButtonForm) {
+                addMemberButtonForm.addEventListener('click', () => showAddEditMemberModal());
+            }
+            // Tambahkan event listener untuk form Add/Edit Member
+            const addEditMemberForm = document.getElementById('add-edit-member-form');
+            if (addEditMemberForm) {
+                addEditMemberForm.addEventListener('submit', handleAddEditMember);
+            }
+            // Tambahkan event listener untuk tombol Tutup modal Add/Edit Member
+            const closeAddEditMemberModal = document.getElementById('close-add-edit-member-modal');
+            if (closeAddEditMemberModal) {
+                closeAddEditMemberModal.addEventListener('click', () => {
+                    const modal = document.getElementById('add-edit-member-modal');
+                    if (modal) modal.classList.remove('active');
+                });
+            }
+
             // Tambahkan event listener untuk tombol Toggle Portal Ujian
-            document.getElementById('toggle-portal-button').addEventListener('click', togglePortalAccess);
+            const togglePortalButton = document.getElementById('toggle-portal-button');
+            if (togglePortalButton) {
+                togglePortalButton.addEventListener('click', togglePortalAccess);
+            }
 
             // Tampilan tab awal akan ditangani oleh loadDashboardData setelah otentikasi
         });
@@ -647,7 +1023,7 @@
             <h2 class="text-4xl font-bold text-center text-primary mb-6">Dashboard Admin</h2>
             <!-- Pesan Selamat Datang dan Email Pengguna -->
             <p class="text-center text-lg text-gray-700 mb-8">
-                Selamat datang, <span class="font-bold text-primary" id="user-email">opik000027@gmail.com</span>. Anda memiliki akses admin.
+                Selamat datang, <span class="font-bold text-primary" id="user-email">...</span>. Anda memiliki akses admin.
             </p>
 
             <!-- Tombol Tab -->
@@ -701,7 +1077,7 @@
                 <div id="manajemen-dojo-content" class="tab-content tab-content-section hidden">
                     <h3 class="text-2xl font-bold text-secondary mb-6 text-center">Manajemen Dojo</h3>
                     <div class="p-6 bg-white rounded-lg shadow-md mb-8">
-                        <h4 class="text-xl font-bold text-primary mb-4 text-center">Tambah Dojo Baru</h4>
+                        <h4 class="text-xl font-bold text-primary mb-4 text-center" id="add-dojo-modal-title">Tambah Dojo Baru</h4>
                         <form id="add-dojo-form" class="space-y-4">
                             <div>
                                 <input type="text" id="dojo-name" placeholder="Nama Dojo" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
@@ -719,12 +1095,16 @@
                                 <input type="text" id="dojo-schedule" placeholder="Jadwal Latihan (misal: Selasa & Kamis, 16:00-18:00)" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
                             </div>
                             <div>
-                                <input type="text" id="dojo-city" placeholder="Kota/Kabupaten" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                <!-- Updated to a select dropdown for specific cities -->
+                                <select id="dojo-city" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                    <option value="">Pilih Kota/Kabupaten</option>
+                                    <!-- Options will be populated by JavaScript -->
+                                </select>
                             </div>
                             <div>
                                 <input type="url" id="dojo-image" placeholder="URL Gambar Dojo (Opsional)" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
                             </div>
-                            <button type="submit" id="add-dojo-button-form" class="w-full bg-primary text-white px-6 py-3 rounded-full font-bold hover:bg-red-700 transition duration-300 shadow-md">
+                            <button type="submit" class="w-full bg-primary text-white px-6 py-3 rounded-full font-bold hover:bg-red-700 transition duration-300 shadow-md">
                                 Tambah Dojo
                             </button>
                         </form>
@@ -741,9 +1121,9 @@
                 <div id="manajemen-anggota-content" class="tab-content tab-content-section hidden">
                     <h3 class="text-2xl font-bold text-secondary mb-6 text-center">Manajemen Anggota</h3>
                     <div class="text-center mb-6">
-                        <a href="pendaftaran.html" class="bg-blue-500 text-white px-6 py-3 rounded-full font-bold hover:bg-blue-600 transition duration-300 shadow-md">
+                        <button id="add-member-button-form" class="bg-blue-500 text-white px-6 py-3 rounded-full font-bold hover:bg-blue-600 transition duration-300 shadow-md">
                             <i class="fas fa-user-plus mr-2"></i>Tambahkan Anggota
-                        </a>
+                        </button>
                     </div>
                     <h4 class="text-xl font-bold text-secondary mb-4 text-center">Daftar Anggota Saat Ini</h4>
                     <div id="members-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -769,10 +1149,70 @@
         </section>
     </main>
 
+    <!-- Modal Tambah/Edit Anggota -->
+    <div id="add-edit-member-modal" class="modal-overlay">
+        <div class="modal-content !max-w-md !py-8 !px-6">
+            <h3 class="text-2xl font-bold text-primary mb-6" id="add-edit-member-title">Tambahkan Anggota Baru</h3>
+            <form id="add-edit-member-form" class="space-y-4">
+                <div>
+                    <input type="text" id="member-name" placeholder="Nama Lengkap" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                </div>
+                <!-- Email input removed as per user request -->
+                <!-- <div>
+                    <input type="email" id="member-email" placeholder="Email Aktif" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                </div> -->
+                <div>
+                    <input type="url" id="member-photo-url" placeholder="URL Foto Profil (Opsional)" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                <div>
+                    <input type="text" id="member-place-of-birth" placeholder="Tempat Lahir" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                </div>
+                <div>
+                    <input type="date" id="member-date-of-birth" placeholder="Tanggal Lahir (YYYY-MM-DD)" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                </div>
+                <div>
+                    <select id="member-belt-level" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        <option value="">Pilih Tingkat Sabuk</option>
+                        <option value="Putih">Putih</option>
+                        <option value="Kuning">Kuning</option>
+                        <option value="Hijau">Hijau</option>
+                        <option value="Biru">Biru</option>
+                        <option value="Coklat">Coklat</option>
+                        <option value="Hitam">Hitam</option>
+                    </select>
+                </div>
+                <div>
+                    <select id="member-dojo-name" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        <option value="">Pilih Dojo</option>
+                        <!-- Dojo options will be loaded by JavaScript -->
+                    </select>
+                </div>
+                <div>
+                    <!-- Display for derived city, not an input -->
+                    <p id="member-city-display" class="text-gray-600 text-sm mt-1 text-left">Cabang: Akan otomatis terisi berdasarkan Dojo</p>
+                </div>
+                <div>
+                    <input type="url" id="member-birth-certificate-url" placeholder="URL Akte Kelahiran (Opsional)" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                <div>
+                    <input type="url" id="member-belt-certificate-url" placeholder="URL Ijazah Sabuk (Opsional)" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                <button type="submit" class="w-full bg-primary text-white px-6 py-3 rounded-full font-bold hover:bg-red-700 transition duration-300 shadow-md">
+                    Simpan Anggota
+                </button>
+            </form>
+            <div id="add-edit-member-message" class="mt-4 text-center text-lg font-semibold"></div>
+            <button id="close-add-edit-member-modal" class="mt-4 bg-gray-400 text-white px-6 py-3 rounded-full font-bold hover:bg-gray-500 transition duration-300">
+                Tutup
+            </button>
+        </div>
+    </div>
+
+
     <!-- Modal Tambah Dojo -->
     <div id="add-dojo-modal" class="modal-overlay">
         <div class="modal-content !max-w-md !py-8 !px-6">
-            <h3 class="text-2xl font-bold text-primary mb-6">Tambah Dojo Baru</h3>
+            <h3 class="text-2xl font-bold text-primary mb-6" id="add-dojo-modal-title">Tambah Dojo Baru</h3>
             <form id="add-dojo-form" class="space-y-4">
                 <div>
                     <input type="text" id="dojo-name" placeholder="Nama Dojo" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
@@ -790,12 +1230,16 @@
                     <input type="text" id="dojo-schedule" placeholder="Jadwal Latihan (misal: Selasa & Kamis, 16:00-18:00)" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
                 </div>
                 <div>
-                    <input type="text" id="dojo-city" placeholder="Kota/Kabupaten" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                    <!-- Updated to a select dropdown for specific cities -->
+                    <select id="dojo-city" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        <option value="">Pilih Kota/Kabupaten</option>
+                        <!-- Options will be populated by JavaScript -->
+                    </select>
                 </div>
                  <div>
                     <input type="url" id="dojo-image" placeholder="URL Gambar Dojo (Opsional)" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
                 </div>
-                <button type="submit" id="add-dojo-button-form" class="w-full bg-primary text-white px-6 py-3 rounded-full font-bold hover:bg-red-700 transition duration-300 shadow-md">
+                <button type="submit" class="w-full bg-primary text-white px-6 py-3 rounded-full font-bold hover:bg-red-700 transition duration-300 shadow-md">
                     Tambah Dojo
                 </button>
             </form>
