@@ -157,17 +157,18 @@
         @media print {
             @page {
                 size: 3.375in 2.125in; /* Set page size to CR80 ID card dimensions */
-                margin: 0; /* Remove default margins */
+                margin: 0 !important; /* Remove all default margins */
+                padding: 0 !important; /* Remove all default paddings */
             }
 
             html, body {
-                width: 100%;
-                height: 100%;
-                margin: 0;
-                padding: 0;
-                display: block; /* Ensure body is visible for printing */
-                overflow: hidden; /* Prevent scrollbars in print */
-                background-color: white; /* Ensure white background for print */
+                width: 100vw; /* Use viewport units to ensure full screen fill */
+                height: 100vh;
+                margin: 0 !important; /* Force no margins */
+                padding: 0 !important; /* Force no paddings */
+                display: block;
+                overflow: hidden;
+                background-color: white;
             }
 
             /* Hide everything not part of the ID card for printing */
@@ -176,24 +177,23 @@
             }
 
             #printable-id-card-area {
-                display: flex !important; /* Use flexbox to center the card on the page */
-                flex-direction: column; /* Align content vertically within the print area */
-                align-items: center; /* Center horizontally */
-                justify-content: center; /* Center vertically */
-                position: absolute; /* Position it precisely on the page */
+                display: flex !important;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                position: absolute; /* Changed from fixed to absolute */
                 top: 0;
                 left: 0;
-                width: 100vw; /* Take full viewport width */
-                height: 100vh; /* Take full viewport height */
-                margin: 0;
-                padding: 0;
+                width: 100vw; /* Full viewport width */
+                height: 100vh; /* Full viewport height */
+                margin: 0 !important;
+                padding: 0 !important;
                 box-shadow: none;
                 border: none;
-                background-color: transparent; /* Background should be white from body or card wrapper */
+                background-color: transparent;
             }
             
             #printable-id-card-area .id-card-content-wrapper {
-                /* This div is the actual printable card */
                 width: 3.375in; /* Standard ID card width (CR80) */
                 height: 2.125in; /* Standard ID card height (CR80) */
                 padding: 0.15in; /* Adjusted padding for print */
@@ -201,60 +201,59 @@
                 border: 1px solid #000; /* A more professional, subtle border for print */
                 border-radius: 0.15rem; /* Slight rounding for a clean look */
                 background-color: white; /* Explicitly white background for the card itself */
-                display: flex; /* Enable flex for internal layout */
+                display: flex;
                 flex-direction: column;
                 justify-content: space-between; /* Distribute content */
-                position: relative; /* Allow children to be absolutely positioned if needed */
-                overflow: hidden; /* Ensure nothing spills out */
-                /* Remove transform: translate(-50%, -50%); from here as parent now handles centering */
+                position: relative;
+                overflow: hidden;
+                /* No transform needed here, centering done by parent flexbox */
             }
 
             #printable-id-card-area .id-card-header,
             #printable-id-card-area .id-card-footer {
-                /* Reset margins for print to fit the new wrapper padding */
-                margin-left: -0.15in;
-                margin-right: -0.15in;
-                width: calc(100% + 0.3in); /* Span full width of content wrapper */
+                margin-left: -0.15in !important;
+                margin-right: -0.15in !important;
+                width: calc(100% + 0.3in) !important; /* Span full width of content wrapper */
                 box-shadow: none;
-                border-radius: 0; /* Remove rounding for full edge-to-edge in print */
+                border-radius: 0 !important; /* Remove rounding for full edge-to-edge in print */
             }
 
             #printable-id-card-area .id-card-header {
-                border-top-left-radius: 0.15rem; /* Match wrapper rounding */
-                border-top-right-radius: 0.15rem;
-                margin-top: -0.15in; /* Pull to top edge */
-                padding-top: 0.1in; /* Keep internal header padding */
-                padding-bottom: 0.1in;
+                border-top-left-radius: 0.15rem !important; /* Match wrapper rounding */
+                border-top-right-radius: 0.15rem !important;
+                margin-top: -0.15in !important; /* Pull to top edge */
+                padding-top: 0.1in !important; /* Keep internal header padding */
+                padding-bottom: 0.1in !important;
             }
 
             #printable-id-card-area .id-card-footer {
-                border-bottom-left-radius: 0.15rem; /* Match wrapper rounding */
-                border-bottom-right-radius: 0.15rem;
-                margin-bottom: -0.15in; /* Pull to bottom edge */
-                padding-top: 0.08in; /* Smaller padding for footer */
-                padding-bottom: 0.08in;
+                border-bottom-left-radius: 0.15rem !important; /* Match wrapper rounding */
+                border-bottom-right-radius: 0.15rem !important;
+                margin-bottom: -0.15in !important; /* Pull to bottom edge */
+                padding-top: 0.08in !important; /* Smaller padding for footer */
+                padding-bottom: 0.08in !important;
             }
 
             #printable-id-card-area img.member-photo {
-                margin-top: 0.1rem; /* Adjust photo margin for better spacing */
-                margin-bottom: 0.1rem;
+                margin-top: 0.1in !important; /* Adjust photo margin for better spacing */
+                margin-bottom: 0.1in !important;
             }
             #printable-id-card-area p, #printable-id-card-area strong {
-                font-size: 0.09in; /* Use absolute unit for more control */
-                line-height: 1.1;
-                margin-bottom: 0.03in; /* Adjust for tight spacing */
+                font-size: 0.09in !important; /* Use absolute unit for more control */
+                line-height: 1.1 !important;
+                margin-bottom: 0.03in !important; /* Adjust for tight spacing */
             }
             #printable-id-card-area .barcode-area {
-                margin-top: 0.05in;
-                margin-bottom: 0.05in;
+                margin-top: 0.05in !important;
+                margin-bottom: 0.05in !important;
             }
             #printable-id-card-qrcode {
-                width: 0.6in; /* Use absolute unit for QR code */
-                height: 0.6in;
-                padding: 1px;
+                width: 0.6in !important; /* Use absolute unit for QR code */
+                height: 0.6in !important;
+                padding: 1px !important;
             }
             #printable-id-card-area .text-xs {
-                font-size: 0.07in; /* Smaller font for "Scan untuk Kehadiran" */
+                font-size: 0.07in !important; /* Smaller font for "Scan untuk Kehadiran" */
             }
         }
     </style>
@@ -471,7 +470,7 @@
         <div class="container mx-auto flex justify-between items-center px-4">
             <!-- Logo Klub -->
             <a href="index.html" class="flex items-center space-x-2">
-                <img src="img/logo-ksk.png" alt="Logo KEI SHIN KAN" class="h-12 w-12 rounded-full shadow-md">
+                <img src="img/logo-ksk.png" alt="Logo KEI SHIN KAN" class="h-12 w-12 rounded-full object-cover mr-4">
                 <span class="text-xl font-bold text-primary">KEI SHIN KAN</span>
             </a>
             <!-- Back to Dashboard Link and Print ID Card Button -->
