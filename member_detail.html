@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Detail Anggota KEI SHIN KAN</title>
+    <title>Detail ID Card Anggota KEI SHIN KAN</title>
     <!-- Link ke Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Konfigurasi Tailwind untuk menambahkan warna dan font kustom jika diperlukan -->
+    <!-- Konfigurasi Tailwind untuk menambahkan warna dan font kustom -->
     <script>
         tailwind.config = {
             theme: {
@@ -15,9 +15,9 @@
                         inter: ['Inter', 'sans-serif'], // Font Inter
                     },
                     colors: {
-                        primary: '#B40000', // Contoh warna merah khas klub
-                        secondary: '#333333', // Contoh warna gelap untuk teks
-                        accent: '#F9A826', // Contoh warna aksen
+                        primary: '#B40000', // Warna merah khas klub
+                        secondary: '#333333', // Warna gelap untuk teks
+                        accent: '#F9A826', // Warna aksen
                         darkred: '#8B0000', // Warna merah lebih gelap untuk aksen
                         lightgray: '#F0F0F0', // Warna abu-abu terang untuk latar belakang
                     }
@@ -27,714 +27,137 @@
     </script>
     <!-- Link ke Font Awesome untuk ikon -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <!-- Favicon (Logo di tab browser) -->
-    <link rel="icon" href="img/logo-ksk.png" type="image/png">
-    <!-- qrious.js CDN for QR Code -->
+    <!-- qrious.js CDN for QR Code generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <!-- html2canvas CDN for converting HTML to canvas/image -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Favicon -->
+    <link rel="icon" href="img/logo-ksk.png" type="image/png">
 
     <style>
-        .member-detail-container {
-            max-width: 800px;
-            margin: 2rem auto;
-            background-color: white;
-            padding: 2rem;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .detail-item {
+        body {
             display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+            font-family: 'Inter', sans-serif;
+        }
+        main {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
             align-items: center;
-            margin-bottom: 0.5rem;
+            padding: 2rem;
         }
-        .detail-item i {
-            color: #B40000;
-            margin-right: 0.75rem;
-            width: 1.5rem; /* Consistent icon width */
+        .id-card-container {
+            background: linear-gradient(to bottom right, #B40000, #8B0000); /* Merah gelap ke merah terang */
+            border-radius: 1.5rem; /* Sudut lebih bulat */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4); /* Bayangan lebih kuat */
+            padding: 2.5rem;
+            color: white;
             text-align: center;
+            max-width: 400px; /* Lebar maksimum kartu */
+            width: 100%;
+            border: 5px solid #F9A826; /* Border kuning aksen */
+            position: relative;
+            overflow: hidden;
+            transform: scale(0.95); /* Sedikit diperkecil untuk efek visual */
+            transition: transform 0.3s ease-in-out;
         }
-        .qrcode-container {
-            text-align: center;
-            margin-top: 2rem;
-            padding-top: 1rem;
-            border-top: 1px solid #eee;
+        .id-card-container:hover {
+            transform: scale(1.0); /* Efek zoom saat hover */
         }
-        /* Mengubah styling dari div ke canvas untuk QRious */
-        .qrcode-container canvas {
-            margin: 0 auto;
-            display: block;
-            max-width: 90%;
-            width: 150px; /* Set QR code container dimensions */
-            height: 150px;
-        }
-
-        /* Modal Styles */
-        .modal-overlay {
-            position: fixed;
+        .id-card-container::before {
+            content: '';
+            position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+            right: 0;
+            bottom: 0;
+            background: url('img/logo-ksk.png') no-repeat center center;
+            background-size: 80%; /* Logo lebih besar */
+            opacity: 0.1; /* Transparansi tinggi */
+            z-index: 0;
         }
-        .modal-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-        .modal-content {
-            background-color: white;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            transform: translateY(-20px);
-            transition: transform 0.3s ease-in-out;
-            overflow-y: auto; /* Allow scrolling if content overflows, as a last resort for modal content */
-            max-width: 90vw; /* Constrain modal width to viewport */
-            max-height: 90vh; /* Constrain modal height to viewport */
-            padding: 0.8rem; /* Reduced padding around the ID card and buttons */
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start; /* Align content to start for better control */
-            align-items: center;
-            box-sizing: border-box; /* Include padding in dimensions */
-        }
-        .modal-overlay.active .modal-content {
-            transform: translateY(0);
-        }
-
-        /* ID Card content wrapper - This is the actual ID card size */
-        .id-card-content-wrapper {
-            width: 5.83in; /* A5 Portrait Width */
-            height: 8.27in; /* A5 Portrait Height */
-            padding: 0.2in; /* Slightly reduced padding for A5 size */
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between; /* Distribute space vertically */
-            background-color: white;
-            border: 1px solid #d3d3d3; /* Light grey border for a softer look */
-            border-radius: 0.25rem; /* Slightly larger border radius for A5 */
+        .id-card-content {
             position: relative;
-            overflow: hidden; /* Important for clean edges */
-            flex-shrink: 0; /* Prevent it from shrinking within modal-content */
-            margin-bottom: 0.8rem; /* Reduced space between ID card and buttons */
-            font-family: 'Inter', sans-serif; /* Ensure Inter font for the card */
-            color: #333333; /* Default text color */
+            z-index: 1; /* Pastikan konten di atas overlay logo */
         }
-
-        .id-card-header {
-            background-color: #B40000; /* Primary red background for header */
-            border-radius: 0.2rem 0.2rem 0 0; /* Match wrapper rounding for top */
-            box-shadow: none;
-            margin: -0.2in -0.2in 0.05in -0.2in; /* Adjusted for new wrapper padding, smaller bottom margin */
-            padding: 0.15in; /* Adjusted padding */
-            width: calc(100% + 0.4in); /* Fill width, accounting for margins */
-            height: auto;
-            flex-shrink: 0;
-            display: flex; /* Ensure flex for centering header content */
-            justify-content: center;
-            align-items: center;
-            color: white; /* White text for header */
-        }
-        .id-card-header img {
-            height: 55px; /* Lebih besar */
-            width: 55px; /* Lebih besar */
-            border: 2px solid #F9A826; /* Accent yellow border */
-            border-radius: 50%; /* Rounded logo */
-            object-fit: cover;
-            margin-right: 0.15in; /* Sedikit lebih besar */
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2); /* Subtle shadow for logo */
-        }
-        .id-card-header h4 {
-            font-size: 1.6rem; /* Lebih besar */
-            font-weight: 800; /* Extra bold */
-            margin-bottom: 0;
-            line-height: 1.1; /* Tighter line height */
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.3); /* Subtle text shadow */
-        }
-
-        .id-card-content { /* Main content area */
-            flex-grow: 1; /* Allow content to grow and push footer down */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center; /* Center content vertically */
-            padding: 0.15in 0; /* Padding vertikal sedikit lebih besar */
-        }
-
-        .id-card-content img.member-photo {
-            width: 1.5in; /* Ukuran foto lebih besar */
-            height: 1.5in; /* Ukuran foto lebih besar */
+        .profile-pic {
+            width: 120px;
+            height: 120px;
             border-radius: 50%;
             object-fit: cover;
-            margin: 0.15in auto 0.25in auto; /* Margin atas dan bawah lebih besar */
-            border: 5px solid #F9A826; /* Border lebih tebal */
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Bayangan lebih menonjol */
-            flex-shrink: 0;
+            border: 4px solid #F9A826; /* Border foto kuning aksen */
+            margin: 0 auto 1.5rem;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5); /* Bayangan pada foto */
         }
-        .id-card-content p, .id-card-content strong {
-            font-size: 0.18in; /* Ukuran teks lebih besar */
-            line-height: 1.5; /* Line height lebih santai */
-            margin-bottom: 0.08in; /* Margin bawah lebih besar */
-            word-break: break-word;
-            color: #333333; /* Warna teks gelap */
-        }
-        .id-card-content strong {
-            font-weight: 700; /* Tebal untuk label */
-        }
-        .id-card-content .name-text {
-            font-size: 0.25in; /* Ukuran nama lebih besar */
-            font-weight: 800; /* Extra bold untuk nama */
-            color: #B40000; /* Merah primary untuk nama */
-            margin-bottom: 0.1in; /* Margin bawah lebih besar */
-        }
-        .id-card-content .detail-table {
-            width: 90%; /* Lebar tabel */
-            margin-top: 0.1in; /* Margin atas tabel */
-            border-collapse: collapse; /* Hilangkan spasi antar border sel */
-            font-size: 0.16in; /* Ukuran font tabel */
-            color: #333333;
-        }
-        .id-card-content .detail-table td {
-            padding: 0.05in 0.1in; /* Padding dalam sel */
-            text-align: left; /* Teks rata kiri */
-            border-bottom: 1px solid #eee; /* Border bawah halus */
-        }
-        .id-card-content .detail-table tr:last-child td {
-            border-bottom: none; /* Hilangkan border bawah pada baris terakhir */
-        }
-        .id-card-content .detail-table td:first-child {
-            font-weight: 700; /* Label lebih tebal */
-            width: 30%; /* Lebar kolom label */
-            color: #555555; /* Warna label sedikit lebih terang */
-        }
-
-
-        .id-card-content .barcode-area {
-            display: flex;
-            flex-direction: column; /* Stack QR and text */
-            justify-content: center;
-            align-items: center;
-            margin-top: 0.15in; /* Mengurangi spasi di atas QR code */
-            margin-bottom: 0.08in; /* Mengurangi spasi di bawah QR code */
-            flex-shrink: 0;
-        }
-        #id-card-preview-qrcode {
-            width: 1.8in; /* Mengurangi ukuran QR code */
-            height: 1.8in; /* Mengurangi ukuran QR code */
-            padding: 4px; /* Mengurangi padding untuk background QR */
+        .qr-code-canvas {
             background-color: white;
-            flex-shrink: 0;
-            border: 2px solid #d3d3d3; /* Border QR code lebih jelas */
-            border-radius: 0.15rem; /* Sedikit lebih melengkung */
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Bayangan halus untuk QR */
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            margin-top: 1.5rem;
+            display: inline-block; /* Agar QR code berada di tengah */
         }
-        .id-card-content .text-xs {
-            font-size: 0.13in; /* Ukuran teks lebih besar */
-            color: #666666; /* Warna abu-abu lebih lembut */
-            margin-top: 0.06in; /* Mengurangi margin atas */
+        .info-label {
+            font-weight: 600;
+            color: #f9fafb; /* Warna putih off-white */
         }
-        
-        .id-card-footer {
-            background-color: #333333; /* Background gelap */
-            color: white;
-            font-size: 0.11in; /* Ukuran font lebih kecil untuk multi-line footer */
-            margin: 0.08in -0.2in -0.2in -0.2in; /* Disesuaikan untuk padding wrapper baru */
-            padding: 0.12in; /* Padding lebih kecil */
-            border-radius: 0 0 0.2rem 0.2rem; /* Sesuai dengan pembulatan wrapper bawah */
-            width: calc(100% + 0.4in);
-            text-align: center;
-            flex-shrink: 0;
-            line-height: 1.2; /* Line height lebih ketat */
-            box-shadow: 0 -2px 5px rgba(0,0,0,0.15); /* Bayangan lebih menonjol untuk footer */
-        }
-        .id-card-footer p {
-            font-size: 0.11in; /* Pastikan p di dalam footer memiliki font konsisten */
-            margin: 0;
-            font-weight: 400; /* Font weight reguler */
-        }
-        .id-card-footer i {
-            margin-right: 4px; /* Margin ikon lebih kecil */
-            color: #F9A826; /* Warna aksen untuk ikon */
-        }
-
-        /* Modal Action Buttons styling */
-        .modal-actions {
-            padding: 1.2rem; /* Padding lebih besar untuk container tombol */
-            background-color: white; /* Sesuai dengan background konten modal */
-            border-top: 1px solid #eee; /* Garis pemisah */
-            width: 100%; /* Ambil lebar penuh konten modal */
-            box-sizing: border-box; /* Sertakan padding dalam lebar */
-            border-radius: 0 0 0.5rem 0.5rem; /* Sudut bawah melengkung */
-            flex-shrink: 0; /* Cegah penyusutan */
-        }
-        .modal-actions button {
-            font-size: 1.1rem; /* Ukuran teks tombol lebih besar */
-            padding: 0.8rem 1.6rem; /* Padding tombol disesuaikan */
-            border-radius: 0.6rem; /* Tombol lebih melengkung */
-            font-weight: 600; /* Semi-bold */
-        }
-        /* Specific button colors (Tailwind classes) are in the HTML */
-
-
-        /* Print styles */
-        @media print {
-            @page {
-                size: A5 portrait; /* Set page size to A5 portrait */
-                margin: 0 !important; /* Remove all default margins */
-                padding: 0 !important; /* Remove all default paddings */
-            }
-
-            html, body {
-                width: 100vw;
-                height: 100vh;
-                margin: 0 !important;
-                padding: 0 !important;
-                display: block;
-                overflow: hidden;
-                background-color: white; /* Ensure white background for the entire page */
-            }
-
-            /* Hide everything that is NOT the ID card preview modal when printing */
-            body > *:not(#id-card-preview-modal-overlay) {
-                display: none !important;
-            }
-
-            /* Make the modal overlay visible and cover the whole page for printing */
-            #id-card-preview-modal-overlay {
-                display: flex !important; /* Use flex to center the card */
-                position: absolute !important; /* Absolute positioning for print */
-                top: 0 !important;
-                left: 0 !important;
-                width: 100vw !important; /* Full viewport width */
-                height: 100vh !important; /* Full viewport height */
-                background-color: white !important; /* Ensure white background for print */
-                margin: 0 !important;
-                padding: 0 !important;
-                justify-content: center !important;
-                align-items: center !important;
-                opacity: 1 !important;
-                visibility: visible !important;
-                z-index: 9999 !important; /* Ensure it's on top */
-            }
-            
-            /* The actual ID card wrapper should be exactly A5 portrait size */
-            #id-card-preview-modal-overlay .id-card-content-wrapper {
-                width: 5.83in !important; /* A5 Portrait Width */
-                height: 8.27in !important; /* A5 Portrait Height */
-                border: 1px solid #000 !important; /* A professional border */
-                border-radius: 0.25rem !important; /* Match border-radius */
-                box-shadow: none !important; /* No shadow on print */
-                margin: 0 !important; /* Ensure no external margins */
-                overflow: hidden !important; /* Prevent content overflow */
-                /* All padding and internal layout is handled by the wrapper's own rules */
-            }
-
-            /* Hide modal control buttons when printing */
-            #id-card-preview-modal-overlay .modal-actions {
-                display: none !important;
-            }
-
-            /* Ensure header/footer margins match the wrapper's padding for edge-to-edge look */
-            #id-card-preview-modal-overlay .id-card-header,
-            #id-card-preview-modal-overlay .id-card-footer {
-                margin-left: -0.2in !important; /* Matches new wrapper padding */
-                margin-right: -0.2in !important; /* Matches new wrapper padding */
-                width: calc(100% + 0.4in) !important; /* Span full width of content wrapper */
-                border-radius: 0 !important; /* Remove rounding for full edge-to-edge in print */
-            }
-            #id-card-preview-modal-overlay .id-card-header {
-                border-top-left-radius: 0.25rem !important;
-                border-top-right-radius: 0.25rem !important;
-                margin-top: -0.2in !important; /* Pull to top edge */
-                padding-top: 0.15in !important; /* Keep internal header padding */
-                padding-bottom: 0.15in !important;
-            }
-            #id-card-preview-modal-overlay .id-card-footer {
-                border-bottom-left-radius: 0.25rem !important;
-                border-bottom-right-radius: 0.25rem !important;
-                margin-bottom: -0.2in !important; /* Pull to bottom edge */
-                padding-top: 0.12in !important; /* Smaller padding for footer */
-                padding-bottom: 0.12in !important;
-            }
-
-            /* Adjust internal element margins/sizes to fit better in the tight space */
-            #id-card-preview-modal-overlay img.member-photo {
-                width: 1.2in !important;
-                height: 1.2in !important;
-                margin-top: 0.15in !important;
-                margin-bottom: 0.2in !important;
-            }
-            #id-card-preview-modal-overlay p, #id-card-preview-modal-overlay strong {
-                font-size: 0.16in !important; /* Consistent with non-print modal */
-                line-height: 1.4 !important;
-                margin-bottom: 0.05in !important;
-            }
-            #id-card-preview-modal-overlay .barcode-area {
-                margin-top: 0.2in !important;
-                margin-bottom: 0.1in !important;
-            }
-            #id-card-preview-qrcode {
-                width: 1.8in !important; /* Consistent with non-print modal */
-                height: 1.8in !important;
-            }
-            #id-card-preview-modal-overlay .text-xs {
-                font-size: 0.13in !important; /* Consistent with non-print modal */
-            }
+        .info-value {
+            font-weight: 400;
+            color: #ffffff; /* Warna putih */
         }
     </style>
-
-    <!-- Firebase SDK -->
-    <script type="module">
-        // Mengimpor fungsi Firebase dari CDN
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
-
-        // Konfigurasi Firebase Anda.
-        const firebaseConfig = {
-             apiKey: "AIzaSyCAjAjkoQhx1eB7IxhpA5Yi8Z7wZC7nhzM",
-             authDomain: "kskjabar-f01f1.firebaseapp.com",
-             projectId: "kskjabar-f01f1",
-             storageBucket: "kskjabar-f01f1.firebasestorage.app",
-             messagingSenderId: "383836530077",
-             appId: "1:383836530077:web:6ab44455755626d5fa3b74",
-             measurementId: "G-N251SVP9VN" 
-        };
-        
-        let app;
-        let auth; // Instansi Auth
-        let db;
-        let firebaseInitialized = false;
-
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const membersCollectionPath = `artifacts/${appId}/public/data/members`;
-
-        async function initializeFirebaseAndAuth() {
-            if (firebaseConfig) { 
-                try {
-                    app = initializeApp(firebaseConfig);
-                    auth = getAuth(app); // Get Auth instance
-                    db = getFirestore(app);
-                    firebaseInitialized = true;
-                    console.log("Firebase initialized for member_detail.html.");
-
-                    // Sign in anonymously if no user is authenticated
-                    onAuthStateChanged(auth, async (user) => {
-                        if (user) {
-                            console.log("User already signed in:", user.uid);
-                            loadMemberDetails(); // Muat detail anggota setelah Firebase terinisialisasi dan pengguna login
-                        } else {
-                            try {
-                                await signInAnonymously(auth);
-                                console.log("Signed in anonymously.");
-                                loadMemberDetails(); // Muat detail anggota setelah sign-in anonim berhasil
-                            } catch (error) {
-                                console.error("Anonymous sign-in failed:", error.message);
-                                // Pesan ini kemungkinan besar berarti Anda perlu mengaktifkan "Anonymous" sign-in provider di konsol Firebase Anda.
-                                // Buka Firebase Console -> Authentication -> tab "Sign-in method" -> Aktifkan "Anonymous".
-                                document.getElementById('member-details-card').innerHTML = `<p class="text-center text-red-500">Gagal login untuk memuat detail: ${error.message}<br>Harap pastikan "Anonymous" Sign-in Provider diaktifkan di Firebase Authentication Anda.</p>`;
-                                // Redirect jika otentikasi gagal, misalnya ke index.html atau halaman error khusus
-                                // window.location.href = window.location.origin + '/index.html'; 
-                            }
-                        }
-                    });
-
-                } catch (error) {
-                    console.error("Firebase initialization error for member_detail.html:", error.message);
-                    document.getElementById('member-details-card').innerHTML = `<p class="text-center text-red-500">Gagal menginisialisasi Firebase: ${error.message}</p>`;
-                }
-            } else {
-                console.error("Firebase config is not available. Cannot initialize Firebase for member_detail.html.");
-                document.getElementById('member-details-card').innerHTML = '<p class="text-center text-red-500">Konfigurasi Firebase tidak ditemukan. Mohon perbarui kode.</p>';
-            }
-        }
-
-        async function loadMemberDetails() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const memberId = urlParams.get('id');
-            const detailsCard = document.getElementById('member-details-card');
-
-            if (!memberId) {
-                detailsCard.innerHTML = '<p class="text-center text-red-500">ID Anggota tidak ditemukan di URL. Pastikan Anda membuka halaman ini dari tombol "Detail" di dashboard.</p>';
-                return;
-            }
-
-            if (!firebaseInitialized || !db) {
-                detailsCard.innerHTML = '<p class="text-center text-red-500">Firebase belum terinisialisasi.</p>';
-                return;
-            }
-
-            try {
-                const memberDocRef = doc(db, membersCollectionPath, memberId);
-                const docSnap = await getDoc(memberDocRef);
-
-                if (docSnap.exists()) {
-                    const member = docSnap.data();
-                    // Store member ID in the member object as it's not directly in the data()
-                    member.id = docSnap.id; 
-                    
-                    // Update main detail card
-                    detailsCard.innerHTML = `
-                        <div class="text-center mb-6">
-                            <img src="${member.photoUrl || 'https://placehold.co/150x150/CCCCCC/000000?text=Foto'}" alt="Foto Anggota" class="w-36 h-36 rounded-full object-cover mx-auto mb-4 border-4 border-primary shadow-lg">
-                            <h2 class="text-3xl font-bold text-primary mb-2">${member.name || 'Nama Tidak Tersedia'}</h2>
-                            <p class="text-lg text-gray-700"><strong>Nomor Anggota:</strong> ${memberId}</p>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-lg text-gray-700">
-                            <div class="detail-item"><i class="fas fa-calendar-alt"></i><strong>Tanggal Lahir:</strong> ${member.dateOfBirth || 'N/A'}</div>
-                            <div class="detail-item"><i class="fas fa-map-marker-alt"></i><strong>Tempat Lahir:</strong> ${member.placeOfBirth || 'N/A'}</div>
-                            <div class="detail-item"><i class="fas fa-tshirt"></i><strong>Tingkat Sabuk:</strong> ${member.beltLevel || 'N/A'}</div>
-                            <div class="detail-item"><i class="fas fa-building"></i><strong>Dojo:</strong> ${member.dojoName || 'N/A'}</div>
-                            <div class="detail-item"><i class="fas fa-city"></i><strong>Cabang:</strong> ${member.city || 'N/A'}</div>
-                            <div class="detail-item col-span-full">
-                                <i class="fas fa-link"></i>
-                                <div>
-                                    <strong>Dokumen:</strong><br>
-                                    <a href="${member.birthCertUrl}" target="_blank" class="text-blue-500 hover:underline">Akta Kelahiran</a><br>
-                                    <a href="${member.beltCertUrl}" target="_blank" class="text-blue-500 hover:underline">Ijazah Sabuk</a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="qrcode-container">
-                            <h3 class="text-xl font-bold text-secondary mb-2">QR Code Kehadiran</h3>
-                            <canvas id="member-detail-qrcode"></canvas>
-                            <p class="text-sm text-gray-600 mt-2">ID Anggota: ${memberId}</p>
-                        </div>
-                        <button id="show-id-card-preview-btn" class="mt-8 w-full bg-primary text-white px-6 py-3 rounded-full font-bold hover:bg-red-700 transition duration-300 shadow-md">
-                            <i class="fas fa-id-card mr-2"></i>Tampilkan ID Card
-                        </button>
-                    `;
-
-                    // Generate QR Code for main detail page
-                    const qrcodeCanvas = document.getElementById('member-detail-qrcode');
-                    if (qrcodeCanvas && typeof window.QRious !== 'undefined') {
-                        new window.QRious({
-                            element: qrcodeCanvas,
-                            value: String(memberId),
-                            size: 150,
-                            foreground: '#000000',
-                            background: '#ffffff',
-                            level: 'H'
-                        });
-                    } else {
-                        detailsCard.querySelector('.qrcode-container').innerHTML += `<p class="text-red-500">Gagal membuat QR Code: Library tidak dimuat atau elemen tidak ditemukan.</p>`;
-                    }
-
-                    // Attach event listener for the new preview button
-                    document.getElementById('show-id-card-preview-btn').addEventListener('click', () => {
-                        showIdCardPreviewModal(member); // Pass the whole member object
-                    });
-
-                } else {
-                    detailsCard.innerHTML = '<p class="text-center text-red-500">Detail anggota tidak ditemukan.</p>';
-                }
-            } catch (error) {
-                console.error("Error loading member details:", error);
-                detailsCard.innerHTML = `<p class="text-center text-red-500">Gagal memuat detail anggota: ${error.message}</p>`;
-            }
-        }
-
-        // Fungsi untuk menampilkan modal pratinjau ID Card
-        async function showIdCardPreviewModal(memberData) {
-            const previewModalOverlay = document.getElementById('id-card-preview-modal-overlay');
-            // This is the .id-card-content-wrapper (the actual ID card content area)
-            const previewIdCardArea = document.getElementById('id-card-preview-content'); 
-
-            // Populate the preview ID card area
-            document.getElementById('preview-id-card-photo').src = memberData.photoUrl || 'https://placehold.co/200x200/CCCCCC/000000?text=Foto+Anggota'; // Placeholder yang lebih besar
-            document.getElementById('preview-id-card-name').textContent = memberData.name.toUpperCase(); // Huruf kapital
-            
-            // Mengisi tabel detail
-            const detailTableBody = document.getElementById('preview-id-card-detail-table-body');
-            detailTableBody.innerHTML = `
-                <tr>
-                    <td>TTL</td>
-                    <td>: ${memberData.placeOfBirth || 'N/A'}, ${memberData.dateOfBirth || 'N/A'}</td>
-                </tr>
-                <tr>
-                    <td>Sabuk</td>
-                    <td>: ${memberData.beltLevel || 'N/A'}</td>
-                </tr>
-                <tr>
-                    <td>Dojo</td>
-                    <td>: ${memberData.dojoName || 'N/A'}</td>
-                </tr>
-                <tr>
-                    <td>Cabang</td>
-                    <td>: ${memberData.city || 'N/A'}</td>
-                </tr>
-            `;
-
-            // Generate QR Code for the preview ID card
-            const previewQrcodeCanvas = document.getElementById('id-card-preview-qrcode');
-            if (previewQrcodeCanvas && typeof window.QRious !== 'undefined') {
-                previewQrcodeCanvas.innerHTML = ''; // Clear previous QR
-                new window.QRious({
-                    element: previewQrcodeCanvas,
-                    value: String(memberData.id), // Use memberData.id here
-                    size: 128,
-                    foreground: '#000000',
-                    background: '#ffffff',
-                    level: 'H'
-                });
-            } else {
-                 console.error("Error: Library QRious tidak dimuat atau elemen QR Code tidak ditemukan untuk pratinjau ID Card.");
-                 // Optionally, display an error message in the modal if QR generation fails
-            }
-
-            // Show the modal
-            previewModalOverlay.classList.add('active');
-
-            // Attach event listeners for print/download buttons inside the modal
-            document.getElementById('modal-print-id-card-btn').onclick = () => printIdCardFromPreview(previewIdCardArea);
-            document.getElementById('modal-download-id-card-btn').onclick = () => downloadIdCardFromPreview(previewIdCardArea, memberData.name);
-            document.getElementById('close-id-card-preview-modal').onclick = () => previewModalOverlay.classList.remove('active');
-        }
-
-        // Fungsi untuk mencetak ID Card dari modal pratinjau
-        async function printIdCardFromPreview(elementToPrint) {
-            // Hide modal buttons and overlay effects temporarily for print
-            const modalActions = document.querySelector('#id-card-preview-modal-overlay .modal-actions');
-            const overlay = document.getElementById('id-card-preview-modal-overlay');
-            
-            // Store original styles
-            const originalModalActionsDisplay = modalActions ? modalActions.style.display : '';
-            const originalOverlayBg = overlay ? overlay.style.backgroundColor : '';
-            const originalOverflow = document.body.style.overflow; // Capture body overflow
-
-            if (modalActions) modalActions.style.display = 'none';
-            if (overlay) overlay.style.backgroundColor = 'white'; // Make background white for print
-            document.body.style.overflow = 'hidden'; // Prevent scrollbars during print
-
-            window.print();
-
-            // Restore modal buttons and overlay effects after printing
-            setTimeout(() => {
-                if (modalActions) modalActions.style.display = originalModalActionsDisplay;
-                if (overlay) overlay.style.backgroundColor = originalOverlayBg;
-                document.body.style.overflow = originalOverflow; // Restore body overflow
-            }, 500);
-        }
-
-        // Fungsi untuk mengunduh ID Card sebagai gambar dari modal pratinjau
-        async function downloadIdCardFromPreview(elementToCapture, memberName) {
-            try {
-                // Ensure images are loaded before capturing
-                const imgElements = elementToCapture.querySelectorAll('img');
-                const imageLoadPromises = Array.from(imgElements).map(img => {
-                    if (img.complete) return Promise.resolve();
-                    return new Promise(resolve => {
-                        img.onload = resolve;
-                        img.onerror = resolve; // Resolve even on error to not block
-                    });
-                });
-                await Promise.all(imageLoadPromises);
-
-                const canvas = await html2canvas(elementToCapture, {
-                    scale: 4, // Increase scale for higher resolution
-                    useCORS: true,
-                    backgroundColor: '#ffffff',
-                    width: elementToCapture.offsetWidth, // Explicitly set width to current rendered width
-                    height: elementToCapture.offsetHeight // Explicitly set height to current rendered height
-                });
-
-                const link = document.createElement('a');
-                link.download = `${memberName.replace(/\s/g, '_')}_ID_Card_Preview.png`;
-                link.href = canvas.toDataURL('image/png');
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-
-                console.log("ID Card pratinjau berhasil diunduh.");
-            } catch (error) {
-                console.error("Error downloading ID Card preview:", error);
-                alert("Gagal mengunduh ID Card pratinjau. Pastikan semua gambar memiliki CORS yang diizinkan atau coba lagi.");
-            }
-        }
-
-
-        document.addEventListener('DOMContentLoaded', initializeFirebaseAndAuth);
-    </script>
 </head>
-<body class="bg-gray-100 text-secondary font-inter min-h-screen flex flex-col">
+<body class="bg-gray-100 text-secondary">
 
-    <!-- Navigasi Bar -->
-    <nav class="w-full bg-white shadow-lg py-4 z-50 no-print">
+    <!-- Navigasi Bar (Simplified for internal pages) -->
+    <nav class="w-full bg-white shadow-lg py-4 z-50 rounded-b-lg">
         <div class="container mx-auto flex justify-between items-center px-4">
             <!-- Logo Klub -->
             <a href="index.html" class="flex items-center space-x-2">
-                <img src="img/logo-ksk.png" alt="Logo KEI SHIN KAN" class="h-12 w-12 rounded-full object-cover mr-4">
+                <img src="img/logo-ksk.png" alt="Logo KEI SHIN KAN" class="h-12 w-12 rounded-full shadow-md">
                 <span class="text-xl font-bold text-primary">KEI SHIN KAN</span>
             </a>
-            <!-- Back to Dashboard Link -->
-            <a href="dashboard.html" class="bg-gray-200 text-secondary px-5 py-2 rounded-full font-bold hover:bg-gray-300 transition duration-300 shadow-md">
-                <i class="fas fa-arrow-left mr-2"></i>Kembali ke Dashboard
+            <!-- Link Kembali ke Dashboard -->
+            <a href="dashboard.html" class="text-secondary hover:text-primary transition duration-300 font-semibold px-3 py-2 rounded-md">
+                <i class="fas fa-arrow-left mr-1"></i> Kembali ke Dashboard
             </a>
         </div>
     </nav>
 
-    <!-- Konten Halaman Detail Anggota -->
-    <main class="flex-grow flex items-center justify-center p-4">
-        <section id="member-details-card" class="member-detail-container">
-            <p class="text-center text-gray-500">Memuat detail anggota...</p>
-        </section>
-    </main>
-
-    <!-- ID Card Preview Modal -->
-    <div id="id-card-preview-modal-overlay" class="modal-overlay">
-        <div class="modal-content">
-            <div id="id-card-preview-content" class="id-card-content-wrapper">
-                <div class="id-card-header flex items-center justify-center p-4">
-                    <img src="img/logo-ksk.png" alt="Logo KEI SHIN KAN" class="h-12 w-12 rounded-full object-cover mr-4">
-                    <h4 class="text-3xl font-bold text-white">KEI SHIN KAN</h4>
-                </div>
+    <!-- Main Content -->
+    <main>
+        <div id="member-detail-container" class="flex flex-col items-center">
+            <h1 class="text-3xl font-bold text-primary mb-6">Detail ID Card Anggota</h1>
+            <div id="id-card-display" class="id-card-container">
                 <div class="id-card-content">
-                    <img id="preview-id-card-photo" src="" alt="Foto Anggota" class="member-photo">
-                    <p class="font-bold text-xl mb-2 name-text" id="preview-id-card-name"></p>
-                    
-                    <table class="detail-table">
-                        <tbody id="preview-id-card-detail-table-body">
-                            <!-- Detail akan diisi oleh JavaScript -->
-                        </tbody>
-                    </table>
-
-                    <div class="barcode-area">
-                        <canvas id="id-card-preview-qrcode"></canvas>
-                        <p class="text-xs text-gray-600 mt-2">Scan untuk Kehadiran</p>
-                    </div>
-                </div>
-                <div class="id-card-footer">
-                    <p>&copy; 2025 KEI SHIN KAN Jawa Barat</p>
-                    <p><i class="fas fa-map-marker-alt"></i> Sekretariat: Jl. Contoh Alamat No. 123, Bandung</p>
-                    <p><i class="fas fa-phone-alt"></i> (022) 1234-5678</p>
+                    <img id="member-photo" src="https://placehold.co/120x120/CCCCCC/000000?text=Foto" alt="Foto Anggota" class="profile-pic">
+                    <h2 id="member-name" class="text-3xl font-extrabold mb-2">Nama Anggota</h2>
+                    <p class="text-lg mb-1"><span class="info-label">ID Anggota:</span> <span id="member-id" class="info-value">Loading...</span></p>
+                    <p class="text-lg mb-1"><span class="info-label">TTL:</span> <span id="member-dob" class="info-value">Loading...</span></p>
+                    <p class="text-lg mb-1"><span class="info-label">Tingkat Sabuk:</span> <span id="member-belt" class="info-value">Loading...</span></p>
+                    <p class="text-lg mb-1"><span class="info-label">Dojo:</span> <span id="member-dojo" class="info-value">Loading...</span></p>
+                    <p class="text-lg mb-1"><span class="info-label">Cabang:</span> <span id="member-city" class="info-value">Loading...</span></p>
+                    <canvas id="qrcode-canvas" class="qr-code-canvas"></canvas>
                 </div>
             </div>
-            <!-- Modal Action Buttons -->
-            <div class="modal-actions mt-4 flex justify-center space-x-4">
-                <button id="modal-print-id-card-btn" class="bg-blue-500 text-white px-4 py-2 rounded-full font-bold hover:bg-blue-600 transition duration-300">
-                    <i class="fas fa-print mr-2"></i>Cetak
+            <div id="loading-message" class="mt-8 text-lg text-gray-700">Memuat detail anggota...</div>
+            <div id="error-message" class="mt-8 text-lg text-red-500 hidden"></div>
+            
+            <div class="mt-8 flex space-x-4">
+                <button id="print-card-btn" class="bg-blue-600 text-white px-6 py-3 rounded-full font-bold hover:bg-blue-700 transition duration-300 shadow-md">
+                    <i class="fas fa-print mr-2"></i>Cetak Kartu
                 </button>
-                <button id="modal-download-id-card-btn" class="bg-green-500 text-white px-4 py-2 rounded-full font-bold hover:bg-green-600 transition duration-300">
-                    <i class="fas fa-download mr-2"></i>Unduh
-                </button>
-                <button id="close-id-card-preview-modal" class="bg-gray-400 text-white px-4 py-2 rounded-full font-bold hover:bg-gray-500 transition duration-300">
-                    Tutup
+                <button id="download-card-btn" class="bg-green-600 text-white px-6 py-3 rounded-full font-bold hover:bg-green-700 transition duration-300 shadow-md">
+                    <i class="fas fa-download mr-2"></i>Unduh Kartu
                 </button>
             </div>
         </div>
-    </div>
+    </main>
 
-    <!-- Footer Utama (Tidak dicetak) -->
-    <footer class="bg-gray-900 text-white py-8 rounded-t-lg mt-auto no-print">
+    <!-- Footer Utama -->
+    <footer class="bg-gray-900 text-white py-8 rounded-t-lg mt-auto">
         <div class="container mx-auto text-center px-4">
             <p class="mb-2">&copy; 2025 KEI SHIN KAN Jawa Barat. Hak Cipta Dilindungi.</p>
             <p class="mb-2"><i class="fas fa-map-marker-alt mr-2"></i>Sekretariat: Jl. Contoh Alamat No. 123, Bandung, Jawa Barat</p>
@@ -742,5 +165,213 @@
         </div>
     </footer>
 
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+        import { getFirestore, doc, getDoc, collection } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+
+        // Konfigurasi Firebase Anda.
+        // Gunakan __firebase_config jika tersedia (dari lingkungan Canvas), jika tidak gunakan hardcoded config.
+        const firebaseConfigRaw = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+             apiKey: "AIzaSyCAjAjkoQhx1eB7IxhpA5Yi8Z7wZC7nhzM",
+             authDomain: "kskjabar-f01f1.firebaseapp.com",
+             projectId: "kskjabar-f01f1",
+             storageBucket: "kskjabar-f01f1.firebasestorage.app",
+             messagingSenderId: "383836530077",
+             appId: "1:383836530077:web:6ab44455755626d5fa3b74",
+             measurementId: "G-N251SVP9VN"
+        };
+        
+        let app;
+        let db;
+        let auth;
+        let firebaseInitialized = false;
+
+        async function initializeFirebaseAndAuth() {
+            if (firebaseConfigRaw && firebaseConfigRaw.apiKey) {
+                try {
+                    app = initializeApp(firebaseConfigRaw);
+                    auth = getAuth(app);
+                    db = getFirestore(app);
+                    firebaseInitialized = true;
+                    console.log("Firebase initialized for member_detail.html.");
+
+                    // Sign in anonymously if no user is authenticated to allow data fetching
+                    onAuthStateChanged(auth, async (user) => {
+                        if (user) {
+                            console.log("User signed in:", user.uid);
+                            loadMemberDetails();
+                        } else {
+                            try {
+                                await signInAnonymously(auth);
+                                console.log("Signed in anonymously for data access.");
+                                loadMemberDetails();
+                            } catch (error) {
+                                console.error("Anonymous sign-in failed:", error.message);
+                                displayError("Gagal mengautentikasi untuk memuat data. Pastikan Anonymous Sign-in diaktifkan.");
+                            }
+                        }
+                    });
+
+                } catch (error) {
+                    console.error("Firebase initialization error for member_detail.html:", error.message);
+                    displayError(`Gagal menginisialisasi Firebase: ${error.message}`);
+                }
+            } else {
+                console.error("Konfigurasi Firebase tidak tersedia. Tidak dapat menginisialisasi Firebase.");
+                displayError("Konfigurasi Firebase tidak ditemukan. Mohon perbarui kode.");
+            }
+        }
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfigRaw.projectId;
+        const membersCollectionPath = `artifacts/${appId}/public/data/members`;
+
+        function getMemberIdFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('id');
+        }
+
+        async function loadMemberDetails() {
+            const memberId = getMemberIdFromUrl();
+            const loadingMessage = document.getElementById('loading-message');
+            const errorMessage = document.getElementById('error-message');
+            const idCardDisplay = document.getElementById('id-card-display');
+            const printBtn = document.getElementById('print-card-btn');
+            const downloadBtn = document.getElementById('download-card-btn');
+
+            loadingMessage.classList.remove('hidden');
+            errorMessage.classList.add('hidden');
+            idCardDisplay.classList.add('hidden'); // Hide card until data is loaded
+            printBtn.classList.add('hidden');
+            downloadBtn.classList.add('hidden');
+
+            if (!memberId) {
+                displayError("ID Anggota tidak ditemukan di URL.");
+                return;
+            }
+
+            if (!firebaseInitialized || !db) {
+                displayError("Firebase belum diinisialisasi atau koneksi database tidak tersedia.");
+                return;
+            }
+
+            try {
+                const memberDocRef = doc(db, membersCollectionPath, memberId);
+                const memberDocSnap = await getDoc(memberDocRef);
+
+                if (memberDocSnap.exists()) {
+                    const memberData = memberDocSnap.data();
+                    console.log("Member data fetched:", memberData);
+
+                    document.getElementById('member-photo').src = memberData.photoUrl || 'https://placehold.co/120x120/CCCCCC/000000?text=Foto';
+                    document.getElementById('member-name').textContent = memberData.name || 'N/A';
+                    document.getElementById('member-id').textContent = memberId;
+                    document.getElementById('member-dob').textContent = `${memberData.placeOfBirth || 'N/A'}, ${memberData.dateOfBirth || 'N/A'}`;
+                    document.getElementById('member-belt').textContent = memberData.beltLevel || 'N/A';
+                    document.getElementById('member-dojo').textContent = memberData.dojoName || 'N/A';
+                    document.getElementById('member-city').textContent = memberData.city || 'N/A';
+
+                    // Generate QR Code
+                    const qrCodeCanvas = document.getElementById('qrcode-canvas');
+                    if (qrCodeCanvas) {
+                        new QRious({
+                            element: qrCodeCanvas,
+                            value: memberId, // Data yang akan dienkripsi dalam QR code
+                            size: 100,
+                            padding: 10
+                        });
+                    }
+
+                    loadingMessage.classList.add('hidden');
+                    idCardDisplay.classList.remove('hidden'); // Show card
+                    printBtn.classList.remove('hidden');
+                    downloadBtn.classList.remove('hidden');
+
+                } else {
+                    displayError(`Anggota dengan ID "${memberId}" tidak ditemukan.`);
+                }
+            } catch (error) {
+                console.error("Error fetching member details:", error);
+                displayError(`Gagal memuat detail anggota: ${error.message}`);
+            }
+        }
+
+        function displayError(message) {
+            document.getElementById('loading-message').classList.add('hidden');
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.textContent = message;
+            errorMessage.classList.remove('hidden');
+            document.getElementById('id-card-display').classList.add('hidden'); // Ensure card is hidden on error
+            document.getElementById('print-card-btn').classList.add('hidden');
+            document.getElementById('download-card-btn').classList.add('hidden');
+        }
+
+        // Fungsi untuk mencetak ID Card
+        function printIdCard() {
+            const printContent = document.getElementById('id-card-display');
+            const originalContents = document.body.innerHTML;
+            const header = document.querySelector('nav').outerHTML;
+            const footer = document.querySelector('footer').outerHTML;
+
+            // Buat HTML untuk dicetak
+            let printWindow = window.open('', '', 'height=600,width=800');
+            printWindow.document.write('<html><head><title>Cetak ID Card</title>');
+            // Sertakan CSS dari halaman asli
+            printWindow.document.write('<style>');
+            printWindow.document.write(document.querySelector('style').innerHTML); // Ambil gaya internal
+            printWindow.document.write('body { margin: 0; padding: 20px; font-family: sans-serif; background-color: #f0f0f0; }'); // Gaya dasar
+            printWindow.document.write('.id-card-container { transform: scale(1); box-shadow: none; border: none; margin: auto; }'); // Hapus transformasi dan bayangan untuk cetak
+            printWindow.document.write('.id-card-container::before { opacity: 0.05; }'); // Kurangi opacity background logo
+            printWindow.document.write('</style>');
+            printWindow.document.write('</head><body>');
+            printWindow.document.write('<div style="text-align: center; margin-bottom: 20px;"><h1 style="color: #B40000; font-weight: bold;">ID Card Anggota KEI SHIN KAN</h1></div>');
+            printWindow.document.write(printContent.outerHTML); // Hanya konten ID card
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+            printWindow.focus();
+            printWindow.print();
+        }
+
+        // Fungsi untuk mengunduh ID Card sebagai gambar (PNG)
+        async function downloadIdCard() {
+            const cardElement = document.getElementById('id-card-display');
+            // Sembunyikan tombol cetak/unduh sementara agar tidak ikut tercetak di gambar
+            const printBtn = document.getElementById('print-card-btn');
+            const downloadBtn = document.getElementById('download-card-btn');
+            printBtn.classList.add('hidden');
+            downloadBtn.classList.add('hidden');
+
+            try {
+                const canvas = await html2canvas(cardElement, {
+                    scale: 2, // Meningkatkan resolusi gambar
+                    useCORS: true, // Penting jika ada gambar lintas domain
+                    backgroundColor: null // Agar transparan jika background card memiliki gradient
+                });
+
+                const dataUrl = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.download = `ID_Card_${document.getElementById('member-name').textContent.replace(/\s/g, '_') || 'Anggota'}.png`;
+                link.href = dataUrl;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (error) {
+                console.error("Error generating image for download:", error);
+                alert("Gagal mengunduh kartu. Pastikan semua gambar dimuat dengan benar atau coba lagi.");
+            } finally {
+                // Tampilkan kembali tombol
+                printBtn.classList.remove('hidden');
+                downloadBtn.classList.remove('hidden');
+            }
+        }
+
+
+        // Inisialisasi Firebase dan muat detail anggota saat DOM selesai dimuat
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeFirebaseAndAuth();
+            document.getElementById('print-card-btn').addEventListener('click', printIdCard);
+            document.getElementById('download-card-btn').addEventListener('click', downloadIdCard);
+        });
+    </script>
 </body>
 </html>
