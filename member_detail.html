@@ -83,13 +83,14 @@
             background-color: #B40000; /* Warna merah sesuai gambar */
             padding: 0.75rem 1rem; /* Padding lebih tinggi */
             border-radius: 0.5rem 0.5rem 0 0; /* Sudut atas bulat */
-            /* margin: -1rem -1rem 1rem -1rem; dihapus karena padding container 0 */
         }
         .id-card-header img {
             height: 40px; /* Ukuran logo di header */
             width: 40px;
             object-fit: contain;
             margin-right: 0.5rem;
+            border-radius: 50%; /* Membuat logo di header melingkar */
+            /* No orange border here, as per image */
         }
         .id-card-header span {
             color: white;
@@ -99,7 +100,7 @@
         .profile-pic-placeholder {
             width: 120px; /* Ukuran placeholder lingkaran */
             height: 120px;
-            border: 2px solid #F9A826; /* Border kuning aksen */
+            border: 2px solid #F9A826; /* Border kuning aksen / oranye */
             border-radius: 50%;
             margin: 1.5rem auto 1rem auto; /* Atur margin untuk posisi */
             display: flex;
@@ -136,7 +137,7 @@
         .info-label {
             font-weight: 500; /* Sedikit lebih tebal dari value */
             color: #555555; /* Warna abu-abu gelap */
-            flex-basis: 70px; /* Lebar tetap untuk label */
+            flex-basis: 70px; /* Lebar tetap untuk label, disesuaikan agar rapih */
             text-align: left;
             padding-right: 0.5rem; /* Jarak sebelum titik dua */
         }
