@@ -60,6 +60,32 @@
         .scroll-offset {
             scroll-margin-top: 5rem; /* Adjust based on navigation height */
         }
+        /* Style for news item cards */
+        .news-item-card {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+        }
+        .news-item-card img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 0.25rem;
+            margin-bottom: 1rem;
+            object-fit: cover;
+        }
+        .news-item-card .news-content-preview {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 3; /* Limit to 3 lines */
+            -webkit-box-orient: vertical;
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-secondary font-inter">
@@ -84,6 +110,7 @@
                 <li><a href="#beranda" class="text-secondary hover:text-primary transition duration-300 font-semibold px-3 py-2 rounded-md">Beranda</a></li>
                 <li><a href="#tentang-kami" class="text-secondary hover:text-primary transition duration-300 font-semibold px-3 py-2 rounded-md">Tentang Kami</a></li>
                 <li><a href="#tempat-latihan" class="text-secondary hover:text-primary transition duration-300 font-semibold px-3 py-2 rounded-md">Tempat Latihan</a></li>
+                <li><a href="#berita-kegiatan" class="text-secondary hover:text-primary transition duration-300 font-semibold px-3 py-2 rounded-md">Berita & Kegiatan</a></li>
                 <li>
                     <a href="login.html" class="bg-primary text-white px-5 py-2 rounded-full font-bold hover:bg-red-700 transition duration-300 shadow-md">Login</a>
                 </li>
@@ -99,6 +126,7 @@
                 <li><a href="#beranda" class="block text-secondary hover:text-primary transition duration-300 font-semibold px-3 py-2 rounded-md" onclick="toggleMobileMenu()">Beranda</a></li>
                 <li><a href="#tentang-kami" class="block text-secondary hover:text-primary transition duration-300 font-semibold px-3 py-2 rounded-md" onclick="toggleMobileMenu()">Tentang Kami</a></li>
                 <li><a href="#tempat-latihan" class="block text-secondary hover:text-primary transition duration-300 font-semibold px-3 py-2 rounded-md" onclick="toggleMobileMenu()">Tempat Latihan</a></li>
+                <li><a href="#berita-kegiatan" class="block text-secondary hover:text-primary transition duration-300 font-semibold px-3 py-2 rounded-md" onclick="toggleMobileMenu()">Berita & Kegiatan</a></li>
                 <li>
                     <a href="login.html" class="bg-primary text-white px-5 py-2 rounded-full font-bold hover:bg-red-700 transition duration-300 shadow-md" onclick="toggleMobileMenu()">Login</a>
                 </li>
@@ -166,6 +194,15 @@
         </div>
     </section>
 
+    <!-- News and Activities Section (NEW!) -->
+    <section id="berita-kegiatan" class="container mx-auto py-16 px-4 bg-white rounded-lg shadow-md my-8 scroll-offset">
+        <h2 class="text-4xl font-bold text-center text-primary mb-12">Berita & Kegiatan Terbaru</h2>
+        <div id="news-activities-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- News and activities cards will be dynamically inserted here by JavaScript -->
+            <p class="text-center text-gray-500 col-span-full">Memuat berita dan kegiatan...</p>
+        </div>
+    </section>
+
     <!-- Footer -->
     <footer class="bg-gray-900 text-white py-8 rounded-t-lg">
         <div class="container mx-auto text-center px-4">
@@ -179,10 +216,11 @@
     <script type="module">
         // Import Firebase functions
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
         // Firebase Configuration (ensure this matches your project config)
-        const firebaseConfig = {
+        // Gunakan __firebase_config jika tersedia (dari lingkungan Canvas), jika tidak gunakan hardcoded config.
+        const firebaseConfigRaw = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
              apiKey: "AIzaSyCAjAjkoQhx1eB7IxhpA5Yi8Z7wZC7nhzM",
              authDomain: "kskjabar-f01f1.firebaseapp.com",
              projectId: "kskjabar-f01f1",
@@ -196,15 +234,25 @@
         let db;
         let allDojos = []; // To store all dojos fetched from Firestore
 
+        // Get the application ID from the global variable (provided by Canvas)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfigRaw.projectId;
+        // Updated collection paths to match Firestore rules
+        const dojosCollectionPath = `artifacts/${appId}/public/data/dojos`; 
+        const newsActivitiesCollectionPath = `artifacts/${appId}/public/data/news_activities`; // New collection for news
+
         // Initialize Firebase
         function initializeFirebase() {
             try {
-                app = initializeApp(firebaseConfig);
+                app = initializeApp(firebaseConfigRaw); // Initialize with the dynamic/hardcoded config
                 db = getFirestore(app);
                 console.log("Firebase initialized for index.html");
+                console.log("Using Firebase Project ID (appId for collections):", appId);
+                console.log("Dojos Collection Path:", dojosCollectionPath);
+                console.log("News Activities Collection Path:", newsActivitiesCollectionPath);
             } catch (error) {
                 console.error("Error initializing Firebase in index.html:", error.message);
                 document.getElementById('dojo-list').innerHTML = '<p class="text-center text-red-500 col-span-full">Gagal memuat dojo: Gagal menginisialisasi Firebase. Periksa konsol.</p>';
+                document.getElementById('news-activities-list').innerHTML = '<p class="text-center text-red-500 col-span-full">Gagal memuat berita: Gagal menginisialisasi Firebase. Periksa konsol.</p>';
             }
         }
 
@@ -262,10 +310,7 @@
         // --- Dojo Display and Filter Functions (using Firestore) ---
         const dojoListContainer = document.getElementById('dojo-list');
         const cityFilterDropdown = document.getElementById('city-filter');
-        // Get the application ID from the global variable (provided by Canvas)
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        // Updated collection path to match Firestore rules
-        const dojosCollectionPath = `artifacts/${appId}/public/data/dojos`; 
+        
 
         // Function to render dojo cards
         function renderDojos(filteredDojos = allDojos) {
@@ -323,7 +368,7 @@
         // Function to fetch dojos from Firestore
         async function fetchDojosFromFirestore() {
             if (!db) {
-                console.error("Firestore is not initialized.");
+                console.error("Firestore is not initialized for Dojos.");
                 dojoListContainer.innerHTML = '<p class="text-center text-red-500 col-span-full">Gagal memuat dojo: Koneksi database tidak tersedia.</p>';
                 return;
             }
@@ -347,10 +392,61 @@
         // Event listener for filter dropdown
         cityFilterDropdown.addEventListener('change', filterDojosByCity);
 
+
+        // --- News and Activities Display Functions (NEW!) ---
+        const newsActivitiesListContainer = document.getElementById('news-activities-list');
+
+        // Function to render news/activities cards
+        function renderNewsActivities(newsItems) {
+            newsActivitiesListContainer.innerHTML = ''; // Clear current news list
+            if (newsItems.length === 0) {
+                newsActivitiesListContainer.innerHTML = '<p class="text-center text-lg text-gray-600 col-span-full">Belum ada berita atau kegiatan terbaru.</p>';
+                return;
+            }
+
+            newsItems.forEach(news => {
+                const newsCard = `
+                    <div class="news-item-card">
+                        ${news.imageUrl ? `<img src="${news.imageUrl}" onerror="this.onerror=null;this.src='https://placehold.co/300x200/CCCCCC/000000?text=No+Image';" alt="Gambar Berita" class="mb-4">` : ''}
+                        <h3 class="text-xl font-bold text-primary mb-2">${news.title || 'Tanpa Judul'}</h3>
+                        <p class="text-gray-600 text-sm mb-2">Tanggal: ${news.date || 'N/A'}</p>
+                        <p class="text-gray-700 text-base news-content-preview">${news.content || 'Tidak ada konten.'}</p>
+                    </div>
+                `;
+                newsActivitiesListContainer.innerHTML += newsCard;
+            });
+        }
+
+        // Function to fetch news/activities from Firestore
+        async function fetchNewsActivitiesFromFirestore() {
+            if (!db) {
+                console.error("Firestore is not initialized for News/Activities.");
+                newsActivitiesListContainer.innerHTML = '<p class="text-center text-red-500 col-span-full">Gagal memuat berita: Koneksi database tidak tersedia.</p>';
+                return;
+            }
+
+            try {
+                // Fetch news and order by timestamp (latest first)
+                const q = query(collection(db, newsActivitiesCollectionPath), orderBy("timestamp", "desc"));
+                const querySnapshot = await getDocs(q);
+                const newsItems = [];
+                querySnapshot.forEach((docItem) => {
+                    newsItems.push(docItem.data());
+                });
+                console.log("News & Activities fetched from Firestore:", newsItems);
+                renderNewsActivities(newsItems);
+            } catch (error) {
+                console.error("Error fetching news/activities from Firestore:", error);
+                newsActivitiesListContainer.innerHTML = `<p class="text-center text-red-500 col-span-full">Gagal memuat berita/kegiatan: ${error.message}</p>`;
+            }
+        }
+
+
         // Initial setup on page load
         document.addEventListener('DOMContentLoaded', () => {
             initializeFirebase(); // Initialize Firebase when DOM is ready
             fetchDojosFromFirestore(); // Fetch dojos from Firestore
+            fetchNewsActivitiesFromFirestore(); // Fetch news and activities from Firestore
         });
     </script>
 </body>
