@@ -109,6 +109,8 @@
             padding: 1.5rem;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
             text-align: left;
+            display: flex;
+            flex-direction: column;
         }
         .news-item-card img {
             max-width: 100%;
@@ -269,7 +271,8 @@
             }
             try {
                 await signOut(auth);
-                window.location.href = window.location.origin + '/login.html'; // Redirect ke halaman login setelah logout
+                // Ubah pengalihan ke halaman beranda (index.html)
+                window.location.href = window.location.origin + '/index.html'; 
             } catch (error) {
                 console.error("Error saat logout:", error);
                 // Menggunakan alert sementara, bisa diganti dengan modal kustom
@@ -424,7 +427,8 @@
                 // Attach event listeners for ID Card buttons (direct link to detail page)
                 document.querySelectorAll('.show-id-card-btn').forEach(button => {
                     button.addEventListener('click', (event) => {
-                        const memberId = event.target.dataset.memberId;
+                        // Use currentTarget to ensure the click event is on the button itself
+                        const memberId = event.currentTarget.dataset.memberId;
                         window.open(`member_detail.html?id=${memberId}`, '_blank');
                     });
                 });
@@ -433,17 +437,16 @@
                 document.querySelectorAll('.edit-member-btn').forEach(button => {
                     button.addEventListener('click', (event) => {
                         const memberData = {
-                            id: event.target.dataset.memberId,
-                            name: event.target.dataset.memberName,
-                            // email: event.target.dataset.memberEmail, // Removed as per user request
-                            photoUrl: event.target.dataset.memberPhotourl,
-                            dateOfBirth: event.target.dataset.memberDob,
-                            placeOfBirth: event.target.dataset.memberPob,
-                            beltLevel: event.target.dataset.memberBelt,
-                            dojoName: event.target.dataset.memberDojo,
-                            city: event.target.dataset.memberCity,
-                            birthCertificateUrl: event.target.dataset.memberBirthcertificateurl,
-                            beltCertificateUrl: event.target.dataset.memberBeltcertificateurl
+                            id: event.currentTarget.dataset.memberId, // Use currentTarget
+                            name: event.currentTarget.dataset.memberName,
+                            photoUrl: event.currentTarget.dataset.memberPhotourl,
+                            dateOfBirth: event.currentTarget.dataset.memberDob,
+                            placeOfBirth: event.currentTarget.dataset.memberPob,
+                            beltLevel: event.currentTarget.dataset.memberBelt,
+                            dojoName: event.currentTarget.dataset.memberDojo,
+                            city: event.currentTarget.dataset.memberCity,
+                            birthCertificateUrl: event.currentTarget.dataset.memberBirthcertificateurl,
+                            beltCertificateUrl: event.currentTarget.dataset.memberBeltcertificateurl
                         };
                         showAddEditMemberModal(memberData); // Use the combined modal
                     });
@@ -452,7 +455,7 @@
                 // Attach event listeners for Delete buttons
                 document.querySelectorAll('.delete-member-btn').forEach(button => {
                     button.addEventListener('click', (event) => {
-                        const memberIdToDelete = event.target.dataset.memberId;
+                        const memberIdToDelete = event.currentTarget.dataset.memberId; // Use currentTarget
                         showConfirmDeleteModal(memberIdToDelete);
                     });
                 });
@@ -788,7 +791,7 @@
                 // Attach event listeners for Dojo Delete buttons
                 document.querySelectorAll('.delete-dojo-btn').forEach(button => {
                     button.addEventListener('click', (event) => {
-                        const dojoIdToDelete = event.target.dataset.dojoId;
+                        const dojoIdToDelete = event.currentTarget.dataset.dojoId; // Use currentTarget
                         showConfirmDeleteDojoModal(dojoIdToDelete);
                     });
                 });
@@ -796,14 +799,14 @@
                 document.querySelectorAll('.edit-dojo-btn').forEach(button => {
                     button.addEventListener('click', (event) => {
                         const dojoData = {
-                            id: event.target.dataset.dojoId,
-                            name: event.target.dataset.dojoName,
-                            trainer: event.target.dataset.dojoTrainer,
-                            contact: event.target.dataset.dojoContact,
-                            address: event.target.dataset.dojoAddress,
-                            schedule: event.target.dataset.dojoSchedule,
-                            city: event.target.dataset.dojoCity,
-                            image: event.target.dataset.dojoImage
+                            id: event.currentTarget.dataset.dojoId, // Use currentTarget
+                            name: event.currentTarget.dataset.dojoName,
+                            trainer: event.currentTarget.dataset.dojoTrainer,
+                            contact: event.currentTarget.dataset.dojoContact,
+                            address: event.currentTarget.dataset.dojoAddress,
+                            schedule: event.currentTarget.dataset.dojoSchedule,
+                            city: event.currentTarget.dataset.dojoCity,
+                            image: event.currentTarget.dataset.dojoImage
                         };
                         showEditDojoModal(dojoData);
                     });
@@ -1016,11 +1019,11 @@
                 document.querySelectorAll('.edit-news-btn').forEach(button => {
                     button.addEventListener('click', (event) => {
                         const newsData = {
-                            id: event.target.dataset.newsId,
-                            title: event.target.dataset.newsTitle,
-                            date: event.target.dataset.newsDate,
-                            imageUrl: event.target.dataset.newsImageurl,
-                            content: event.target.dataset.newsContent
+                            id: event.currentTarget.dataset.newsId, // Use currentTarget
+                            title: event.currentTarget.dataset.newsTitle,
+                            date: event.currentTarget.dataset.newsDate,
+                            imageUrl: event.currentTarget.dataset.newsImageurl,
+                            content: event.currentTarget.dataset.newsContent
                         };
                         showAddEditNewsModal(newsData);
                     });
@@ -1028,7 +1031,7 @@
 
                 document.querySelectorAll('.delete-news-btn').forEach(button => {
                     button.addEventListener('click', (event) => {
-                        const newsIdToDelete = event.target.dataset.newsId;
+                        const newsIdToDelete = event.currentTarget.dataset.newsId; // Use currentTarget
                         showConfirmDeleteNewsModal(newsIdToDelete);
                     });
                 });
