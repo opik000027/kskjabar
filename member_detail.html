@@ -50,62 +50,106 @@
             padding: 2rem;
         }
         .id-card-container {
-            background: linear-gradient(to bottom right, #B40000, #8B0000); /* Merah gelap ke merah terang */
-            border-radius: 1.5rem; /* Sudut lebih bulat */
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4); /* Bayangan lebih kuat */
-            padding: 2.5rem;
-            color: white;
+            /* Background putih dan border tipis seperti gambar */
+            background-color: white;
+            border-radius: 0.5rem; /* Sedikit lebih bulat dari sebelumnya */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Bayangan lebih halus */
+            padding: 1rem; /* Padding lebih kecil */
+            color: #333333; /* Warna teks gelap */
             text-align: center;
-            max-width: 400px; /* Lebar maksimum kartu */
+            max-width: 400px;
             width: 100%;
-            border: 5px solid #F9A826; /* Border kuning aksen */
+            border: 1px solid #e0e0e0; /* Border abu-abu tipis */
             position: relative;
             overflow: hidden;
-            transform: scale(0.95); /* Sedikit diperkecil untuk efek visual */
-            transition: transform 0.3s ease-in-out;
+            transform: scale(1); /* Hapus transformasi default */
+            transition: none; /* Hapus transisi hover */
         }
         .id-card-container:hover {
-            transform: scale(1.0); /* Efek zoom saat hover */
+            transform: scale(1); /* Pastikan tidak ada efek zoom saat hover */
         }
         .id-card-container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('img/logo-ksk.png') no-repeat center center;
-            background-size: 80%; /* Logo lebih besar */
-            opacity: 0.1; /* Transparansi tinggi */
-            z-index: 0;
+            display: none; /* Hapus overlay logo KSK di background */
         }
         .id-card-content {
             position: relative;
-            z-index: 1; /* Pastikan konten di atas overlay logo */
+            z-index: 1;
+            padding: 1rem; /* Tambahkan padding agar tidak terlalu mepet tepi */
+        }
+        .id-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #B40000; /* Warna merah sesuai gambar */
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem 0.5rem 0 0; /* Sudut atas bulat */
+            margin: -1rem -1rem 1rem -1rem; /* Kompensasi padding container */
+        }
+        .id-card-header img {
+            height: 40px; /* Ukuran logo di header */
+            width: 40px;
+            object-fit: contain;
+            margin-right: 0.5rem;
+        }
+        .id-card-header span {
+            color: white;
+            font-weight: bold;
+            font-size: 1.25rem; /* Ukuran teks di header */
+        }
+        .profile-pic-placeholder {
+            width: 100px; /* Ukuran placeholder lingkaran */
+            height: 100px;
+            border: 2px solid #F9A826; /* Border kuning aksen */
+            border-radius: 50%;
+            margin: 1.5rem auto; /* Atur margin untuk posisi */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f0; /* Warna abu-abu terang */
+            color: #ccc; /* Warna ikon placeholder */
+            font-size: 3rem; /* Ukuran ikon placeholder */
+            overflow: hidden; /* Pastikan gambar tidak keluar dari lingkaran */
         }
         .profile-pic {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
+            width: 100%; /* Isi penuh placeholder */
+            height: 100%;
             object-fit: cover;
-            border: 4px solid #F9A826; /* Border foto kuning aksen */
-            margin: 0 auto 1.5rem;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5); /* Bayangan pada foto */
+            border-radius: 50%; /* Pastikan tetap lingkaran */
         }
         .qr-code-canvas {
             background-color: white;
             padding: 0.5rem;
             border-radius: 0.5rem;
             margin-top: 1.5rem;
-            display: inline-block; /* Agar QR code berada di tengah */
+            display: inline-block;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Sedikit bayangan pada QR */
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            text-align: left; /* Teks rata kiri */
+            margin-bottom: 0.5rem;
         }
         .info-label {
-            font-weight: 600;
-            color: #f9fafb; /* Warna putih off-white */
+            font-weight: 500; /* Sedikit lebih tebal dari value */
+            color: #555555; /* Warna abu-abu gelap */
+            flex-shrink: 0; /* Jangan menyusut */
+            margin-right: 0.5rem; /* Jarak antara label dan titik dua */
+        }
+        .info-separator {
+            flex-shrink: 0; /* Jangan menyusut */
+            margin-right: 0.5rem;
         }
         .info-value {
             font-weight: 400;
-            color: #ffffff; /* Warna putih */
+            color: #333333; /* Warna teks utama */
+            flex-grow: 1; /* Biarkan mengisi ruang kosong */
+            word-break: break-word; /* Pecah kata panjang */
+        }
+        .scan-text {
+            font-size: 0.9rem;
+            color: #777777;
+            margin-top: 0.5rem;
         }
     </style>
 </head>
@@ -131,15 +175,34 @@
         <div id="member-detail-container" class="flex flex-col items-center">
             <h1 class="text-3xl font-bold text-primary mb-6">Detail ID Card Anggota</h1>
             <div id="id-card-display" class="id-card-container">
+                <div class="id-card-header">
+                    <img src="img/logo-ksk.png" alt="Logo KSK">
+                    <span>KEI SHIN KAN</span>
+                </div>
                 <div class="id-card-content">
-                    <img id="member-photo" src="https://placehold.co/120x120/CCCCCC/000000?text=Foto" alt="Foto Anggota" class="profile-pic">
-                    <h2 id="member-name" class="text-3xl font-extrabold mb-2">Nama Anggota</h2>
-                    <p class="text-lg mb-1"><span class="info-label">ID Anggota:</span> <span id="member-id" class="info-value">Loading...</span></p>
-                    <p class="text-lg mb-1"><span class="info-label">TTL:</span> <span id="member-dob" class="info-value">Loading...</span></p>
-                    <p class="text-lg mb-1"><span class="info-label">Tingkat Sabuk:</span> <span id="member-belt" class="info-value">Loading...</span></p>
-                    <p class="text-lg mb-1"><span class="info-label">Dojo:</span> <span id="member-dojo" class="info-value">Loading...</span></p>
-                    <p class="text-lg mb-1"><span class="info-label">Cabang:</span> <span id="member-city" class="info-value">Loading...</span></p>
+                    <div class="profile-pic-placeholder">
+                        <img id="member-photo" src="https://placehold.co/120x120/CCCCCC/000000?text=Foto" alt="Foto Anggota" class="profile-pic">
+                    </div>
+                    
+                    <h2 id="member-name" class="text-2xl font-extrabold mb-4 text-primary uppercase">NAMA ANGGOTA</h2>
+                    
+                    <div class="text-base">
+                        <div class="info-row">
+                            <span class="info-label">TTL</span> <span class="info-separator">:</span> <span id="member-dob" class="info-value">Loading...</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Sabuk</span> <span class="info-separator">:</span> <span id="member-belt" class="info-value">Loading...</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Dojo</span> <span class="info-separator">:</span> <span id="member-dojo" class="info-value">Loading...</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Cabang</span> <span class="info-separator">:</span> <span id="member-city" class="info-value">Loading...</span>
+                        </div>
+                    </div>
+
                     <canvas id="qrcode-canvas" class="qr-code-canvas"></canvas>
+                    <p class="scan-text">Scan untuk Kehadiran</p>
                 </div>
             </div>
             <div id="loading-message" class="mt-8 text-lg text-gray-700">Memuat detail anggota...</div>
@@ -263,9 +326,13 @@
                     const memberData = memberDocSnap.data();
                     console.log("Member data fetched:", memberData);
 
-                    document.getElementById('member-photo').src = memberData.photoUrl || 'https://placehold.co/120x120/CCCCCC/000000?text=Foto';
-                    document.getElementById('member-name').textContent = memberData.name || 'N/A';
-                    document.getElementById('member-id').textContent = memberId;
+                    // Update the image src. The placeholder now has a fixed size.
+                    const memberPhotoElement = document.getElementById('member-photo');
+                    memberPhotoElement.src = memberData.photoUrl || 'https://placehold.co/120x120/CCCCCC/000000?text=Foto';
+
+                    document.getElementById('member-name').textContent = (memberData.name || 'N/A').toUpperCase(); // Uppercase name
+                    // ID Anggota tidak ditampilkan langsung di kartu seperti contoh, tapi bisa ditambahkan jika perlu
+                    // document.getElementById('member-id').textContent = memberId; 
                     document.getElementById('member-dob').textContent = `${memberData.placeOfBirth || 'N/A'}, ${memberData.dateOfBirth || 'N/A'}`;
                     document.getElementById('member-belt').textContent = memberData.beltLevel || 'N/A';
                     document.getElementById('member-dojo').textContent = memberData.dojoName || 'N/A';
@@ -277,7 +344,7 @@
                         new QRious({
                             element: qrCodeCanvas,
                             value: memberId, // Data yang akan dienkripsi dalam QR code
-                            size: 100,
+                            size: 100, // Ukuran QR code
                             padding: 10
                         });
                     }
@@ -309,19 +376,33 @@
         // Fungsi untuk mencetak ID Card
         function printIdCard() {
             const printContent = document.getElementById('id-card-display');
-            const originalContents = document.body.innerHTML;
-            const header = document.querySelector('nav').outerHTML;
-            const footer = document.querySelector('footer').outerHTML;
-
-            // Buat HTML untuk dicetak
+            // Membuat jendela baru untuk cetak
             let printWindow = window.open('', '', 'height=600,width=800');
             printWindow.document.write('<html><head><title>Cetak ID Card</title>');
             // Sertakan CSS dari halaman asli
             printWindow.document.write('<style>');
-            printWindow.document.write(document.querySelector('style').innerHTML); // Ambil gaya internal
-            printWindow.document.write('body { margin: 0; padding: 20px; font-family: sans-serif; background-color: #f0f0f0; }'); // Gaya dasar
-            printWindow.document.write('.id-card-container { transform: scale(1); box-shadow: none; border: none; margin: auto; }'); // Hapus transformasi dan bayangan untuk cetak
-            printWindow.document.write('.id-card-container::before { opacity: 0.05; }'); // Kurangi opacity background logo
+            // Ambil semua gaya internal
+            const styles = document.querySelectorAll('style');
+            styles.forEach(style => {
+                printWindow.document.write(style.innerHTML);
+            });
+            // Tambahkan gaya khusus untuk cetak
+            printWindow.document.write(`
+                body { margin: 0; padding: 20px; font-family: 'Inter', sans-serif; background-color: #f0f0f0; }
+                .id-card-container {
+                    transform: scale(1) !important;
+                    box-shadow: none !important;
+                    border: 1px solid #e0e0e0 !important; /* Pertahankan border tipis */
+                    margin: auto;
+                    color: #333333; /* Pastikan teks gelap */
+                }
+                .id-card-container::before { display: none !important; }
+                .id-card-header { border-radius: 0.5rem 0.5rem 0 0 !important; } /* Pastikan header tetap bulat atasnya */
+                .profile-pic-placeholder { border: 2px solid #F9A826 !important; }
+                .info-label { color: #555555 !important; }
+                .info-value { color: #333333 !important; }
+                .scan-text { color: #777777 !important; }
+            `);
             printWindow.document.write('</style>');
             printWindow.document.write('</head><body>');
             printWindow.document.write('<div style="text-align: center; margin-bottom: 20px;"><h1 style="color: #B40000; font-weight: bold;">ID Card Anggota KEI SHIN KAN</h1></div>');
@@ -330,6 +411,7 @@
             printWindow.document.close();
             printWindow.focus();
             printWindow.print();
+            printWindow.close(); // Tutup jendela cetak setelah selesai
         }
 
         // Fungsi untuk mengunduh ID Card sebagai gambar (PNG)
@@ -345,7 +427,7 @@
                 const canvas = await html2canvas(cardElement, {
                     scale: 2, // Meningkatkan resolusi gambar
                     useCORS: true, // Penting jika ada gambar lintas domain
-                    backgroundColor: null // Agar transparan jika background card memiliki gradient
+                    backgroundColor: '#ffffff' // Atur background menjadi putih solid untuk html2canvas
                 });
 
                 const dataUrl = canvas.toDataURL('image/png');
