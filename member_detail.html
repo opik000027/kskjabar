@@ -54,7 +54,7 @@
             background-color: white;
             border-radius: 0.5rem; /* Sedikit lebih bulat dari sebelumnya */
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Bayangan lebih halus */
-            padding: 1rem; /* Padding lebih kecil */
+            padding: 0; /* Hapus padding agar header bisa penuh */
             color: #333333; /* Warna teks gelap */
             text-align: center;
             max-width: 400px;
@@ -74,16 +74,16 @@
         .id-card-content {
             position: relative;
             z-index: 1;
-            padding: 1rem; /* Tambahkan padding agar tidak terlalu mepet tepi */
+            padding: 1.5rem 1rem; /* Tambahkan padding agar tidak terlalu mepet tepi */
         }
         .id-card-header {
             display: flex;
             align-items: center;
             justify-content: center;
             background-color: #B40000; /* Warna merah sesuai gambar */
-            padding: 0.5rem 1rem;
+            padding: 0.75rem 1rem; /* Padding lebih tinggi */
             border-radius: 0.5rem 0.5rem 0 0; /* Sudut atas bulat */
-            margin: -1rem -1rem 1rem -1rem; /* Kompensasi padding container */
+            /* margin: -1rem -1rem 1rem -1rem; dihapus karena padding container 0 */
         }
         .id-card-header img {
             height: 40px; /* Ukuran logo di header */
@@ -97,11 +97,11 @@
             font-size: 1.25rem; /* Ukuran teks di header */
         }
         .profile-pic-placeholder {
-            width: 100px; /* Ukuran placeholder lingkaran */
-            height: 100px;
+            width: 120px; /* Ukuran placeholder lingkaran */
+            height: 120px;
             border: 2px solid #F9A826; /* Border kuning aksen */
             border-radius: 50%;
-            margin: 1.5rem auto; /* Atur margin untuk posisi */
+            margin: 1.5rem auto 1rem auto; /* Atur margin untuk posisi */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -124,26 +124,32 @@
             display: inline-block;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Sedikit bayangan pada QR */
         }
+        .info-section {
+            width: 100%; /* Pastikan bagian info mengisi lebar yang tersedia */
+            padding: 0 1rem; /* Padding horizontal untuk bagian info */
+        }
         .info-row {
             display: flex;
-            justify-content: space-between;
-            text-align: left; /* Teks rata kiri */
-            margin-bottom: 0.5rem;
+            align-items: baseline; /* Align text baselines */
+            margin-bottom: 0.25rem; /* Jarak antar baris */
         }
         .info-label {
             font-weight: 500; /* Sedikit lebih tebal dari value */
             color: #555555; /* Warna abu-abu gelap */
-            flex-shrink: 0; /* Jangan menyusut */
-            margin-right: 0.5rem; /* Jarak antara label dan titik dua */
+            flex-basis: 70px; /* Lebar tetap untuk label */
+            text-align: left;
+            padding-right: 0.5rem; /* Jarak sebelum titik dua */
         }
         .info-separator {
             flex-shrink: 0; /* Jangan menyusut */
-            margin-right: 0.5rem;
+            margin-right: 0.25rem; /* Jarak setelah titik dua */
+            color: #555555;
         }
         .info-value {
             font-weight: 400;
             color: #333333; /* Warna teks utama */
             flex-grow: 1; /* Biarkan mengisi ruang kosong */
+            text-align: left; /* Rata kiri untuk nilai */
             word-break: break-word; /* Pecah kata panjang */
         }
         .scan-text {
@@ -186,7 +192,7 @@
                     
                     <h2 id="member-name" class="text-2xl font-extrabold mb-4 text-primary uppercase">NAMA ANGGOTA</h2>
                     
-                    <div class="text-base">
+                    <div class="text-base info-section">
                         <div class="info-row">
                             <span class="info-label">TTL</span> <span class="info-separator">:</span> <span id="member-dob" class="info-value">Loading...</span>
                         </div>
