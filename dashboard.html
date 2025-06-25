@@ -101,6 +101,22 @@
             border: 2px solid #F9A826;
             margin-bottom: 1rem;
         }
+        /* Style for news item cards */
+        .news-item-card {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            text-align: left;
+        }
+        .news-item-card img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 0.25rem;
+            margin-bottom: 1rem;
+        }
+
 
         /* Generic Modal Styles (for Add Dojo and Confirm Delete) */
         .modal-overlay {
@@ -143,6 +159,11 @@
             max-width: 500px; /* Adjust maximum width for the registration form */
             padding: 2rem; /* Increase padding for better spacing */
         }
+        /* Specific adjustments for Add/Edit News Modal */
+        #add-edit-news-modal .modal-content {
+            max-width: 600px; /* Adjust maximum width for the news form */
+            padding: 2rem; /* Increase padding for better spacing */
+        }
     </style>
 
     <!-- Firebase SDK -->
@@ -150,17 +171,18 @@
         // Mengimpor fungsi Firebase dari CDN
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-        import { getFirestore, collection, getDocs, doc, deleteDoc, addDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, doc, deleteDoc, addDoc, setDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
         // Konfigurasi Firebase Anda.
-        const firebaseConfig = {
+        // Gunakan __firebase_config jika tersedia (dari lingkungan Canvas), jika tidak gunakan hardcoded config.
+        const firebaseConfigRaw = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
              apiKey: "AIzaSyCAjAjkoQhx1eB7IxhpA5Yi8Z7wZC7nhzM",
              authDomain: "kskjabar-f01f1.firebaseapp.com",
              projectId: "kskjabar-f01f1",
              storageBucket: "kskjabar-f01f1.firebasestorage.app",
              messagingSenderId: "383836530077",
              appId: "1:383836530077:web:6ab44455755626d5fa3b74",
-             measurementId: "G-N251SVP9VN" 
+             measurementId: "G-N251SVP9VN"
         };
         
         let app;
@@ -169,18 +191,26 @@
         let firebaseInitialized = false;
         let allDojos = []; // Global variable to store all dojos, used for member city derivation
 
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        // Use the projectId from the active firebaseConfig for appId to ensure consistency
+        const appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfigRaw.projectId; // Use projectId as default appId
+
         const membersCollectionPath = `artifacts/${appId}/public/data/members`;
         const dojosCollectionPath = `artifacts/${appId}/public/data/dojos`;
+        const newsActivitiesCollectionPath = `artifacts/${appId}/public/data/news_activities`; // New collection for news
 
         async function initializeFirebaseAndAuth() {
-            if (firebaseConfig) { 
+            // Use firebaseConfigRaw for initialization
+            if (firebaseConfigRaw && firebaseConfigRaw.apiKey) {
                 try {
-                    app = initializeApp(firebaseConfig);
+                    app = initializeApp(firebaseConfigRaw); // Initialize with the dynamic/hardcoded config
                     auth = getAuth(app); // Get Auth instance
                     db = getFirestore(app);
                     firebaseInitialized = true;
                     console.log("Firebase initialized for dashboard.html.");
+                    console.log("Using Firebase Project ID (appId for collections):", appId);
+                    console.log("Members Collection Path:", membersCollectionPath);
+                    console.log("Dojos Collection Path:", dojosCollectionPath);
+                    console.log("News Activities Collection Path:", newsActivitiesCollectionPath);
 
                     // Sign in anonymously if no user is authenticated
                     onAuthStateChanged(auth, async (user) => {
@@ -788,8 +818,8 @@
         // Fungsi untuk menampilkan modal konfirmasi hapus dojo
         function showConfirmDeleteDojoModal(dojoId) {
             const confirmModal = document.getElementById('confirm-delete-dojo-modal');
-            const confirmDeleteBtn = document.getElementById('confirm-delete-dojo-btn');
-            const cancelDeleteBtn = document.getElementById('cancel-delete-dojo-btn');
+            const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+            const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
 
             if (!confirmModal || !confirmDeleteBtn || !cancelDeleteBtn) {
                 console.error("Confirm delete dojo modal elements not found.");
@@ -845,6 +875,201 @@
 
             modal.classList.add('active');
         }
+
+
+        // START: NEWS AND ACTIVITIES MANAGEMENT FUNCTIONS
+
+        // Function to show/hide the add/edit news modal
+        function showAddEditNewsModal(newsData = null) {
+            const modal = document.getElementById('add-edit-news-modal');
+            const form = document.getElementById('add-edit-news-form');
+            const title = document.getElementById('add-edit-news-title');
+            const messageDiv = document.getElementById('add-edit-news-message');
+
+            messageDiv.textContent = '';
+            messageDiv.classList.remove('text-green-500', 'text-red-500');
+
+            if (!modal || !form || !title || !messageDiv) {
+                console.error("Add/Edit news modal elements not found.");
+                return;
+            }
+
+            if (newsData) { // Edit mode
+                title.textContent = 'Edit Berita/Kegiatan';
+                form.dataset.newsId = newsData.id;
+                document.getElementById('news-title').value = newsData.title || '';
+                document.getElementById('news-date').value = newsData.date || '';
+                document.getElementById('news-image-url').value = newsData.imageUrl || '';
+                document.getElementById('news-content').value = newsData.content || '';
+            } else { // Add mode
+                title.textContent = 'Tambahkan Berita/Kegiatan Baru';
+                form.removeAttribute('data-news-id');
+                form.reset(); // Clear form fields
+            }
+
+            modal.classList.add('active');
+        }
+
+        // Function to handle adding/editing news/activities
+        async function handleAddEditNews(event) {
+            event.preventDefault();
+            const form = event.target;
+            const newsId = form.dataset.newsId; // Will be undefined in add mode
+
+            const newsData = {
+                title: document.getElementById('news-title').value,
+                date: document.getElementById('news-date').value,
+                imageUrl: document.getElementById('news-image-url').value,
+                content: document.getElementById('news-content').value,
+                timestamp: new Date().toISOString() // Add a timestamp for ordering
+            };
+
+            const messageDiv = document.getElementById('add-edit-news-message');
+            if (!messageDiv) {
+                console.error("Add/Edit news message div not found.");
+                return;
+            }
+            messageDiv.textContent = '';
+            messageDiv.classList.remove('text-green-500', 'text-red-500');
+
+            if (!firebaseInitialized || !db) {
+                messageDiv.textContent = 'Firebase belum diinisialisasi. Coba lagi.';
+                messageDiv.classList.add('text-red-500');
+                return;
+            }
+
+            try {
+                if (newsId) {
+                    // Update existing news
+                    await setDoc(doc(db, newsActivitiesCollectionPath, newsId), newsData, { merge: true });
+                    messageDiv.textContent = 'Berita/Kegiatan berhasil diperbarui!';
+                } else {
+                    // Add new news
+                    await addDoc(collection(db, newsActivitiesCollectionPath), newsData);
+                    messageDiv.textContent = 'Berita/Kegiatan berhasil ditambahkan!';
+                }
+                messageDiv.classList.add('text-green-500');
+                loadNewsList(); // Reload news list
+                setTimeout(() => {
+                    const modal = document.getElementById('add-edit-news-modal');
+                    if (modal) modal.classList.remove('active');
+                }, 1500);
+            } catch (error) {
+                console.error("Error saving news data:", error);
+                messageDiv.textContent = `Gagal menyimpan berita/kegiatan: ${error.message}`;
+                messageDiv.classList.add('text-red-500');
+            }
+        }
+
+        // Function to load news/activities from Firestore
+        async function loadNewsList() {
+            const newsListDiv = document.getElementById('news-list');
+            if (!newsListDiv) {
+                console.warn("news-list element not found. Skipping loadNewsList.");
+                return;
+            }
+            newsListDiv.innerHTML = '<p class="text-center text-gray-500 col-span-full">Memuat berita/kegiatan...</p>';
+
+            if (!firebaseInitialized || !db) {
+                newsListDiv.innerHTML = '<p class="text-center text-red-500 col-span-full">Firebase belum diinisialisasi.</p>';
+                return;
+            }
+
+            try {
+                // Order by timestamp in descending order (latest first)
+                const q = query(collection(db, newsActivitiesCollectionPath), orderBy("timestamp", "desc"));
+                const querySnapshot = await getDocs(q);
+                let newsHtml = '';
+                if (querySnapshot.empty) {
+                    newsHtml = '<p class="text-center text-gray-600 col-span-full">Belum ada berita atau kegiatan terdaftar.</p>';
+                } else {
+                    querySnapshot.forEach((docItem) => {
+                        const news = docItem.data();
+                        const newsId = docItem.id;
+
+                        newsHtml += `
+                            <div class="news-item-card flex flex-col">
+                                <h3 class="text-xl font-bold text-primary mb-2">${news.title || 'Tanpa Judul'}</h3>
+                                <p class="text-gray-600 text-sm mb-2">Tanggal: ${news.date || 'N/A'}</p>
+                                ${news.imageUrl ? `<img src="${news.imageUrl}" onerror="this.onerror=null;this.src='https://placehold.co/300x200/CCCCCC/000000?text=No+Image';" alt="Gambar Berita" class="mb-4 w-full h-auto object-cover">` : ''}
+                                <p class="text-gray-700 text-base mb-4">${news.content || 'Tidak ada konten.'}</p>
+                                <div class="mt-auto flex flex-wrap justify-end gap-2">
+                                    <button class="bg-blue-500 text-white px-3 py-1 rounded-full text-sm hover:bg-blue-600 transition duration-300 edit-news-btn"
+                                            data-news-id="${newsId}"
+                                            data-news-title="${news.title || ''}"
+                                            data-news-date="${news.date || ''}"
+                                            data-news-imageurl="${news.imageUrl || ''}"
+                                            data-news-content="${news.content || ''}">
+                                        <i class="fas fa-edit mr-1"></i>Edit
+                                    </button>
+                                    <button class="bg-red-500 text-white px-3 py-1 rounded-full text-sm hover:bg-red-600 transition duration-300 delete-news-btn" data-news-id="${newsId}">
+                                        <i class="fas fa-trash-alt mr-1"></i>Hapus
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                newsListDiv.innerHTML = newsHtml;
+
+                // Attach event listeners for Edit and Delete buttons
+                document.querySelectorAll('.edit-news-btn').forEach(button => {
+                    button.addEventListener('click', (event) => {
+                        const newsData = {
+                            id: event.target.dataset.newsId,
+                            title: event.target.dataset.newsTitle,
+                            date: event.target.dataset.newsDate,
+                            imageUrl: event.target.dataset.newsImageurl,
+                            content: event.target.dataset.newsContent
+                        };
+                        showAddEditNewsModal(newsData);
+                    });
+                });
+
+                document.querySelectorAll('.delete-news-btn').forEach(button => {
+                    button.addEventListener('click', (event) => {
+                        const newsIdToDelete = event.target.dataset.newsId;
+                        showConfirmDeleteNewsModal(newsIdToDelete);
+                    });
+                });
+
+            } catch (error) {
+                console.error("Error memuat berita/kegiatan:", error);
+                newsListDiv.innerHTML = `<p class="text-center text-red-500 col-span-full">Gagal memuat berita/kegiatan: ${error.message}</p>`;
+            }
+        }
+
+        // Function to show confirm delete news modal
+        function showConfirmDeleteNewsModal(newsId) {
+            const confirmModal = document.getElementById('confirm-delete-news-modal');
+            const confirmDeleteBtn = document.getElementById('confirm-delete-news-btn');
+            const cancelDeleteBtn = document.getElementById('cancel-delete-news-btn');
+
+            if (!confirmModal || !confirmDeleteBtn || !cancelDeleteBtn) {
+                console.error("Confirm delete news modal elements not found.");
+                return;
+            }
+
+            confirmModal.classList.add('active');
+
+            confirmDeleteBtn.onclick = async () => {
+                try {
+                    await deleteDoc(doc(db, newsActivitiesCollectionPath, newsId));
+                    confirmModal.classList.remove('active');
+                    loadNewsList();
+                    alert("Berita/Kegiatan berhasil dihapus.");
+                } catch (error) {
+                    console.error("Error menghapus berita/kegiatan:", error);
+                    confirmModal.classList.remove('active');
+                    alert(`Gagal menghapus berita/kegiatan: ${error.message}`);
+                }
+            };
+
+            cancelDeleteBtn.onclick = () => {
+                confirmModal.classList.remove('active');
+            };
+        }
+        // END: NEWS AND ACTIVITIES MANAGEMENT FUNCTIONS
 
 
         // Fungsi untuk mengaktifkan/menonaktifkan akses portal ujian
@@ -906,6 +1131,8 @@
                 loadMembers();
             } else if (tabName === 'manajemen-dojo') {
                 loadDojosList(); // Muat daftar dojo saat tab manajemen dojo aktif
+            } else if (tabName === 'manajemen-berita') { // New tab
+                loadNewsList(); // Load news list when news tab is active
             } else if (tabName === 'statistik') {
                 updateStatistics();
             }
@@ -946,6 +1173,7 @@
             document.getElementById('statistik-tab-button').addEventListener('click', () => showTab('statistik'));
             document.getElementById('manajemen-dojo-tab-button').addEventListener('click', () => showTab('manajemen-dojo'));
             document.getElementById('manajemen-anggota-tab-button').addEventListener('click', () => showTab('manajemen-anggota'));
+            document.getElementById('manajemen-berita-tab-button').addEventListener('click', () => showTab('manajemen-berita')); // New news tab
             document.getElementById('kontrol-ujian-tab-button').addEventListener('click', () => showTab('kontrol-ujian'));
 
             // Tambahkan event listener untuk tombol Tambah Dojo (di dalam tab Manajemen Dojo)
@@ -990,6 +1218,34 @@
                 });
             }
 
+            // Add event listener for "Tambah Berita/Kegiatan" button
+            const addNewsButtonForm = document.getElementById('add-news-button-form');
+            if (addNewsButtonForm) {
+                addNewsButtonForm.addEventListener('click', () => showAddEditNewsModal());
+            }
+            // Add event listener for Add/Edit News form submission
+            const addEditNewsForm = document.getElementById('add-edit-news-form');
+            if (addEditNewsForm) {
+                addEditNewsForm.addEventListener('submit', handleAddEditNews);
+            }
+            // Add event listener for Close button on Add/Edit News modal
+            const closeAddEditNewsModal = document.getElementById('close-add-edit-news-modal');
+            if (closeAddEditNewsModal) {
+                closeAddEditNewsModal.addEventListener('click', () => {
+                    const modal = document.getElementById('add-edit-news-modal');
+                    if (modal) modal.classList.remove('active');
+                });
+            }
+
+            // Add event listener for close button on confirm delete news modal
+            const cancelDeleteNewsBtn = document.getElementById('cancel-delete-news-btn');
+            if (cancelDeleteNewsBtn) {
+                cancelDeleteNewsBtn.addEventListener('click', () => {
+                    document.getElementById('confirm-delete-news-modal').classList.remove('active');
+                });
+            }
+
+
             // Tambahkan event listener untuk tombol Toggle Portal Ujian
             const togglePortalButton = document.getElementById('toggle-portal-button');
             if (togglePortalButton) {
@@ -1031,6 +1287,7 @@
                 <button id="statistik-tab-button" class="tab-button active">Statistik</button>
                 <button id="manajemen-dojo-tab-button" class="tab-button">Manajemen Dojo</button>
                 <button id="manajemen-anggota-tab-button" class="tab-button">Manajemen Anggota</button>
+                <button id="manajemen-berita-tab-button" class="tab-button">Manajemen Berita/Kegiatan</button> <!-- New tab button -->
                 <button id="kontrol-ujian-tab-button" class="tab-button">Kontrol Ujian</button>
             </div>
 
@@ -1132,6 +1389,21 @@
                     </div>
                 </div>
 
+                <!-- Konten Tab Manajemen Berita/Kegiatan -->
+                <div id="manajemen-berita-content" class="tab-content tab-content-section hidden">
+                    <h3 class="text-2xl font-bold text-secondary mb-6 text-center">Manajemen Berita & Kegiatan</h3>
+                    <div class="text-center mb-6">
+                        <button id="add-news-button-form" class="bg-purple-600 text-white px-6 py-3 rounded-full font-bold hover:bg-purple-700 transition duration-300 shadow-md">
+                            <i class="fas fa-plus-circle mr-2"></i>Tambahkan Berita/Kegiatan Baru
+                        </button>
+                    </div>
+                    <h4 class="text-xl font-bold text-secondary mb-4 text-center">Daftar Berita & Kegiatan Saat Ini</h4>
+                    <div id="news-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- News/Activities will be loaded here by JavaScript -->
+                        <p class="text-center text-gray-500 col-span-full">Memuat berita/kegiatan...</p>
+                    </div>
+                </div>
+
                 <!-- Konten Tab Kontrol Ujian -->
                 <div id="kontrol-ujian-content" class="tab-content tab-content-section hidden">
                     <h3 class="text-2xl font-bold text-secondary mb-6 text-center">Kontrol Portal Ujian</h3>
@@ -1157,10 +1429,6 @@
                 <div>
                     <input type="text" id="member-name" placeholder="Nama Lengkap" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
                 </div>
-                <!-- Email input removed as per user request -->
-                <!-- <div>
-                    <input type="email" id="member-email" placeholder="Email Aktif" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-                </div> -->
                 <div>
                     <input type="url" id="member-photo-url" placeholder="URL Foto Profil (Opsional)" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
                 </div>
@@ -1250,6 +1518,34 @@
         </div>
     </div>
 
+    <!-- Modal Tambah/Edit Berita/Kegiatan -->
+    <div id="add-edit-news-modal" class="modal-overlay">
+        <div class="modal-content !max-w-xl !py-8 !px-6">
+            <h3 class="text-2xl font-bold text-primary mb-6" id="add-edit-news-title">Tambahkan Berita/Kegiatan Baru</h3>
+            <form id="add-edit-news-form" class="space-y-4">
+                <div>
+                    <input type="text" id="news-title" placeholder="Judul Berita/Kegiatan" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                </div>
+                <div>
+                    <input type="date" id="news-date" placeholder="Tanggal (YYYY-MM-DD)" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                </div>
+                <div>
+                    <input type="url" id="news-image-url" placeholder="URL Gambar (Opsional)" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                <div>
+                    <textarea id="news-content" placeholder="Konten Berita/Kegiatan" rows="6" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary resize-y" required></textarea>
+                </div>
+                <button type="submit" class="w-full bg-primary text-white px-6 py-3 rounded-full font-bold hover:bg-red-700 transition duration-300 shadow-md">
+                    Simpan Berita/Kegiatan
+                </button>
+            </form>
+            <div id="add-edit-news-message" class="mt-4 text-center text-lg font-semibold"></div>
+            <button id="close-add-edit-news-modal" class="mt-4 bg-gray-400 text-white px-6 py-3 rounded-full font-bold hover:bg-gray-500 transition duration-300">
+                Tutup
+            </button>
+        </div>
+    </div>
+
     <!-- Modal Konfirmasi Hapus Anggota -->
     <div id="confirm-delete-modal" class="modal-overlay">
         <div class="modal-content !max-w-sm !py-8 !px-6">
@@ -1276,6 +1572,22 @@
                     Ya, Hapus
                 </button>
                 <button id="cancel-delete-dojo-btn" class="bg-gray-400 text-white px-5 py-2 rounded-full font-bold hover:bg-gray-500 transition duration-300">
+                    Batal
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Konfirmasi Hapus Berita/Kegiatan -->
+    <div id="confirm-delete-news-modal" class="modal-overlay">
+        <div class="modal-content !max-w-sm !py-8 !px-6">
+            <h3 class="text-xl font-bold text-red-600 mb-4">Konfirmasi Hapus Berita/Kegiatan</h3>
+            <p class="text-gray-700 mb-6">Anda yakin ingin menghapus berita/kegiatan ini secara permanen?</p>
+            <div class="flex justify-center space-x-4">
+                <button id="confirm-delete-news-btn" class="bg-red-500 text-white px-5 py-2 rounded-full font-bold hover:bg-red-600 transition duration-300">
+                    Ya, Hapus
+                </button>
+                <button id="cancel-delete-news-btn" class="bg-gray-400 text-white px-5 py-2 rounded-full font-bold hover:bg-gray-500 transition duration-300">
                     Batal
                 </button>
             </div>
